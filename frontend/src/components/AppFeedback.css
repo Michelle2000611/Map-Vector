@@ -1,0 +1,38 @@
+.ant-notification .app-feedback {
+ width:360px;
+ max-width:calc(100vw - 32px);
+ margin-inline:0;
+ padding:14px 38px 14px 16px;
+}
+.app-feedback .ant-notification-notice-message {
+ margin-bottom:0;
+ padding-inline-end:0;
+ font-size:14px;
+ line-height:1.6;
+ overflow-wrap:anywhere;
+ white-space:pre-wrap;
+ max-height:min(42vh,320px);
+ overflow-y:auto;
+}
+.app-feedback .ant-notification-notice-close {
+ inset-inline-end:12px;
+ top:14px;
+}
+.app-feedback-details {
+ margin:8px 0 0;
+ max-height:min(42vh,320px);
+ overflow:auto;
+ white-space:pre-wrap;
+ overflow-wrap:anywhere;
+ font-size:12px;
+}
+.app-feedback-loading-icon {
+ width:18px;
+ height:18px;
+ border:2px solid #d6e4ff;
+ border-top-color:#1677ff;
+ border-radius:50%;
+ animation:app-feedback-spin .8s linear infinite;
+}
+@keyframes app-feedback-spin {to {transform:rotate(360deg);}}
+@media (prefers-reduced-motion:reduce) {.app-feedback-loading-icon {animation:none;border-top-color:#1677ff;border-right-color:#1677ff;}}

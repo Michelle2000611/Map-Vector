@@ -1,0 +1,34 @@
+{
+  "engine_id": "rapidocr",
+  "engine_version": "3.4.5",
+  "model_id": "PP-OCRv4",
+  "license": "Apache-2.0 (source package declaration; redistribution review pending)",
+  "source": "scan2arcgis local rapidocr model cache",
+  "files": [
+    {
+      "rel_path": "ch_PP-OCRv4_det_infer.onnx",
+      "sha256": "d2a7720d45a54257208b1e13e36a8479894cb74155a5efe29462512d42f49da9",
+      "byte_size": 4745517
+    },
+    {
+      "rel_path": "ch_PP-OCRv4_rec_infer.onnx",
+      "sha256": "48fc40f24f6d2a207a2b1091d3437eb3cc3eb6b676dc3ef9c37384005483683b",
+      "byte_size": 10857958
+    },
+    {
+      "rel_path": "ch_ppocr_mobile_v2.0_cls_infer.onnx",
+      "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c",
+      "byte_size": 585532
+    },
+    {
+      "rel_path": "ppocr_keys_v1.txt",
+      "sha256": "28b2362ad4ab2dc38769aa72feb535e3a9ddb3fd2a7585a05920e6393b1dc7f7",
+      "byte_size": 26249
+    },
+    {
+      "rel_path": "ppocrv5_dict.txt",
+      "sha256": "d1979e9f794c464c0d2e0b70a7fe14dd978e9dc644c0e71f14158cdf8342af1b",
+      "byte_size": 74012
+    }
+  ]
+}

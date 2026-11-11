@@ -1,0 +1,34 @@
+.workspace-inspector-heading h3{font-family:inherit}
+.property-card{--property-input-width:180px}
+.property-card .object-appearance-properties{display:grid;grid-template-columns:repeat(2,minmax(0,var(--property-input-width)));gap:10px 12px;align-items:start}
+.property-card .text-appearance-properties{grid-template-columns:repeat(4,minmax(0,var(--property-input-width)));width:min(calc(var(--property-input-width)*4 + 36px),100%)}
+.property-card .property-source-crop,.property-card .text-position-fields{grid-column:1 / -1}
+.property-card .object-appearance-properties>.ant-input-group-wrapper,.property-card .object-appearance-properties>.property-labeled-field{width:100%;min-width:0}
+.property-card .property-actions>.property-labeled-field,.property-card .object-property-content>.ant-input-number{width:var(--property-input-width);max-width:100%;min-width:0}
+.property-card .text-position-fields{width:min(calc(var(--property-input-width)*4 + 36px),calc(100cqw - 30px));max-width:none;overflow-x:auto}
+.property-card .text-position-grid{grid-template-columns:repeat(4,minmax(100px,1fr));gap:12px}
+.property-card .property-field-label{padding-inline:8px}
+.property-card .property-actions .ant-btn,.property-card .property-button-grid>.ant-btn,.property-card .object-property-content .ant-btn,.workspace-inspector-footer .ant-btn,.ant-drawer-footer .property-delete-action.ant-btn{width:104px;max-width:100%;height:32px;min-height:32px;padding:4px 8px;white-space:nowrap;line-height:1.5;font-size:13px}
+.property-card .property-button-grid{display:flex;flex-wrap:wrap;gap:8px;max-width:100%;width:100%}
+.property-card .property-button-grid>.property-full-width{grid-column:auto}
+.property-card .property-actions{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;align-items:flex-start}
+.property-card .property-action-section{align-items:flex-start}
+.workspace-inspector-footer{flex:none;position:sticky;bottom:0;margin-top:auto;padding:10px 14px;background:#fff;z-index:5}
+.workspace-inspector-footer .property-delete-action{display:block}
+.property-card .property-delete-footer{position:sticky;bottom:-14px;padding-top:12px;padding-bottom:4px;background:#fff;z-index:5}
+.comparison-mode .workspace-property-slot>.property-card{min-height:100%;display:flex;flex-direction:column}
+.comparison-mode .workspace-property-slot>.property-card>.ant-card-body{display:flex;flex:1;flex-direction:column}
+.comparison-mode .workspace-property-slot .object-property-content{flex:1}
+.comparison-mode .property-delete-footer{margin-top:auto}
+.property-delete-action.ant-btn:disabled{display:inline-flex}
+.property-card .object-property-content .ant-tabs-tabpane .property-actions .ant-btn,.property-card .object-property-content .ant-tabs-tabpane .property-button-grid>.ant-btn{height:32px;min-height:32px;padding-block:4px}
+.property-card{container-name:property-form;container-type:inline-size}
+@container property-form (max-width:400px){.property-card .object-appearance-properties{grid-template-columns:minmax(0,var(--property-input-width))}}
+@container property-form (max-width:430px){.property-card .text-appearance-properties{grid-template-columns:repeat(2,minmax(0,var(--property-input-width)))}}
+@container property-form (max-width:390px){.property-card .text-appearance-properties{grid-template-columns:minmax(0,var(--property-input-width))}}
+
+.property-operation-group{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:8px;flex:0 0 auto;max-width:100%}
+.property-card .object-property-content .property-operation-group>.ant-btn{flex:none}
+.property-card .object-property-content .property-button-wide.ant-btn{width:128px}
+.property-card .object-property-content .property-batch-apply>.ant-btn,.property-delete-action.ant-btn{width:auto;min-width:104px;padding-inline:12px}
+.workspace-inspector-footer .property-delete-action.ant-btn,.ant-drawer-footer .property-delete-action.ant-btn{width:auto;min-width:104px;padding-inline:12px}

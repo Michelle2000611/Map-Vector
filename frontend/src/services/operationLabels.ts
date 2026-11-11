@@ -1,0 +1,5 @@
+const names:Record<string,string>={restore_ocr_layout:'恢复原图文字排版',adopt_run:'保存识别结果',cleanup_text_residue:'清理文字残影',delete_text:'删除文字',create_text:'补录文字',update_text:'修改文字',confirm_text:'确认文字',skip_text:'跳过文字',classify_review:'文字置信度分流',adopt_ocr_candidate:'采用文字候选',create_line:'补画线',delete_lines:'删除线',isolate_lines:'隔离线',restore_lines:'恢复隔离线',split_line:'拆分线',join_lines:'接续线',merge_adjacent_faces:'合并相邻面',merge_face_components:'按相连组合并面',heal_faces:'修复碎面',split_faces:'沿线切分面',line_to_face:'线转窄面',set_feature_color:'修改对象颜色',set_line_width:'修改线宽',set_line_role:'修改线角色',group_features:'对象归组',ungroup_features:'解除分组',set_style:'保存图例样式',bind_style:'绑定图例样式',set_layer:'修改图层显示',set_roi:'设置处理范围',undo:'撤销',redo:'重做',restore_snapshot:'恢复工作版本'};
+const statuses:Record<string,string>={applied:'已执行',undone:'已撤销',abandoned:'已被后续操作替代'};
+const additionalNames:Record<string,string>={delete_faces:'删除面对象',set_feature_properties:'修改对象属性',repair_face_geometry:'修复面几何',apply_line_check:'线检查修复'};
+export const operationLabel=(value:string)=>additionalNames[value]??names[value]??'其他编辑';
+export const operationStatusLabel=(value:string)=>statuses[value]??'未知状态';

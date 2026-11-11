@@ -1,0 +1,11 @@
+.face-merge-tools{display:flex;flex-direction:column;gap:14px;min-width:0}
+.face-merge-toolbar,.face-merge-selection{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}
+.face-merge-selection>span{font-size:12px;color:#65758a}
+.face-merge-table-wrap{min-width:0;overflow-x:auto}
+.face-merge-table{width:100%;min-width:620px;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.face-merge-table th,.face-merge-table td{text-align:left;padding:9px 8px;border-bottom:1px solid #edf0f4;vertical-align:top;overflow-wrap:anywhere}
+.face-merge-table th{font-weight:500;color:#526278;background:#f7f9fc}
+.face-merge-table th:nth-child(1){width:46px}.face-merge-table th:nth-child(2){width:72px}.face-merge-table th:nth-child(3){width:50px}.face-merge-table th:nth-child(4){width:102px}.face-merge-table th:last-child{width:146px}
+.face-merge-table small{display:block;margin-top:4px;color:#65758a}.face-merge-table details{margin-top:6px;color:#65758a}.face-merge-table summary{cursor:pointer}
+.face-merge-row-actions{display:flex;gap:6px;flex-wrap:wrap}
+.property-card .object-property-content .face-merge-row-actions>.ant-btn{width:auto;min-width:48px;padding-inline:8px}

@@ -1,0 +1,53 @@
+{
+  "equivalent": true,
+  "layers": {
+    "colour_faces": {
+      "baseline_area_or_length": 655844.0,
+      "baseline_bounds": [
+        0.0,
+        0.0,
+        826.0,
+        794.0
+      ],
+      "baseline_count": 19119,
+      "current_area_or_length": 655844.0,
+      "current_bounds": [
+        0.0,
+        0.0,
+        826.0,
+        794.0
+      ],
+      "current_count": 19119,
+      "geometry_and_attributes_equal": true
+    },
+    "visual_lines": {
+      "baseline_area_or_length": 16890.85208817051,
+      "baseline_bounds": [
+        10.5,
+        4.5,
+        825.5,
+        782.3
+      ],
+      "baseline_count": 575,
+      "current_area_or_length": 16890.85208817051,
+      "current_bounds": [
+        10.5,
+        4.5,
+        825.5,
+        782.3
+      ],
+      "current_count": 575,
+      "geometry_and_attributes_equal": true
+    }
+  },
+  "runtime": {
+    "geopandas": "1.1.4",
+    "numpy": "1.26.4",
+    "pillow": "10.1.0",
+    "pyogrio": "0.13.0",
+    "rasterio": "1.4.4",
+    "scikit-image": "0.24.0",
+    "scipy": "1.15.3",
+    "shapely": "2.2.0"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "api_port_8840": "in_use",
+  "dependencies": {
+    "fastapi": "0.115.6",
+    "map-vector": "0.1.0",
+    "numpy": "1.26.4",
+    "onnxruntime": "1.23.2",
+    "psutil": "7.2.2",
+    "pydantic": "2.10.4",
+    "pyogrio": "0.13.0",
+    "rapidocr": "3.4.5",
+    "rasterio": "1.4.4",
+    "shapely": "2.2.0"
+  },
+  "frontend_built": true,
+  "models": {
+    "paddle": {
+      "available": true,
+      "missing_or_invalid": [],
+      "model_id": "PP-OCRv6_medium_det+PP-OCRv6_medium_rec+PP-LCNet_x1_0_textline_ori"
+    },
+    "rapid": {
+      "available": true,
+      "missing_or_invalid": [],
+      "model_id": "PP-OCRv4"
+    }
+  },
+  "project_root": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector",
+  "python": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\.venv\\Scripts\\python.exe",
+  "python_version": "3.11.9 (tags/v3.11.9:de54cf5, Apr  2 2024, 10:12:12) [MSC v.1938 64 bit (AMD64)]",
+  "workspace": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\workspaces\\default"
+}

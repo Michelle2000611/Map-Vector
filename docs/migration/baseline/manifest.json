@@ -1,0 +1,5048 @@
+{
+  "baseline_commit": "c7b74d9c9a16d1b082f0dab694cecc8dc45363f9",
+  "model_inventory_status": "rapid_and_paddle_manifests_verified",
+  "patch_sha256": "9ebe4d3523c075879e292c368248c060da3cb49096a8261f663334fd81b0c78d",
+  "runtime_equivalence_status": "one_real_826x794_sample_exact_geometry_and_attributes",
+  "source_files": [
+    {
+      "byte_size": 1608,
+      "rel_path": "README.md",
+      "sha256": "30408ee18b2118d52ef6a7ae0ee27ec603f548aa7f2a4a7a079796b3f3739943",
+      "tracked": true
+    },
+    {
+      "byte_size": 1112,
+      "rel_path": "configs/thresholds.yaml",
+      "sha256": "41ac9ae6ec1a0e20d8d788df917cf3bbadf92ef281258d88d9be36c10eebd1d4",
+      "tracked": true
+    },
+    {
+      "byte_size": 472,
+      "rel_path": "data/README.md",
+      "sha256": "219526c4d72b9dd703e0cc16e4997b7fbe2ec6c3822ca195c93d0e5967e0a04a",
+      "tracked": true
+    },
+    {
+      "byte_size": 1691,
+      "rel_path": "data/manifests/gsj_sheets.json",
+      "sha256": "53d20a2fab12855303894ae74e72b681c792e0fb65ce405663111ae7c4d4e6de",
+      "tracked": true
+    },
+    {
+      "byte_size": 10363,
+      "rel_path": "docs/audits/project_recovery_20261027/01_project_overview.md",
+      "sha256": "a1a737da7bbcd84e1f58a6fed5f86c572b8e05ad35ed613c2262774b121542ad",
+      "tracked": true
+    },
+    {
+      "byte_size": 8313,
+      "rel_path": "docs/audits/project_recovery_20261027/02_development_history.md",
+      "sha256": "ec0213999f3936cd6621ace1d0b524170ad5ae879352a0c2a5cbe09e0d469602",
+      "tracked": true
+    },
+    {
+      "byte_size": 6818,
+      "rel_path": "docs/audits/project_recovery_20261027/03_root_cause_analysis.md",
+      "sha256": "a8bc4d986670ceaedf162057f6bde2b3c05f76b237f2801793163a61cb56c619",
+      "tracked": true
+    },
+    {
+      "byte_size": 8614,
+      "rel_path": "docs/audits/project_recovery_20261027/04_technical_architecture_review.md",
+      "sha256": "ccdb5233c52b1d72cc796c9f4b41160c6c26b247485ad3108224f627af984e2c",
+      "tracked": true
+    },
+    {
+      "byte_size": 8796,
+      "rel_path": "docs/audits/project_recovery_20261027/05_alternative_solutions.md",
+      "sha256": "9a5c8ac75a714ebf937a26f9c1cebc0fe43d6a3e819558a28014cccca3dcb93a",
+      "tracked": true
+    },
+    {
+      "byte_size": 6542,
+      "rel_path": "docs/audits/project_recovery_20261027/06_recovery_roadmap.md",
+      "sha256": "3906643ee9b3767dc484a221dfbe8b81af932906d88a122ef28bdceb41f67e68",
+      "tracked": true
+    },
+    {
+      "byte_size": 4992,
+      "rel_path": "docs/audits/project_recovery_20261027/07_acceptance_framework.md",
+      "sha256": "53bc7fbd76752f334fbf63f231931b185ab3281e0c5d0666f51a8ab0eeec6d05",
+      "tracked": true
+    },
+    {
+      "byte_size": 5142,
+      "rel_path": "docs/audits/project_recovery_20261027/08_executive_decision_memo.md",
+      "sha256": "dc674eff48a359f7b4e6eebc2aa0d9a65714280c32895f938db9d6b5c2c53191",
+      "tracked": true
+    },
+    {
+      "byte_size": 3330,
+      "rel_path": "docs/audits/project_recovery_20261027/README.md",
+      "sha256": "f4da7e6c412f3d33617b67b3e45f827a13d9ff6732199d14e8bd1d0d9ac2eee8",
+      "tracked": true
+    },
+    {
+      "byte_size": 49166,
+      "rel_path": "docs/audits/project_recovery_20261027/evidence/commit_timeline.txt",
+      "sha256": "14df4d4e368ae4d5e715ce5058ff003c55ec0574516912e607c7a352b832c53d",
+      "tracked": true
+    },
+    {
+      "byte_size": 905,
+      "rel_path": "docs/audits/project_recovery_20261027/evidence/environment.md",
+      "sha256": "e95fb264c83fd0152ac35adf3bcccd2ddfdd7307b3611498eed96758970f7b03",
+      "tracked": true
+    },
+    {
+      "byte_size": 561,
+      "rel_path": "docs/audits/project_recovery_20261027/evidence/pytest_by_dir_33e5f7b.txt",
+      "sha256": "293690487d8a3dca1a2560a67dec70be51494aa986787509f8b81aa2260730a7",
+      "tracked": true
+    },
+    {
+      "byte_size": 32650,
+      "rel_path": "docs/audits/project_recovery_20261027/evidence/pytest_failed_tests_33e5f7b.txt",
+      "sha256": "5d7da3b09c321a6e8c97abe6fa66c89f5de3fb94ce69a87019b5888cedf1da56",
+      "tracked": true
+    },
+    {
+      "byte_size": 4106,
+      "rel_path": "docs/audits/project_recovery_20261027/evidence/pytest_failure_signatures.txt",
+      "sha256": "c409d49892edc21c2eb03189356b37ed586ee4e8d22b4c05566a62333116d15c",
+      "tracked": true
+    },
+    {
+      "byte_size": 140,
+      "rel_path": "docs/audits/project_recovery_20261027/evidence/pytest_total_33e5f7b.txt",
+      "sha256": "04be7f04c1795f5bd7db8f62bea9315d593bcf39033bbb2d6b8d1b04f67e7b78",
+      "tracked": true
+    },
+    {
+      "byte_size": 6153,
+      "rel_path": "docs/audits/project_recovery_20261027/evidence_index.md",
+      "sha256": "5ec3e76dcf1ba7ac2699b6c0aa1525d15e173f9d7f58aabcc6f763b1a8bf55b9",
+      "tracked": true
+    },
+    {
+      "byte_size": 9205,
+      "rel_path": "docs/design/D0_dataset_spec.md",
+      "sha256": "e10d7a9c27674941750a16b817c5b821f6f40a5bd61dcfe5c4839b2987ea56bc",
+      "tracked": true
+    },
+    {
+      "byte_size": 6857,
+      "rel_path": "docs/design/evaluation_framework.md",
+      "sha256": "e827b3c4011bd0522d57ed48d8b27e5cbeb9f536ea5b8ee52fdbdb5553957e18",
+      "tracked": true
+    },
+    {
+      "byte_size": 2675,
+      "rel_path": "docs/plan/technical_route_v1.md",
+      "sha256": "1b629067312a247d6511109d94bfbb060aebbf7740be3d09e7e265ca6fed9f9b",
+      "tracked": true
+    },
+    {
+      "byte_size": 1171,
+      "rel_path": "docs/product/backlog_deferred.md",
+      "sha256": "43cee7d891c624357e6f4ba4f8566337347d6b38d970219f1c9ac34bd2843a28",
+      "tracked": true
+    },
+    {
+      "byte_size": 23355,
+      "rel_path": "docs/research/arch0/architecture_study.md",
+      "sha256": "085c52b311809ca27c12b024353bbccf0e67974072085d39604f213facea528b",
+      "tracked": true
+    },
+    {
+      "byte_size": 4381,
+      "rel_path": "docs/research/arch1/arch1_summary.md",
+      "sha256": "a1cda554f3649469d71f458d70a607547e621b88dabf11ca5d743b76f54cde87",
+      "tracked": true
+    },
+    {
+      "byte_size": 2858,
+      "rel_path": "docs/research/arch1/gate0_scope.md",
+      "sha256": "dfdd41f70ae7cdb268b914227aa6c85959113677db78b5fb80ac40ef2f3eac58",
+      "tracked": true
+    },
+    {
+      "byte_size": 5565,
+      "rel_path": "docs/research/arch1/gate1_evidence_audit.md",
+      "sha256": "2740e428f8c698d858ea8a2eba717d2ee7631fd2082394165117692ea9cb210d",
+      "tracked": true
+    },
+    {
+      "byte_size": 5675,
+      "rel_path": "docs/research/arch1/gate2_oracle_ablation.md",
+      "sha256": "e89a5504407e919b7c321fc44d2a4322f6098997f01497297ae418a3ee4ffed0",
+      "tracked": true
+    },
+    {
+      "byte_size": 3093,
+      "rel_path": "docs/research/arch1/gate3_line_width.md",
+      "sha256": "9d98cf99a2064285845863f08ae6d3397d94eebc849f43747eb0adb45f16afc3",
+      "tracked": true
+    },
+    {
+      "byte_size": 2837,
+      "rel_path": "docs/research/arch1/gate4_subdivision.md",
+      "sha256": "065ef24792d0d9c5c6e0b6ba2cfc145d004a094cca830e8cb05a45096a84162f",
+      "tracked": true
+    },
+    {
+      "byte_size": 6027,
+      "rel_path": "docs/research/arch1/gate5_cpair_design.md",
+      "sha256": "cdb33d39e2dccfbe7124b32913761373f2a93d346fccc1d04075c02b286845a3",
+      "tracked": true
+    },
+    {
+      "byte_size": 5783,
+      "rel_path": "docs/research/arch2/cpair_v0_1_design.md",
+      "sha256": "b2af3fea6383b370d96ba7bc59174ab33a23388a812a40b7c9b2095275124d8e",
+      "tracked": true
+    },
+    {
+      "byte_size": 4290,
+      "rel_path": "docs/research/arch2/gate1_result.md",
+      "sha256": "aba66391c20219a465b4d4b01773902a9d563486ccb3a7cd54831d5174b3c918",
+      "tracked": true
+    },
+    {
+      "byte_size": 2886,
+      "rel_path": "docs/research/arch2/prereg_amendment1.md",
+      "sha256": "63c7e766db35deedab2c7bdbc91b96f12cd84253d51aad1c1bdaf4bef5baeaae",
+      "tracked": true
+    },
+    {
+      "byte_size": 5760,
+      "rel_path": "docs/research/arch2/preregistration.md",
+      "sha256": "9c6da0113cd7f40c16a57cbdf1945d8ab52bb43e5aabae345dbb2ea0d7d7736b",
+      "tracked": true
+    },
+    {
+      "byte_size": 4134,
+      "rel_path": "docs/research/arch2/subdivision_correction.md",
+      "sha256": "26fb84bb8f5ea386102ccd4886294722161c49517ee3696fad3aa8bc8df4227c",
+      "tracked": true
+    },
+    {
+      "byte_size": 2421,
+      "rel_path": "docs/research/arch3/b_feasibility.md",
+      "sha256": "9366944204a8a6d113dc56d1fe6a5d1050d9319b060038fb9491157cd686be76",
+      "tracked": true
+    },
+    {
+      "byte_size": 7871,
+      "rel_path": "docs/research/auto_vectorization_r1/comparison_experiment.md",
+      "sha256": "1b05ed6b6df5de12e57f311c00685ae8d3ac93b093653327b7908cc18ece7788",
+      "tracked": true
+    },
+    {
+      "byte_size": 5421,
+      "rel_path": "docs/research/auto_vectorization_r1/confidence_design.md",
+      "sha256": "7d3375aea8fb51ab73801a7e6686ffdcf9ae87d21928705c6d9d33a569a8c9dc",
+      "tracked": true
+    },
+    {
+      "byte_size": 3700,
+      "rel_path": "docs/research/auto_vectorization_r1/evidence_index.md",
+      "sha256": "89ae68b7ea6787e81eb2b276c05521dde9715924ce8d828f6cea1c8117bde0e7",
+      "tracked": true
+    },
+    {
+      "byte_size": 5067,
+      "rel_path": "docs/research/auto_vectorization_r1/legacy_algorithm_review.md",
+      "sha256": "b602b44e7bc67446e4a9ac75f53c83c01ba39b1b1cc022d4a4b0e174045c87e1",
+      "tracked": true
+    },
+    {
+      "byte_size": 8948,
+      "rel_path": "docs/research/auto_vectorization_r1/mac_repro_20261027.md",
+      "sha256": "e9006bbd3159c285f914fad9677df23d649d3ddf7e8aee4ec7a18070f44423e7",
+      "tracked": true
+    },
+    {
+      "byte_size": 5139,
+      "rel_path": "docs/research/auto_vectorization_r1/modern_algorithm_candidates.md",
+      "sha256": "6d5168937b6d8988884927cc1763aac3b60fafc82adfd6e8bdcfce67a9675585",
+      "tracked": true
+    },
+    {
+      "byte_size": 3765,
+      "rel_path": "docs/research/auto_vectorization_r1/technical_recommendation.md",
+      "sha256": "5d520fe1961c43926d87af2205aefc4995bd3abad07d577d50985fb3909aba3e",
+      "tracked": true
+    },
+    {
+      "byte_size": 3472,
+      "rel_path": "docs/research/auto_vectorization_r1/vectorization_poc.md",
+      "sha256": "686df782eabab81f26874c251a7b951018fc6ca8dd28963c5024ae4c7d47cb6c",
+      "tracked": true
+    },
+    {
+      "byte_size": 11592,
+      "rel_path": "docs/research/r2_real_map/eval_diagnostics.md",
+      "sha256": "daed09667fa2f11b4f50cef895c10673c6bb5cdc0351696f2f9ba8c746b19e2c",
+      "tracked": true
+    },
+    {
+      "byte_size": 14376,
+      "rel_path": "docs/research/r2_real_map/external_survey/external_survey.md",
+      "sha256": "2f4e3a4a46955359f1d70ab92c073c0f8a9768e66aab31abcafce2c6c64964f5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1176,
+      "rel_path": "docs/research/r2_real_map/external_survey/repos_snapshot.json",
+      "sha256": "7a0dd7f3a7c2375f68363ddbb8cf0933ae623d14c32b329991ade1f9993bb00c",
+      "tracked": true
+    },
+    {
+      "byte_size": 6330,
+      "rel_path": "docs/research/r2_real_map/gsj_r1_baseline.md",
+      "sha256": "a25c902a9f073f222e13ea51a96d2e64bd22a8f9bec7404d47c37d9292628591",
+      "tracked": true
+    },
+    {
+      "byte_size": 18081,
+      "rel_path": "docs/research/r3/r3_fixes_report.md",
+      "sha256": "b95068058ff446881eefc8a65cf18f1a69cc6f26e4fc47bd4645192d103e3ac6",
+      "tracked": true
+    },
+    {
+      "byte_size": 10489,
+      "rel_path": "docs/research/r3/s1_semantic_ocr.md",
+      "sha256": "48cbf58742b2ec4c47f3124cc9123fe10b860b729ea90f4dbbb3494c3f075396",
+      "tracked": true
+    },
+    {
+      "byte_size": 8567,
+      "rel_path": "docs/research/r3/s2_line_polygon_fusion.md",
+      "sha256": "e7b9137e632509d829cd07d35650dbb6f7ed8d0e466d7084412e4ada285c8f3e",
+      "tracked": true
+    },
+    {
+      "byte_size": 4225,
+      "rel_path": "docs/research/r4a/architecture_coordinate_free.md",
+      "sha256": "6985c787aece88d170f0736a69928b67aa0bc81569a6fec3fcdab0fca8c13017",
+      "tracked": true
+    },
+    {
+      "byte_size": 6103,
+      "rel_path": "docs/research/r4a/geotiff_check.md",
+      "sha256": "9ae79f7b9da7e64c2e6a219a180e6591d366bb894bd10d8ef00458fe08b766af",
+      "tracked": true
+    },
+    {
+      "byte_size": 5246,
+      "rel_path": "docs/research/r4a/licence_audit.md",
+      "sha256": "2fe1a464a1455c0014116b27211502c47578628c29fd6def307eac2badfb3e3a",
+      "tracked": true
+    },
+    {
+      "byte_size": 5733,
+      "rel_path": "docs/research/r4a/r4a2_1_overfit_gate_v2.md",
+      "sha256": "72c11a27a3f7fb7ada231071fce0222484e120140b57b00bde62c24bc46405e2",
+      "tracked": true
+    },
+    {
+      "byte_size": 3958,
+      "rel_path": "docs/research/r4a/r4a2_1_p0_diagnosis.md",
+      "sha256": "0faee791e8c9020518801618ead51231574a6f4757fd98fdcf7c0580557bccef",
+      "tracked": true
+    },
+    {
+      "byte_size": 11766,
+      "rel_path": "docs/research/r4a/r4a2_2_report.md",
+      "sha256": "5f5d8d74055821e1424cd76443318bea5a38d96eb17c5f549fc47e8d7d70669c",
+      "tracked": true
+    },
+    {
+      "byte_size": 4439,
+      "rel_path": "docs/research/r4a/r4a2_2_training_authorization.md",
+      "sha256": "24687b3b1f097caca4f3821ffcad4f69e6b7578a02c1a1a9c3a2e9275865b6e1",
+      "tracked": true
+    },
+    {
+      "byte_size": 3875,
+      "rel_path": "docs/research/r4a/r4a2_overfit_gate.md",
+      "sha256": "8978f30f5bc4db30993aee6f63888a527768fcb401c3ef90e4ec1320974ae6fb",
+      "tracked": true
+    },
+    {
+      "byte_size": 7902,
+      "rel_path": "docs/research/r4a/registration_diagnosis.md",
+      "sha256": "55adeff4aa80294d40f5b3d4e11c4fc31fb092893672bfd00532387cf613a730",
+      "tracked": true
+    },
+    {
+      "byte_size": 1664,
+      "rel_path": "docs/research/r4b0/gate0_baseline.md",
+      "sha256": "3eff1de56be82a1546c86333f6f96ddae92e99cee017fa98bc91aef6b82c4a9e",
+      "tracked": true
+    },
+    {
+      "byte_size": 6428,
+      "rel_path": "docs/research/r4b0/gate1_thin_units.md",
+      "sha256": "3231085eba710356a2bf89811150b9a733f9b04304c5549d6a09950cdcf7b60b",
+      "tracked": true
+    },
+    {
+      "byte_size": 5904,
+      "rel_path": "docs/research/r4b0/gate2_postprocess_comparison.md",
+      "sha256": "556ceed2ac5401c0ef53e666f0ec31d5ad3655796d116f01523d5b4472357d22",
+      "tracked": true
+    },
+    {
+      "byte_size": 4495,
+      "rel_path": "docs/research/r4b0/gate3_oracle_counterfactual.md",
+      "sha256": "71966a09d47135060dc2ef2ea4ff866af16793ef8e2df905ac13faa1e779b11b",
+      "tracked": true
+    },
+    {
+      "byte_size": 5901,
+      "rel_path": "docs/research/r4b0/gate4_china_transfer.md",
+      "sha256": "4d27ddce948ddbee172f0ac06f8505bb746e8072406cb559fbca189a1d179ae0",
+      "tracked": true
+    },
+    {
+      "byte_size": 5074,
+      "rel_path": "docs/research/r4b0/gate5_decision.md",
+      "sha256": "1170ca5cf60e649cf9665de7db417ddb2479093c5010e790baa1d46fa788a275",
+      "tracked": true
+    },
+    {
+      "byte_size": 4530,
+      "rel_path": "docs/research/r4b0/preregistration.md",
+      "sha256": "ffb132946e00ff576884b858f8975107ad800194b172a0c56e8c25f528ed1b5b",
+      "tracked": true
+    },
+    {
+      "byte_size": 2900,
+      "rel_path": "docs/research/r4b0/r4b0_1_a1_report.md",
+      "sha256": "749be01bc5aeee10d7d1eb6d5badbe6b7e10efa6f3e6695043231d25493ef574",
+      "tracked": true
+    },
+    {
+      "byte_size": 3148,
+      "rel_path": "docs/research/r4b0/r4b0_1_c1_report.md",
+      "sha256": "ca1babbd59f08584692f29fa960594b71e30e71474745d1ae23bf35b6871d45b",
+      "tracked": true
+    },
+    {
+      "byte_size": 3421,
+      "rel_path": "docs/research/r4b0/r4b0_1_decision.md",
+      "sha256": "1b7585d68fd073585466063aa39c281ebb79cc18da9456df9e6c796eae11eee8",
+      "tracked": true
+    },
+    {
+      "byte_size": 4426,
+      "rel_path": "docs/research/r4b0/r4b0_1_preregistration.md",
+      "sha256": "e2f4f1dd73a24481653c845e36ee89a3716558915ac19aedf5d40c2f8c7fa62a",
+      "tracked": true
+    },
+    {
+      "byte_size": 890,
+      "rel_path": "docs/research/r4b1/gate0_seal.md",
+      "sha256": "fed95be0879acedfb5ba035aff50ade02880f49e4fc5972cfa49fa78947ed616",
+      "tracked": true
+    },
+    {
+      "byte_size": 4433,
+      "rel_path": "docs/research/r4b1/gate1_sampling_audit.md",
+      "sha256": "36482aa2209e11433256f750f4555736605ee091c0e412f649a81bf4346edc8c",
+      "tracked": true
+    },
+    {
+      "byte_size": 7086,
+      "rel_path": "docs/research/r4b1/gate2_label_conflict_audit.md",
+      "sha256": "ef6d199bf47e9cc22f23da4a0bdadc2d34ae6f579c306bd95aae4fe4a37bbff5",
+      "tracked": true
+    },
+    {
+      "byte_size": 3532,
+      "rel_path": "docs/research/r4b1t/gate0_width_reconciliation.md",
+      "sha256": "7dc046a7a3f62577a72a13eb9978026007d4dc1e90225a89ddfd1e2742c3abd9",
+      "tracked": true
+    },
+    {
+      "byte_size": 3458,
+      "rel_path": "docs/research/r4b1t/gate1_candidate_A.md",
+      "sha256": "87032598c18d0b1473365859d539df396ae0be93bbbe9d8f6412fd0fcc0657f3",
+      "tracked": true
+    },
+    {
+      "byte_size": 3529,
+      "rel_path": "docs/research/r4b1t/gate2_candidate_B.md",
+      "sha256": "48cf38622284c34edff716a5c5aaa53dfbfafd599dbbd05078712b151eece666",
+      "tracked": true
+    },
+    {
+      "byte_size": 4685,
+      "rel_path": "docs/research/r4b1t/gate3_label_reliability.md",
+      "sha256": "f2f5df91dfb14903357febdbeb98ddfdf3bb52f4125cee90b0ae84bfebed73ea",
+      "tracked": true
+    },
+    {
+      "byte_size": 4667,
+      "rel_path": "docs/research/r4b1t/gate4_5_decision.md",
+      "sha256": "45dda5802b4ad5635dcce969459fcaa0713625f117b01f3fb85e15528b811adf",
+      "tracked": true
+    },
+    {
+      "byte_size": 4088,
+      "rel_path": "docs/research/r4b1t/preregistration.md",
+      "sha256": "2f2041da99b21b35f906c445ca6db55b31e4943ccd5319dd20c1e664971ac480",
+      "tracked": true
+    },
+    {
+      "byte_size": 4386,
+      "rel_path": "docs/research/r4b2/preregistration.md",
+      "sha256": "7917c145a2185fff7741add70b91176e2d6d896e5484e4fff56132266fe8bf00",
+      "tracked": true
+    },
+    {
+      "byte_size": 2672,
+      "rel_path": "docs/research/r4b2/stage1_amendment.md",
+      "sha256": "de494cef69e563f0cd8ad5216d107246ddf4a1dae3307b842a6d186c30444e20",
+      "tracked": true
+    },
+    {
+      "byte_size": 3281,
+      "rel_path": "docs/research/r4b2/stage1_revised_report.md",
+      "sha256": "78d7b8b41ea9f0e7e9b7c4a23146c5720208e207bda74f3bab00f6436a58028d",
+      "tracked": true
+    },
+    {
+      "byte_size": 3462,
+      "rel_path": "docs/research/r4b2/stage1_stop_report.md",
+      "sha256": "6107c9e954301e10439f709ce41da7946559b3e5f1f553f54613672787a0bc26",
+      "tracked": true
+    },
+    {
+      "byte_size": 1461,
+      "rel_path": "docs/research/r4b2/stage2_training.md",
+      "sha256": "28d1ca9cb7e47bb808db5f0c6dea926403841fd564bdf0234c0e7fa099a772ef",
+      "tracked": true
+    },
+    {
+      "byte_size": 5870,
+      "rel_path": "docs/research/r4b2/stage4_evaluation.md",
+      "sha256": "47587fa7cffc9e475d3933f8888799015d6c949453fa56a2dd736a6611de28d9",
+      "tracked": true
+    },
+    {
+      "byte_size": 4714,
+      "rel_path": "docs/research/r4b2/stage5_decision.md",
+      "sha256": "8595069d8bb02eb85d2f653a63a5b03bcac7fec956ce92f4f2bc78370ea43218",
+      "tracked": true
+    },
+    {
+      "byte_size": 3395,
+      "rel_path": "docs/research/r4c0/gate1_overseg.md",
+      "sha256": "f8130dcc6339892ff1be1685de0b1704a047499e34719cbe2b3752c3de7ddf0a",
+      "tracked": true
+    },
+    {
+      "byte_size": 5043,
+      "rel_path": "docs/research/r4c0/gate3_dev_validation.md",
+      "sha256": "879ec3c7f20d5ccefe12e69318b24360a7d05b65a90abcf70dcea2226787483d",
+      "tracked": true
+    },
+    {
+      "byte_size": 4094,
+      "rel_path": "docs/research/r4c0/gate4_independent_test.md",
+      "sha256": "47149c785c7ebb3c7ea9da7970e282cb14dbe0c627dbfa7bd2fe8636bef2b78d",
+      "tracked": true
+    },
+    {
+      "byte_size": 3491,
+      "rel_path": "docs/research/r4c0/gate5_decision.md",
+      "sha256": "993475e682d64b7737246e16d943c22b267e5cbbd5953111a6881dcd8955964a",
+      "tracked": true
+    },
+    {
+      "byte_size": 8704,
+      "rel_path": "docs/research/r4c0/preregistration.md",
+      "sha256": "2d8b5aa25682fad7fd70a3d6025c6eb24376d3efd89fe54d2a38fab7b302a0cc",
+      "tracked": true
+    },
+    {
+      "byte_size": 3331,
+      "rel_path": "docs/research/r4c0/r4c0_1_gate0_audit.md",
+      "sha256": "eef1de2ac18c0577dfa00226867b7dab111c11d672d171413ffb129139bdf900",
+      "tracked": true
+    },
+    {
+      "byte_size": 5470,
+      "rel_path": "docs/research/r4c0/r4c0_1_gate1_2_qa_burden.md",
+      "sha256": "e55ef4cec7f1a971c791420f33a31c532c2fff3d6b726f103f7a2fc7ed5c1ee6",
+      "tracked": true
+    },
+    {
+      "byte_size": 4629,
+      "rel_path": "docs/research/r4c0/r4c0_1_gate3_r4c1_proposal.md",
+      "sha256": "f8d83ce14b1e1ad1af2df0778613a9caab916f1d8be0579486a167a3a374228d",
+      "tracked": true
+    },
+    {
+      "byte_size": 3123,
+      "rel_path": "docs/research/r4c0/r4c0_1b_attribution.md",
+      "sha256": "11aa623e32c66117b23d7d70b44bbb8d442aa18bb3ebe3d9a6f9695675e0c0b7",
+      "tracked": true
+    },
+    {
+      "byte_size": 2642,
+      "rel_path": "docs/research/r4c0/r4c0_1b_export_fix.md",
+      "sha256": "665ef84659f6f3b04720e727e9cee846c1f4d7955d23c01207adc94d39593641",
+      "tracked": true
+    },
+    {
+      "byte_size": 10916,
+      "rel_path": "docs/research/r4c0/r4c0_1b_research_report.md",
+      "sha256": "ad68d13a7e4b8686524f8480aea1a324ef4224a50e8567f3c9dcc32183541a82",
+      "tracked": true
+    },
+    {
+      "byte_size": 21427,
+      "rel_path": "docs/research/route_review_2026-10-30.md",
+      "sha256": "0a9cfbeb157819e97c6b4004b6f6d06ea72f51c39c15acb15ab3bdf47c1d8196",
+      "tracked": true
+    },
+    {
+      "byte_size": 10604,
+      "rel_path": "docs/research/stitchvector/d71_line_face_diagnostic.md",
+      "sha256": "529b80c1a202637f3337df28a32a20cd86253e72d9e202fa39efe87c4cefb576",
+      "tracked": true
+    },
+    {
+      "byte_size": 2315,
+      "rel_path": "docs/research/stitchvector/editor_line_repair_guide.md",
+      "sha256": "1f2f129fb49c5f8d30fc0278f914c9bd5d2fa5e3b4d591c194686642678c6477",
+      "tracked": true
+    },
+    {
+      "byte_size": 7659,
+      "rel_path": "docs/research/stitchvector/editor_line_repair_legend.md",
+      "sha256": "2aafeb10fa26201fc33c671b768d991492cb3f8be1b0bbbe73a40382ddcb66ad",
+      "tracked": true
+    },
+    {
+      "byte_size": 5665,
+      "rel_path": "docs/research/stitchvector/editor_poc0_poc1.md",
+      "sha256": "aa8fb364d8f01ea3e5e766be98e518274a90285a44e39413273400f496621232",
+      "tracked": true
+    },
+    {
+      "byte_size": 6705,
+      "rel_path": "docs/research/stitchvector/editor_text_layer.md",
+      "sha256": "0848ff46a6773bb5f8df86e8667b97d783953a3222474c3e719aa1afc7a27ac1",
+      "tracked": true
+    },
+    {
+      "byte_size": 2666,
+      "rel_path": "docs/research/stitchvector/editor_text_layer_guide.md",
+      "sha256": "0b8ad7eec623f71e04aac40e8aaefa137d97be47d767ed31f065590f4b98af6a",
+      "tracked": true
+    },
+    {
+      "byte_size": 10390,
+      "rel_path": "docs/research/stitchvector/editor_text_uat_pack.md",
+      "sha256": "bd588ff07454a8948ec676845a0c41269a18f0b17577bc7ab68d49c395723da2",
+      "tracked": true
+    },
+    {
+      "byte_size": 7664,
+      "rel_path": "docs/research/stitchvector/editor_text_visual_uat.md",
+      "sha256": "ae7db6fd309f3e3e36fc27f40975fd3dcf9abf818ea0370b666fa36c54446282",
+      "tracked": true
+    },
+    {
+      "byte_size": 3071,
+      "rel_path": "docs/research/stitchvector/editor_v01_guide.md",
+      "sha256": "df270e4098d4607e60bfe861f843ec43156a71450637be708fb38a78a9f267ad",
+      "tracked": true
+    },
+    {
+      "byte_size": 10988,
+      "rel_path": "docs/research/stitchvector/editor_v01_uat.md",
+      "sha256": "06aa87e25b7747da0359ace713a6bb7d5f2662812a43b72457e4c6b7c17c2f2d",
+      "tracked": true
+    },
+    {
+      "byte_size": 34366,
+      "rel_path": "docs/research/stitchvector/line_first_design_review.md",
+      "sha256": "e5fb1b4b80fe1b1031890ca06a70d3282986d44fe2f4e90d22e225fe69db1286",
+      "tracked": true
+    },
+    {
+      "byte_size": 20512,
+      "rel_path": "docs/research/stitchvector/line_recovery_review.md",
+      "sha256": "362ae4208964503cdb86cb11f0744aa97621c395cc2aede1cdae48112e8e38d6",
+      "tracked": true
+    },
+    {
+      "byte_size": 19554,
+      "rel_path": "docs/research/stitchvector/oracle_line_face_result.md",
+      "sha256": "de8175128df18f568afd6e17a9b283d00aa0f18b02550a47c6beb517d604da97",
+      "tracked": true
+    },
+    {
+      "byte_size": 17347,
+      "rel_path": "docs/research/stitchvector/oracle_p0_auto_line_synth.md",
+      "sha256": "552a3c0b40ffb447eedeef73b0a653eee0325ea7a3f1d9dc7b7ca10455462faf",
+      "tracked": true
+    },
+    {
+      "byte_size": 2929,
+      "rel_path": "docs/research/stitchvector/poc01_preregistration.md",
+      "sha256": "3b6b9228f78c4811ed9f2233b18a01300b72930cd0a5bead8103e3f73d37c743",
+      "tracked": true
+    },
+    {
+      "byte_size": 3800,
+      "rel_path": "docs/research/stitchvector/recovery_r1_verification.md",
+      "sha256": "23c06e22eee7077708fde96207bcc7d2b9c3b18d2c284a2f3e07ee868fded819",
+      "tracked": true
+    },
+    {
+      "byte_size": 3252,
+      "rel_path": "docs/research/stitchvector/recovery_r2_result.md",
+      "sha256": "66f0c5b63baf2e45aac3bd08951781e830e3a0742531f78aaef88c7adff68109",
+      "tracked": true
+    },
+    {
+      "byte_size": 2580,
+      "rel_path": "docs/research/stitchvector/recovery_report.md",
+      "sha256": "036db1938c57ddbd9b2ee98317b7177943a5a19e6843ae9027d222bd8f27668a",
+      "tracked": true
+    },
+    {
+      "byte_size": 14980,
+      "rel_path": "docs/research/stitchvector/route_review.md",
+      "sha256": "9d33296eb127be2fe4035f45f54e209bc299be6c674bda25b4f0f2656ab80a87",
+      "tracked": true
+    },
+    {
+      "byte_size": 9440,
+      "rel_path": "docs/research/stitchvector/u2_full_validation_report.md",
+      "sha256": "953bad9a7c57e6d080c3d5681707fd7340b42310042ae8f0861a2daab1250ae4",
+      "tracked": true
+    },
+    {
+      "byte_size": 6568,
+      "rel_path": "docs/research/stitchvector/u2_visual_diff_report.md",
+      "sha256": "32f0b0a86f1d9578a5f1efc2d55c718ca9c67f487a0d9cb22287ac76a6cf2038",
+      "tracked": true
+    },
+    {
+      "byte_size": 8206,
+      "rel_path": "docs/research/stitchvector/v3_b2b_edge_filter_review.md",
+      "sha256": "2d74b7528e3989f8d08ba211c695ff5f9f3873b456987d6c5fe23008cb5080c2",
+      "tracked": true
+    },
+    {
+      "byte_size": 11438,
+      "rel_path": "docs/research/stitchvector/v3_b2c_luminance_review.md",
+      "sha256": "010fb79f6f249b090c1af20c5a95951cb8c2cd8ae37f8f2e46fb0cc727e68639",
+      "tracked": true
+    },
+    {
+      "byte_size": 7610,
+      "rel_path": "docs/research/stitchvector/v3_geometry_first_discussion.md",
+      "sha256": "1a580624767d6c01c4e5a25511bdb86fffa1b899ddb3a341296e6105905e6aaa",
+      "tracked": true
+    },
+    {
+      "byte_size": 10400,
+      "rel_path": "docs/research/stitchvector/v3_geometry_first_metrics.md",
+      "sha256": "e1db87a38f399e9737d00173a38f066420bbb109badebf5406e040bfd5c55d68",
+      "tracked": true
+    },
+    {
+      "byte_size": 13219,
+      "rel_path": "docs/research/stitchvector/v3_line_detection_review.md",
+      "sha256": "dce49c24d7e9aac02c4ea077ef3ed6dd77242b122e1e950118da6179cccfb29f",
+      "tracked": true
+    },
+    {
+      "byte_size": 10904,
+      "rel_path": "docs/research/stitchvector/v3_line_error_triage.md",
+      "sha256": "855d46c8de0cf5766d03e4c9d98794bff5d063ba65f702a809b0f9cfe8f95b90",
+      "tracked": true
+    },
+    {
+      "byte_size": 9664,
+      "rel_path": "docs/research/stitchvector/v3_line_face_integration.md",
+      "sha256": "7bc615299deaf9ccf725b48ee8b0767622400edf009465e326fb744a7d5cdd8d",
+      "tracked": true
+    },
+    {
+      "byte_size": 11514,
+      "rel_path": "docs/research/stitchvector/v3_line_geometry_attribution.md",
+      "sha256": "7e76789078be446934697e28eb18d50c8ca99de58a40755e999916b6f0890db3",
+      "tracked": true
+    },
+    {
+      "byte_size": 13067,
+      "rel_path": "docs/research/stitchvector/v3_minimal_line_recovery.md",
+      "sha256": "4f3ff2edda367925a2bd3505ba61a7c6e109abb05d511b4501d58a8e295de92d",
+      "tracked": true
+    },
+    {
+      "byte_size": 7156,
+      "rel_path": "docs/research/stitchvector/v3_protection_ablation.md",
+      "sha256": "240b8d5e2d41edf4687fbb040aa8760ee6e871511715561f1d1a10b9dce1c2f3",
+      "tracked": true
+    },
+    {
+      "byte_size": 10453,
+      "rel_path": "docs/research/stitchvector/v3_u2_real_replication.md",
+      "sha256": "fcb147924087747714183b2a87af74f8a75e009531928a79c92bc526a1aa0a32",
+      "tracked": true
+    },
+    {
+      "byte_size": 4357,
+      "rel_path": "docs/review/2026-10-27_public_release_review.md",
+      "sha256": "e2127ebeb397c4428e5e742e307baae12c2eb3bf70b8013481ef42c43d403f5f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1703,
+      "rel_path": "docs/stitchvector_studio/v01/api_spec.md",
+      "sha256": "1360291c3316a55abc1d0d2a87bb96710ee0743f54d855c2a74aeccd8701f0c3",
+      "tracked": true
+    },
+    {
+      "byte_size": 1559,
+      "rel_path": "docs/stitchvector_studio/v01/architecture_design.md",
+      "sha256": "5466a2bec4dcb73478cc698fd6f6dac2843d8f13f2e6be05a6dd67a4f2471d6f",
+      "tracked": true
+    },
+    {
+      "byte_size": 2013,
+      "rel_path": "docs/stitchvector_studio/v01/architecture_inventory.md",
+      "sha256": "221e6e85f66fa2a213ef46db8b2b2399009d3a02d422de7ffbb960db47c2cbf7",
+      "tracked": true
+    },
+    {
+      "byte_size": 1376,
+      "rel_path": "docs/stitchvector_studio/v01/export_format_spec.md",
+      "sha256": "8a834e36bcfe7dabb1e0f885ff6c9901745cb682ac87da22b53c5971e719e88b",
+      "tracked": true
+    },
+    {
+      "byte_size": 1328,
+      "rel_path": "docs/stitchvector_studio/v01/geology_aware_vnext_plan.md",
+      "sha256": "6faf7263a7d70b301b09dcd442dfd6d597b63e94671e540d21ddec7af5003943",
+      "tracked": true
+    },
+    {
+      "byte_size": 4272,
+      "rel_path": "docs/stitchvector_studio/v01/handoff_report_2026-11-02.md",
+      "sha256": "7de03df2929bc2dda3e563dbf952d874fc383c3e49c7c1792e90a78d54082e0e",
+      "tracked": true
+    },
+    {
+      "byte_size": 1489,
+      "rel_path": "docs/stitchvector_studio/v01/input_format_spec.md",
+      "sha256": "9a2249aad08244e3243db99fea96637c5f7e65bde10faa6b61b0be12b3684b65",
+      "tracked": true
+    },
+    {
+      "byte_size": 1286,
+      "rel_path": "docs/stitchvector_studio/v01/pipeline_current_vs_target.md",
+      "sha256": "93e363995b62cd35d58c7d7ff3c39b9e2404ed51892fb486c622005ae0339ed2",
+      "tracked": true
+    },
+    {
+      "byte_size": 1255,
+      "rel_path": "docs/stitchvector_studio/v01/pipeline_plugin_contract.md",
+      "sha256": "684c308fe05ac224adbb59899563aaefb62feb62ea03a081b11d222881b98b31",
+      "tracked": true
+    },
+    {
+      "byte_size": 1476,
+      "rel_path": "docs/stitchvector_studio/v01/pipeline_spec.md",
+      "sha256": "768c09344d70465008e39b2eb00cbf91a8bfdba06810073ec10e348b40e1cf47",
+      "tracked": true
+    },
+    {
+      "byte_size": 2410,
+      "rel_path": "docs/stitchvector_studio/v01/plugin_contract.md",
+      "sha256": "1fccb2f8b6af3eb5749e1c083f92460ad61c9cf8223f73dd8c57b0eafd153707",
+      "tracked": true
+    },
+    {
+      "byte_size": 1756,
+      "rel_path": "docs/stitchvector_studio/v01/project_data_model.md",
+      "sha256": "2e1bafdc78467b413eb01d48bf9f02c7d14296254073ba258145a19cd04096b5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1051,
+      "rel_path": "docs/stitchvector_studio/v01/security_and_recovery.md",
+      "sha256": "7e4720385e67d3528c9dd2dc7950b9bf9dc8d9daf51c5be50bd3879821ddf536",
+      "tracked": true
+    },
+    {
+      "byte_size": 3263,
+      "rel_path": "docs/superpowers/plans/2026-11-05-windows-local-runtime.md",
+      "sha256": "e28ba902a9bdb3551353e22ed42712e8791b7d09a0f0ea0f2ddcfafabd7329ef",
+      "tracked": false
+    },
+    {
+      "byte_size": 83045,
+      "rel_path": "docs/superpowers/specs/map-vector-migration-design.md",
+      "sha256": "910c05aef4805280eef0da7c71eaaeb035f003c7106aee1bdeaf4e54952976b1",
+      "tracked": false
+    },
+    {
+      "byte_size": 4479,
+      "rel_path": "docs/uat/20261105/P0_EDITOR_FIX_REPORT.md",
+      "sha256": "c560fa862f75fd61d5532fbf11aa252d067ad47b16615bae0c5add82779a0395",
+      "tracked": true
+    },
+    {
+      "byte_size": 7505,
+      "rel_path": "docs/uat/20261105/P1_1_GATE_HARDENING_REPORT.md",
+      "sha256": "b3516b7771fa8355d4cc90ea873c5a277aedbdf9cb108c59b728c1a9dceb6248",
+      "tracked": true
+    },
+    {
+      "byte_size": 6109,
+      "rel_path": "docs/uat/20261105/P1_OCR_REVIEW_REPORT.md",
+      "sha256": "eeb41f3f37becbcebf1f657babbdb80cbc7b04535dabb2e917524e21f6649741",
+      "tracked": true
+    },
+    {
+      "byte_size": 3136,
+      "rel_path": "docs/uat/20261105/P2_1_HARDENING_REPORT.md",
+      "sha256": "276915064f43fd6e0215adc20deb3f6eb2bf2d0bcf0921eaa8837d488f7921ed",
+      "tracked": true
+    },
+    {
+      "byte_size": 3546,
+      "rel_path": "docs/uat/20261105/P2_MANUAL_REPAIR_REPORT.md",
+      "sha256": "cfe697ce71b350c4044892ec11199bbd29df77e2948059cbcdca7ebe47c731b4",
+      "tracked": true
+    },
+    {
+      "byte_size": 4204,
+      "rel_path": "docs/uat/20261105/P2_REAL_UAT_RESULTS.md",
+      "sha256": "0963806577d3b4b16693ab66b9b8aa186c2a51737f4b4055aa1b5a148a4a1d68",
+      "tracked": true
+    },
+    {
+      "byte_size": 11247,
+      "rel_path": "docs/uat/20261105/P2_SEMIAUTO_PROGRESS.md",
+      "sha256": "01a8cd492e0780213bc6ce4743ddcba4cfae9310917e74e78208ae5729d587c2",
+      "tracked": true
+    },
+    {
+      "byte_size": 4466,
+      "rel_path": "docs/uat/20261105/P3_ALGORITHM_BENEFIT_ASSESSMENT.md",
+      "sha256": "1a1c31228cf9dfad351901823f794429ffa7c18d17bf0adf247b47c68e79a464",
+      "tracked": true
+    },
+    {
+      "byte_size": 3252,
+      "rel_path": "docs/uat/20261105/PHASE0_BASELINE.md",
+      "sha256": "4e6b149c787cced2d3003142fe6ad5de45d905b7cca7a710b38b61735de650da",
+      "tracked": true
+    },
+    {
+      "byte_size": 5633,
+      "rel_path": "docs/uat/20261105/ROOT_CAUSE_REPORT.md",
+      "sha256": "cdacea33f518580ad51c909746b7f5a79d0024a3939ca06df875ce0e49d64146",
+      "tracked": true
+    },
+    {
+      "byte_size": 1365,
+      "rel_path": "docs/uat/20261105/final/DEPLOYMENT_GUIDE.md",
+      "sha256": "c2ec1c931578274229136fc51a6c89ea58aa196bac54370d2163b80153fd8201",
+      "tracked": true
+    },
+    {
+      "byte_size": 4134,
+      "rel_path": "docs/uat/20261105/final/FINAL_FUNCTIONAL_TEST_REPORT.md",
+      "sha256": "9e82fea047c19a6073e529705a02f68755f18098ec73a6f42e8f5f4e20d7f85e",
+      "tracked": true
+    },
+    {
+      "byte_size": 2944,
+      "rel_path": "docs/uat/20261105/final/FINAL_KNOWN_LIMITATIONS.md",
+      "sha256": "d949dae5ea5213c32879d6149afbe9ebdd964cf594bee375dafa9c6bdd41a66b",
+      "tracked": true
+    },
+    {
+      "byte_size": 2523,
+      "rel_path": "docs/uat/20261105/final/FINAL_REGRESSION_RESULTS.json",
+      "sha256": "dca290acbeb04abfca47ba57c51b3edbaaf5b4207968ec642423693c9e1eb59a",
+      "tracked": true
+    },
+    {
+      "byte_size": 2164,
+      "rel_path": "docs/uat/20261105/final/FINAL_UX_REVIEW.md",
+      "sha256": "41b425cefb775e63393b6c37b63318dd09e9e7da28deb0345bb069dfb9d08af7",
+      "tracked": true
+    },
+    {
+      "byte_size": 2522,
+      "rel_path": "docs/uat/20261105/final/OWNER_UAT_GUIDE.md",
+      "sha256": "ba5053345eeb4641ca50a41336ff23ec2ec637f90cc64cd20deba09e90d63b20",
+      "tracked": true
+    },
+    {
+      "byte_size": 1922,
+      "rel_path": "docs/uat/20261105/final/WINDOWS_LOCAL_SETUP.md",
+      "sha256": "742af66bd15026a0b759af73b070c799d74abdb7902bcdf99210d26658b08792",
+      "tracked": false
+    },
+    {
+      "byte_size": 13126,
+      "rel_path": "docs/uat/20261106/checklist_items.json",
+      "sha256": "425ca411af38628ee9da461f073fef1f73d928544b9269b520dcdd0a7df7b12d",
+      "tracked": false
+    },
+    {
+      "byte_size": 7717,
+      "rel_path": "docs/uat/20261106/我的复核结果.md",
+      "sha256": "2c4b9586c1c73659c9f4db38185090a2719593ec08d79ac193dd3c659fe70b83",
+      "tracked": false
+    },
+    {
+      "byte_size": 33036,
+      "rel_path": "docs/uat/20261106/验收清单_打印版.html",
+      "sha256": "54b06e69405951adbdcea99c373e66dbd4c046139a86a70c2b5ccb034b3051e7",
+      "tracked": false
+    },
+    {
+      "byte_size": 25130,
+      "rel_path": "docs/uat/20261106/验收清单_操作步骤.md",
+      "sha256": "211f6e39b4715497547a20d511628f1ad2fc104d34bf281bd3dc2bc791464445",
+      "tracked": false
+    },
+    {
+      "byte_size": 11986,
+      "rel_path": "experiments/ARCH0/arch0_diag.py",
+      "sha256": "226d88b201ef4bc8243e2eb0a3f710af350760ccec4af0d4ee0d0a855f80633c",
+      "tracked": true
+    },
+    {
+      "byte_size": 3469,
+      "rel_path": "experiments/ARCH0/diag/d1_contact_fragments.json",
+      "sha256": "649c660017382b34ae5a0cad482b4e1498b767f9ab5ed2fca926f588ac540331",
+      "tracked": true
+    },
+    {
+      "byte_size": 28198,
+      "rel_path": "experiments/ARCH0/diag/d2_common_subdivision.json",
+      "sha256": "52fae740f2253cccaa2c135b3667b42e6971f96a9e4973afe890e0a83bb16342",
+      "tracked": true
+    },
+    {
+      "byte_size": 596,
+      "rel_path": "experiments/ARCH0/diag/d3_narrow_regime.json",
+      "sha256": "f59575e6e77a224456a60121ea87cf2b4f2ad1e46f850188d19d2a7bb6af8f63",
+      "tracked": true
+    },
+    {
+      "byte_size": 3714,
+      "rel_path": "experiments/ARCH0/test_pool_protocol.json",
+      "sha256": "038a863a00677ff3dbb18186c9f23ace920c046f2a99247c9ee812926085e10e",
+      "tracked": true
+    },
+    {
+      "byte_size": 6037,
+      "rel_path": "experiments/ARCH1/arch1_criteria.json",
+      "sha256": "2bd046a8cde9bf333a408b6c9ea051d545275b147c3c43bf375820aacb7a1607",
+      "tracked": true
+    },
+    {
+      "byte_size": 3490,
+      "rel_path": "experiments/ARCH1/arch1_decision_store.py",
+      "sha256": "e6e1511ced15211ac66203d8f5ad95cec47812f799c62115ef151300a4cad9df",
+      "tracked": true
+    },
+    {
+      "byte_size": 9082,
+      "rel_path": "experiments/ARCH1/arch1_feats.py",
+      "sha256": "25b8395aeec3ad97ad9c66d6b7f950c230de126b4d5eec7a93f51fa0b1477e33",
+      "tracked": true
+    },
+    {
+      "byte_size": 3069,
+      "rel_path": "experiments/ARCH1/arch1_gate0.py",
+      "sha256": "99a6c4935389bb519831437c7c6366da2dc1dd3c82f68fe6abd4df927ea432a3",
+      "tracked": true
+    },
+    {
+      "byte_size": 9919,
+      "rel_path": "experiments/ARCH1/arch1_gate1.py",
+      "sha256": "47201222d5f0289cdf9755754825e509a55e67849f92cc7b2abe359f635900d4",
+      "tracked": true
+    },
+    {
+      "byte_size": 9945,
+      "rel_path": "experiments/ARCH1/arch1_gate2.py",
+      "sha256": "a08bd644f20abfbf862b37fb43f601d6ce1b3746c15aefec6bc992faf02ef45a",
+      "tracked": true
+    },
+    {
+      "byte_size": 8179,
+      "rel_path": "experiments/ARCH1/arch1_gate3.py",
+      "sha256": "6646534012f7557fd8c5573d4b36d8e72004d38e40fdf16f220c650d2c7c8d5c",
+      "tracked": true
+    },
+    {
+      "byte_size": 5879,
+      "rel_path": "experiments/ARCH1/arch1_gate4.py",
+      "sha256": "d41d83277cd4e7d95b3069cd1137180f93d93d283de2e4eefed67db8628e5a84",
+      "tracked": true
+    },
+    {
+      "byte_size": 6091,
+      "rel_path": "experiments/ARCH1/arch1_linewidth.py",
+      "sha256": "e1d30010b52d5c5ba03feacab72fe88081bfd3eebc4e50be21c4935ab63f1aaa",
+      "tracked": true
+    },
+    {
+      "byte_size": 1092,
+      "rel_path": "experiments/ARCH1/gate0/d3_strict_recount.json",
+      "sha256": "5a04d7ea295813cf4c8fde2e30594f226583c11b9872709ad3a3ef6343e5bc16",
+      "tracked": true
+    },
+    {
+      "byte_size": 81631,
+      "rel_path": "experiments/ARCH1/gate1/gate1_evidence_audit.json",
+      "sha256": "5f5ea9ee21ea25a6992324dbac3c95273d818bc8a76ef079c0a4f19ecf63ffd0",
+      "tracked": true
+    },
+    {
+      "byte_size": 118439,
+      "rel_path": "experiments/ARCH1/gate2/gate2_oracle_ablation.json",
+      "sha256": "78bde4a021a7f27579259bdc930a5114b090ebe28c36896de9946cd1bf996046",
+      "tracked": true
+    },
+    {
+      "byte_size": 7421,
+      "rel_path": "experiments/ARCH1/gate3/gate3_line_width.json",
+      "sha256": "43af1a7447f1eab0b3f23686aa905775478c6330ed9f4783b926184c9117f94d",
+      "tracked": true
+    },
+    {
+      "byte_size": 8711,
+      "rel_path": "experiments/ARCH1/gate4/gate4_subdivision.json",
+      "sha256": "9bd42414eb033db3414d3c6f689146518a054158c977a8d9282343d683e1eb74",
+      "tracked": true
+    },
+    {
+      "byte_size": 2916,
+      "rel_path": "experiments/ARCH2/arch2_common.py",
+      "sha256": "371d3e5d8e0a0dc510b077a5be1889e7d8c82bb1318d693aba5c5014757f74e4",
+      "tracked": true
+    },
+    {
+      "byte_size": 14045,
+      "rel_path": "experiments/ARCH2/arch2_cpair.py",
+      "sha256": "1292f496b71ecc0cec29a25a31a3b481222c9352fb53f01e964f2424b3647d44",
+      "tracked": true
+    },
+    {
+      "byte_size": 4920,
+      "rel_path": "experiments/ARCH2/arch2_gate1.py",
+      "sha256": "adaeeea74cd3062d78696b503b46e21a688e415d6e7a20ac5395cc3314b57852",
+      "tracked": true
+    },
+    {
+      "byte_size": 4458,
+      "rel_path": "experiments/ARCH2/arch2_metrics.py",
+      "sha256": "6ea77cdc57cee32d3285ced9233e7eb8eea00f6c11ab9eee0315e475f4aab6b8",
+      "tracked": true
+    },
+    {
+      "byte_size": 3760,
+      "rel_path": "experiments/ARCH2/arch2_prereg_amendment1.json",
+      "sha256": "c4fc96cd5735b45d3433be98641a4b5ff816b6bd5bbe8d21e9b597478066dda6",
+      "tracked": true
+    },
+    {
+      "byte_size": 7152,
+      "rel_path": "experiments/ARCH2/arch2_preregistration.json",
+      "sha256": "36fd818d7c4a56b7d5e5fd8fc58242225cfc9025101015229efe75f2b67d3a5e",
+      "tracked": true
+    },
+    {
+      "byte_size": 3916,
+      "rel_path": "experiments/ARCH2/arch2_subdivision.py",
+      "sha256": "b84b9b2c5163e1cbfdffce9b0de2b3bedf950e1048500941c1f3e115a395fa60",
+      "tracked": true
+    },
+    {
+      "byte_size": 3100,
+      "rel_path": "experiments/ARCH2/arch2_subdivision_recheck.py",
+      "sha256": "d20e346310e21c6699dccb59b69dad2c677a1d782225b1bf1453e54e2bc173f1",
+      "tracked": true
+    },
+    {
+      "byte_size": 11838,
+      "rel_path": "experiments/ARCH2/gate1/gate1_train.json",
+      "sha256": "357e83f962c2ac1d0f47197ac25dd4248ee470e6e5d07953cc05516c7f312d1c",
+      "tracked": true
+    },
+    {
+      "byte_size": 450,
+      "rel_path": "experiments/ARCH2/gate1/gate1_train_posthoc_diagnostic.json",
+      "sha256": "a290c67f3304ff194aa21b966ed1584e97e30702a24e8b53e4bb6f4cda0db96d",
+      "tracked": true
+    },
+    {
+      "byte_size": 8303,
+      "rel_path": "experiments/ARCH2/subdivision_recheck/recheck.json",
+      "sha256": "301dd078adda11ce5067c7818c892e64ad8ffd97944a2e56e732aeddbe90122f",
+      "tracked": true
+    },
+    {
+      "byte_size": 2321,
+      "rel_path": "experiments/ARCH3/arch3_b_criteria.json",
+      "sha256": "e9f13484dd5940d9a3a00f6c8ad12414d327453c530a8af0def8d5938a3b9d9a",
+      "tracked": true
+    },
+    {
+      "byte_size": 7978,
+      "rel_path": "experiments/ARCH3/arch3_b_diag.py",
+      "sha256": "baca8594034ebd00402306542479b8569f2df1ff78ef991a40706a23149183e1",
+      "tracked": true
+    },
+    {
+      "byte_size": 17206,
+      "rel_path": "experiments/ARCH3/b_diag/b_feasibility.json",
+      "sha256": "aebcb989bb931be1866179471f89db365f3ea49de9cf070de1275fef62b40fd2",
+      "tracked": true
+    },
+    {
+      "byte_size": 4504,
+      "rel_path": "experiments/E1_baseline_remeasure/README.md",
+      "sha256": "bde366b4aece63f332c7c7c83f9cf79341bc56ac926871140d317864a5162263",
+      "tracked": true
+    },
+    {
+      "byte_size": 101,
+      "rel_path": "experiments/E1_baseline_remeasure/test_report_d0_validate.txt",
+      "sha256": "89a9772df4095bc11dc3a455c69cd165d865fb06f2f981d1b19390bec6c1e8c7",
+      "tracked": true
+    },
+    {
+      "byte_size": 5136,
+      "rel_path": "experiments/E4_georef_export/README.md",
+      "sha256": "64d8b46526cd8d2e222f85dbf857b48f096159ed1a2cbea7c7c1a8774b97c530",
+      "tracked": true
+    },
+    {
+      "byte_size": 1450,
+      "rel_path": "experiments/R1_auto_vectorization/README.md",
+      "sha256": "4100766efea3cab2f18a8baf1cd71da007466b1ec3a783e1bc3752bf73f41c3b",
+      "tracked": true
+    },
+    {
+      "byte_size": 3075,
+      "rel_path": "experiments/R1_auto_vectorization/aggregate.py",
+      "sha256": "0c6a7dc8b49b38d6900b5afae32325f12b6085a249534925d551bce910d48caa",
+      "tracked": true
+    },
+    {
+      "byte_size": 1664,
+      "rel_path": "experiments/R1_auto_vectorization/auto_retry_selection.py",
+      "sha256": "152adcdc345c4797f705ec9d6fed2ef1394ec2fd30e2383089691abb51c6827f",
+      "tracked": true
+    },
+    {
+      "byte_size": 7609,
+      "rel_path": "experiments/R1_auto_vectorization/compare_real.py",
+      "sha256": "d2b5f1524e1de3d3d7188f8573fe80163cfbd45ba278f2f0a840334de1dc769f",
+      "tracked": true
+    },
+    {
+      "byte_size": 2270,
+      "rel_path": "experiments/R1_auto_vectorization/legacy_fairness_check.py",
+      "sha256": "a9d69b428f882888ee5113fe3b82ac0c5231a58ba6a66e47f0b4aaf70b5bb964",
+      "tracked": true
+    },
+    {
+      "byte_size": 3102,
+      "rel_path": "experiments/R1_auto_vectorization/prepare_real.py",
+      "sha256": "4d57f1b67e6a1d797e11dadb08f6388dcba2cc0d4e62f0a49c8d3a1b53a3db44",
+      "tracked": true
+    },
+    {
+      "byte_size": 3592,
+      "rel_path": "experiments/R1_auto_vectorization/render_tables.py",
+      "sha256": "01bc3740ff66391b6fb6124f2d65b125d9f00e07feb64ee6e27795f63818c14d",
+      "tracked": true
+    },
+    {
+      "byte_size": 6193,
+      "rel_path": "experiments/R1_auto_vectorization/results/auto_retry_selection.json",
+      "sha256": "a13b4ad7045d8612670c22d717e3daa83459b6657a807444232f4f9e06722e29",
+      "tracked": true
+    },
+    {
+      "byte_size": 6203,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/auto_retry_selection.json",
+      "sha256": "e253dca8232effa076f17a160c86a49a20a361cf542ef22f95994ddce13987d0",
+      "tracked": true
+    },
+    {
+      "byte_size": 289,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/environment.txt",
+      "sha256": "7cb78dabdc63c5500bd8d37df8a0b550d3c66aceac8c377637dea68dbc5050ed",
+      "tracked": true
+    },
+    {
+      "byte_size": 1025,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/pip_freeze.txt",
+      "sha256": "4d51f19c784a0ecd6bb411f126170e2f368736c1eb06f036113db6e135f9f51b",
+      "tracked": true
+    },
+    {
+      "byte_size": 2556,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/pytest_report.txt",
+      "sha256": "47dd0847dad3ecd6a767fd05967c0db71050b31cc8ad7f6ebdc440c855289c74",
+      "tracked": true
+    },
+    {
+      "byte_size": 4069,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/real/gm2_roi_compare.json",
+      "sha256": "cfad75ef90fd5d04a751bf9a767905c1a234666f634628ced90ecbe8b2ef8fb2",
+      "tracked": true
+    },
+    {
+      "byte_size": 1018,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/real/gm2_roi_vectorize_run.json",
+      "sha256": "74ccb3d1469b77da56467c84831e5bae2d76fedddf1242ef92a17d15492161a9",
+      "tracked": true
+    },
+    {
+      "byte_size": 905,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/real/u1_compare.json",
+      "sha256": "4e9224670e6ae10afed99328a43bf19c4a5508550e1804321111fce4e57bee81",
+      "tracked": true
+    },
+    {
+      "byte_size": 884,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/real/u2_compare.json",
+      "sha256": "221c2812f8ef6c0c9fcbabac08a6d7441daecf4f7076412899757aebc554a0bd",
+      "tracked": true
+    },
+    {
+      "byte_size": 910,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/real/u3_compare.json",
+      "sha256": "0449bcd403e9980c99f49e88307f6a2badd7ac4646f5e464b9455efbff3229a5",
+      "tracked": true
+    },
+    {
+      "byte_size": 45664,
+      "rel_path": "experiments/R1_auto_vectorization/results/mac_20261027/synth_summary.json",
+      "sha256": "03fd6b217fca90a3666881ee785875ee2d2e00e61901186e3e57c1e74949f3f4",
+      "tracked": true
+    },
+    {
+      "byte_size": 101,
+      "rel_path": "experiments/R1_auto_vectorization/results/pytest_report.txt",
+      "sha256": "76d6b7ce495a7fae1f928fdaa1c199f5f2ca7bd57c320a883970d289c1c636ad",
+      "tracked": true
+    },
+    {
+      "byte_size": 14839,
+      "rel_path": "experiments/R1_auto_vectorization/results/real_maps_summary.json",
+      "sha256": "f05d05ff8011741161d83e10bec90243d386bf3cbfcc4abc969c3b3b50eed553",
+      "tracked": true
+    },
+    {
+      "byte_size": 53315,
+      "rel_path": "experiments/R1_auto_vectorization/results/synth_summary.json",
+      "sha256": "8e675631ae28c09835980c47bfe608b5649ab1d56776c2fc6da1867050e209f1",
+      "tracked": true
+    },
+    {
+      "byte_size": 4480,
+      "rel_path": "experiments/R1_auto_vectorization/results/tables.md",
+      "sha256": "f640dc21a8a35864e2e51fbe80a2f2058c9323b3ff0c31a019fc20f4adf5f33a",
+      "tracked": true
+    },
+    {
+      "byte_size": 8363,
+      "rel_path": "experiments/R1_auto_vectorization/run_synth_case.py",
+      "sha256": "5e212e77957ddc4ba732e1b8f0927c758a7f23fab47b03bebec80748ca602b18",
+      "tracked": true
+    },
+    {
+      "byte_size": 9243,
+      "rel_path": "experiments/R1_auto_vectorization/run_vectorize.py",
+      "sha256": "fdc53408ff7154219c25efdbecfa35d7df7cf41f80e0a23e7c4846fea023cc64",
+      "tracked": true
+    },
+    {
+      "byte_size": 7115,
+      "rel_path": "experiments/R2_real_map/gsj_error_analysis.py",
+      "sha256": "2f84b2454853134e530ba9e38277257574c7cb067799e64de946836906000e61",
+      "tracked": true
+    },
+    {
+      "byte_size": 5024,
+      "rel_path": "experiments/R2_real_map/gsj_frame.py",
+      "sha256": "ba6b3f21391c8a2e766def3f2dff99d140625795b001524fd614e8c6e1f3b260",
+      "tracked": true
+    },
+    {
+      "byte_size": 6255,
+      "rel_path": "experiments/R2_real_map/gsj_gt.py",
+      "sha256": "dcedac45503abff39dae1b8c46b1fc7305208e64dd63f1631c655e1fecee4c5f",
+      "tracked": true
+    },
+    {
+      "byte_size": 10742,
+      "rel_path": "experiments/R2_real_map/gsj_metrics3.py",
+      "sha256": "de3dbd08f58edbc329fb0248ac1843e389e5203b55ebd2a38aef4e5a9a0d2dd0",
+      "tracked": true
+    },
+    {
+      "byte_size": 7391,
+      "rel_path": "experiments/R2_real_map/gsj_oracle.py",
+      "sha256": "bf6ba8e6a6c4229723bad83182f4640c1515dfff4a74aabfa45219caf84bfa6c",
+      "tracked": true
+    },
+    {
+      "byte_size": 7524,
+      "rel_path": "experiments/R2_real_map/gsj_reg_check.py",
+      "sha256": "706d1424f7d91835a712f19a1eab32ffad8fe5a5c2bb8e181a43a53ebcdb1fd6",
+      "tracked": true
+    },
+    {
+      "byte_size": 5716,
+      "rel_path": "experiments/R2_real_map/gsj_reg_independent.py",
+      "sha256": "813949c3a1ddb5f95312a75431ff07931d863c5ce770ae91ff0dfdb710684bfc",
+      "tracked": true
+    },
+    {
+      "byte_size": 5791,
+      "rel_path": "experiments/R2_real_map/gsj_register.py",
+      "sha256": "d75c45399261af5f19e41f97c208d8204770c8a165d22ef01374efaee168927b",
+      "tracked": true
+    },
+    {
+      "byte_size": 8588,
+      "rel_path": "experiments/R2_real_map/gsj_run_r1.py",
+      "sha256": "6a435a644a72958f7af2ef0f553c61b44ebd2563718ec2eae7beb66f4dfbcb61",
+      "tracked": true
+    },
+    {
+      "byte_size": 5007,
+      "rel_path": "experiments/R2_real_map/gsj_sensitivity.py",
+      "sha256": "3047d63e7391fa96d780661bc5fc8a2ab4233fdca2fe6ef8786fe3b1a898f33a",
+      "tracked": true
+    },
+    {
+      "byte_size": 11251,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08001_metrics3.json",
+      "sha256": "efc75cb3669a839e5b40e9e4d1d3976d62fb070ab3da11db53fc602ced49de28",
+      "tracked": true
+    },
+    {
+      "byte_size": 1734,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08001_oracle.json",
+      "sha256": "54ff9ddc08543885365b6398ae72a16acf0d37e313e04e60e23806ecf93790a8",
+      "tracked": true
+    },
+    {
+      "byte_size": 8236,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08001_reg_check.json",
+      "sha256": "fbf7677a383e51b767701d752149777abb8a50025ab7f621b4c0000407aaa009",
+      "tracked": true
+    },
+    {
+      "byte_size": 13115,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08001_reg_independent.json",
+      "sha256": "34c3c24d54f85179b765e0fa0c254755f5c654c1ad5316f5f0a6c59dcd91c28b",
+      "tracked": true
+    },
+    {
+      "byte_size": 11286,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08001_sensitivity.json",
+      "sha256": "48b60685aa2abfc7d3ccee9e37aa53adc00b6ce489cd18447ab4483f11630a1b",
+      "tracked": true
+    },
+    {
+      "byte_size": 10692,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08004_metrics3.json",
+      "sha256": "ab5ddd5fd7bda22d5ec157ef313d9259186f7fc96505b1b235b9ebfd825c4ddf",
+      "tracked": true
+    },
+    {
+      "byte_size": 1732,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08004_oracle.json",
+      "sha256": "1e5b85e9e1901b165150d47abbc3cedbc91735ed7042205895b29edaaffd76de",
+      "tracked": true
+    },
+    {
+      "byte_size": 8392,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08004_reg_check.json",
+      "sha256": "0532a99c43c14919236c5bfb81eaba883ef3f8734fa9f8f20a31d6d27f001034",
+      "tracked": true
+    },
+    {
+      "byte_size": 13086,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08004_reg_independent.json",
+      "sha256": "7fcb97487876eebd4a473eae151952cd4d6a241dcc19b3a340048857193a568a",
+      "tracked": true
+    },
+    {
+      "byte_size": 11276,
+      "rel_path": "experiments/R2_real_map/results/diagnostics/08004_sensitivity.json",
+      "sha256": "374dceef66ab194793a6d7b6f285b5c934115ce7a9b972e7eff117ff5b27a7cc",
+      "tracked": true
+    },
+    {
+      "byte_size": 557,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08001_align.json",
+      "sha256": "65e13184a5682f2af36f6942b1a3b093b40dbb7997ca6124e488d2fa7dfa193e",
+      "tracked": true
+    },
+    {
+      "byte_size": 16104,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08001_errors.json",
+      "sha256": "82af1548c252d2c45bc52011ba657c46ae4cf0792a6d49b9ce135d090f42c8f6",
+      "tracked": true
+    },
+    {
+      "byte_size": 11717,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08001_frame_reg.json",
+      "sha256": "f2e6ef742a7fd6a19b65845e129fa7c2006445174a683224a21bfecf6685cca1",
+      "tracked": true
+    },
+    {
+      "byte_size": 45647,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08001_r1_eval.json",
+      "sha256": "75fdf79f6730ca737a8ada8941f0b7ff221018309f73b85b5c542af0b17a6570",
+      "tracked": true
+    },
+    {
+      "byte_size": 23591,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08001_units.json",
+      "sha256": "5a134853fa90469d42e966157f3ad3744f92b26b1fcc4e40f40c0da59383eafd",
+      "tracked": true
+    },
+    {
+      "byte_size": 576,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08004_align.json",
+      "sha256": "bae0461f1fd7ebc4ec75565036ff12f97da07714e57d7089d8d97b5760aa8972",
+      "tracked": true
+    },
+    {
+      "byte_size": 15381,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08004_errors.json",
+      "sha256": "35499f9645c251c5dc556334f76d4fb19438867e664c19d78045f775f9de259f",
+      "tracked": true
+    },
+    {
+      "byte_size": 10734,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08004_frame_reg.json",
+      "sha256": "7bd8547368dc392795369f5aed7778d664a1a9d6e05d283dc2514c2725c8f137",
+      "tracked": true
+    },
+    {
+      "byte_size": 43032,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08004_r1_eval.json",
+      "sha256": "1ba227afbaf488904c941bef53732656f0c74273801f53ef3687806cf099efe2",
+      "tracked": true
+    },
+    {
+      "byte_size": 25441,
+      "rel_path": "experiments/R2_real_map/results/gsj_baseline/08004_units.json",
+      "sha256": "6c61a93ec51198f4a35053766c19ba3bd9c09a27421702272083deab0e7009d5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1163,
+      "rel_path": "experiments/R3/env/requirements-main.lock.txt",
+      "sha256": "7d01a934f71993d558e6b946cb3ed7c1e97cf89ec341ed37da3dda888ec0d6ed",
+      "tracked": true
+    },
+    {
+      "byte_size": 431,
+      "rel_path": "experiments/R3/env/requirements-ocr.lock.txt",
+      "sha256": "8e062be0cf1bdaf4873879a72959691132c2efaa4353a65c9d2e3d3a2bac2195",
+      "tracked": true
+    },
+    {
+      "byte_size": 6070,
+      "rel_path": "experiments/R3/eval_common.py",
+      "sha256": "bdeed75f942daed50ed1dc2d7b21c1f3d56e7afc9f8ca95a4cd012aee95245f9",
+      "tracked": true
+    },
+    {
+      "byte_size": 9215,
+      "rel_path": "experiments/R3/eval_v2.py",
+      "sha256": "9d3b4ecf5ac8f00867be95cb47fbdb51c814bb5ff877594ba142123e7d85fc6d",
+      "tracked": true
+    },
+    {
+      "byte_size": 2838,
+      "rel_path": "experiments/R3/freeze/README.md",
+      "sha256": "a119e3aab016e7fe885af271978a2d1550b2d306e0aba22835ccc7d6af8f8dca",
+      "tracked": true
+    },
+    {
+      "byte_size": 3162,
+      "rel_path": "experiments/R3/freeze/README_v2.md",
+      "sha256": "0c9cfab8e7d39c354da343c12b41660e7bd3ca2a383eca0e968152592e84c717",
+      "tracked": true
+    },
+    {
+      "byte_size": 879,
+      "rel_path": "experiments/R3/freeze/baseline_r1_r2.json",
+      "sha256": "66a3c379cb63f47afff6b0087e08c8f8e28802f66e009ed57c853d0748a587ff",
+      "tracked": true
+    },
+    {
+      "byte_size": 2754,
+      "rel_path": "experiments/R3/freeze/data_sha256.txt",
+      "sha256": "f456da317ccbe0366bcee0d28981f8e4a3dc268c16481b076e83b7f09cc3f37c",
+      "tracked": true
+    },
+    {
+      "byte_size": 140,
+      "rel_path": "experiments/R3/freeze/environment.txt",
+      "sha256": "5ba56eb4f944fdfc2c63a62e1f5d092b1d2403cd554df98ca40c264afd141915",
+      "tracked": true
+    },
+    {
+      "byte_size": 1902,
+      "rel_path": "experiments/R3/freeze/eval_code_sha256.txt",
+      "sha256": "d62e8240d51421fe277e03816d41341f982dd84ba08aa1420e602630c13cfcc3",
+      "tracked": true
+    },
+    {
+      "byte_size": 1234,
+      "rel_path": "experiments/R3/freeze/pip_freeze_r3.txt",
+      "sha256": "6a243af9ebdb57266735c1b6b21fdbda7268a9198ae8166535720042689c0ee0",
+      "tracked": true
+    },
+    {
+      "byte_size": 2961,
+      "rel_path": "experiments/R3/fusion_eval.py",
+      "sha256": "403de5d55418db070eb3f85532a80f90af1203b203e0028face3acba0570eec1",
+      "tracked": true
+    },
+    {
+      "byte_size": 26766,
+      "rel_path": "experiments/R3/results/08001/legend_ocr.json",
+      "sha256": "91793029dbe37855151a1999556e0f1a7f548302fc399d6a2aeb007bdf99dc4a",
+      "tracked": true
+    },
+    {
+      "byte_size": 5163,
+      "rel_path": "experiments/R3/results/08001/legend_ocr_score.json",
+      "sha256": "13d7428d823a305a2f70e7e9d42377be84d4c2e2de37c1b4bb094cae1812bf3e",
+      "tracked": true
+    },
+    {
+      "byte_size": 269899,
+      "rel_path": "experiments/R3/results/08001/map_spot.json",
+      "sha256": "487e0af915f255987c833aaa27186f7803877ebed1557b460ae8f2c8a0cda017",
+      "tracked": true
+    },
+    {
+      "byte_size": 1841,
+      "rel_path": "experiments/R3/results/08001/map_spot_score.json",
+      "sha256": "bf52b2155ec941643a668efef814d0ec03aefe6a6bf2bb761f82a33b3d889c33",
+      "tracked": true
+    },
+    {
+      "byte_size": 7705,
+      "rel_path": "experiments/R3/results/08001/s1_eval.json",
+      "sha256": "d3b36d774957e01521da28f1b4bfbc7f99de98280a44d6b77709d7be4e649224",
+      "tracked": true
+    },
+    {
+      "byte_size": 133965,
+      "rel_path": "experiments/R3/results/08001/s1_meta.json",
+      "sha256": "9ecb4584fc0788be21e4f89d361e1e5ec0809d4b40ed8a568e58e4d6aa3594bc",
+      "tracked": true
+    },
+    {
+      "byte_size": 25837,
+      "rel_path": "experiments/R3/results/08004/legend_ocr.json",
+      "sha256": "7dbd673df4f7b583de6b329cf473cb1b78d2e062d6929c955417d5c2dfa3ee6d",
+      "tracked": true
+    },
+    {
+      "byte_size": 5831,
+      "rel_path": "experiments/R3/results/08004/legend_ocr_score.json",
+      "sha256": "28017e91dd3763c57d8d670244fa856f8c3c9b57996e85ea925b9815d62ac1ac",
+      "tracked": true
+    },
+    {
+      "byte_size": 161495,
+      "rel_path": "experiments/R3/results/08004/map_spot.json",
+      "sha256": "51d611608ca3acbcbf162d5b0d2ee9261831cc40a50021e4bf5f3cc4e0135484",
+      "tracked": true
+    },
+    {
+      "byte_size": 1784,
+      "rel_path": "experiments/R3/results/08004/map_spot_score.json",
+      "sha256": "1843a3d1279e570de5856c0934c6ae669d497b47e99af9ec54a9096c2c96f61d",
+      "tracked": true
+    },
+    {
+      "byte_size": 7836,
+      "rel_path": "experiments/R3/results/08004/s1_eval.json",
+      "sha256": "0566a617038a316d20dc37a671b06941a4ac5ad9011a7d4f69e713c362a8e69a",
+      "tracked": true
+    },
+    {
+      "byte_size": 43425,
+      "rel_path": "experiments/R3/results/08004/s1_meta.json",
+      "sha256": "db369557e11a38ed7c8839f6cfb693a5ba62d9d7801cf7a11e3e2cb2d80a88c8",
+      "tracked": true
+    },
+    {
+      "byte_size": 4145,
+      "rel_path": "experiments/R3/results_eval_v2/08001_lines_v1v2.json",
+      "sha256": "056da61bfc827849d83a6529a6ea765a4e774851cc550ba24dfc2d0145bd1ae7",
+      "tracked": true
+    },
+    {
+      "byte_size": 871,
+      "rel_path": "experiments/R3/results_eval_v2/08001_polygonize_snap0.5.json",
+      "sha256": "69c25a9ec4b3051f995ebe124b0c5b585ff405654021d2c7d34256c01a562ead",
+      "tracked": true
+    },
+    {
+      "byte_size": 872,
+      "rel_path": "experiments/R3/results_eval_v2/08001_polygonize_snap2.json",
+      "sha256": "13ba9bf5762299e26fd6372f04a3a5b4fdebf745ad38e805327f027cbd7fc5ac",
+      "tracked": true
+    },
+    {
+      "byte_size": 872,
+      "rel_path": "experiments/R3/results_eval_v2/08001_polygonize_snap5.json",
+      "sha256": "a854b7af835b13031118ba7a7e7b4929cafa0f3876cdf76ee469b42177b67c08",
+      "tracked": true
+    },
+    {
+      "byte_size": 4148,
+      "rel_path": "experiments/R3/results_eval_v2/08004_lines_v1v2.json",
+      "sha256": "d25852b95b6e43c23c2b54d442c2d3d88d671c1cb96597d27cfcae2da363a9fb",
+      "tracked": true
+    },
+    {
+      "byte_size": 868,
+      "rel_path": "experiments/R3/results_eval_v2/08004_polygonize_snap0.5.json",
+      "sha256": "4886b51cb9f7ccf3cab2c6d2cfd7e8aa0f31fb5642a6a7df0eba0bb253a857dc",
+      "tracked": true
+    },
+    {
+      "byte_size": 867,
+      "rel_path": "experiments/R3/results_eval_v2/08004_polygonize_snap2.json",
+      "sha256": "3ec6486e19deecd19d9230b0de76cc067027d196deb0d7c167b4340db0e92a03",
+      "tracked": true
+    },
+    {
+      "byte_size": 868,
+      "rel_path": "experiments/R3/results_eval_v2/08004_polygonize_snap5.json",
+      "sha256": "706d5f114f7f126657f8bf1b40e716829958a68af6dd6297330f103f9f044b3d",
+      "tracked": true
+    },
+    {
+      "byte_size": 7705,
+      "rel_path": "experiments/R3/results_eval_v2/repro_check/08001/s1_eval.json",
+      "sha256": "d3b36d774957e01521da28f1b4bfbc7f99de98280a44d6b77709d7be4e649224",
+      "tracked": true
+    },
+    {
+      "byte_size": 4401,
+      "rel_path": "experiments/R3/results_eval_v2/repro_check/08001/s2_eval.json",
+      "sha256": "246799ef28ac7dd66f80ad856db4ae71670eb624f23806d9248f4c8f95bf82b7",
+      "tracked": true
+    },
+    {
+      "byte_size": 7836,
+      "rel_path": "experiments/R3/results_eval_v2/repro_check/08004/s1_eval.json",
+      "sha256": "0566a617038a316d20dc37a671b06941a4ac5ad9011a7d4f69e713c362a8e69a",
+      "tracked": true
+    },
+    {
+      "byte_size": 4389,
+      "rel_path": "experiments/R3/results_eval_v2/repro_check/08004/s2_eval.json",
+      "sha256": "648be122a715f18a94c8c10bdb6941ae4ac17a581bcb879cf2e82794de5df933",
+      "tracked": true
+    },
+    {
+      "byte_size": 26763,
+      "rel_path": "experiments/R3/results_fixes/08001/legend_ocr_opencv411.json",
+      "sha256": "629563fbd02fb630611ea8da593772f852d2d1f8086d63b5f8314be0272aa403",
+      "tracked": true
+    },
+    {
+      "byte_size": 13613,
+      "rel_path": "experiments/R3/results_fixes/08001/s1v2_eval.json",
+      "sha256": "f128f6e93388be2d6b79aa5cc1ddeecfd8fc31b4109b30ce1515793a0777c2b4",
+      "tracked": true
+    },
+    {
+      "byte_size": 67663,
+      "rel_path": "experiments/R3/results_fixes/08001/s1v2_meta.json",
+      "sha256": "a8cd76ec01a6ef77d6782783494bdc57e96a0c4a3b017fdf134703afaac623af",
+      "tracked": true
+    },
+    {
+      "byte_size": 25837,
+      "rel_path": "experiments/R3/results_fixes/08004/legend_ocr_opencv411.json",
+      "sha256": "7ac74c683c7e5fdcbe8f2dbde96eb590f40c05c5d4c96e32ef30ec0adfdcb768",
+      "tracked": true
+    },
+    {
+      "byte_size": 13631,
+      "rel_path": "experiments/R3/results_fixes/08004/s1v2_eval.json",
+      "sha256": "b89b5af381be370674c0be8a4875b530919e30d8696de259a12d2e0bc76e2b5e",
+      "tracked": true
+    },
+    {
+      "byte_size": 29506,
+      "rel_path": "experiments/R3/results_fixes/08004/s1v2_meta.json",
+      "sha256": "da9500e63294d23208f5f71d925648771b5e687d1f71a5bf967e32296d5bd34e",
+      "tracked": true
+    },
+    {
+      "byte_size": 1326,
+      "rel_path": "experiments/R3/results_fixes/ocr_env_diff.json",
+      "sha256": "d5ff419779c8f1982a341f6437f84616b3ce9e7348e2c04bc4f5362f8bb59c18",
+      "tracked": true
+    },
+    {
+      "byte_size": 6748,
+      "rel_path": "experiments/R3/results_fixes/same_colour_ocr_confirmed.json",
+      "sha256": "e0da8c05a82229177b1b4ef9c900d960a10315b50646cc2464f827b70ea33040",
+      "tracked": true
+    },
+    {
+      "byte_size": 433,
+      "rel_path": "experiments/R3/results_s2/08001/fusion_eval.json",
+      "sha256": "ebd3e0f5909e8b99bae2f208b6a590c62e70a17c59e71b4bfb78e68c6274ef3b",
+      "tracked": true
+    },
+    {
+      "byte_size": 4401,
+      "rel_path": "experiments/R3/results_s2/08001/s2_eval.json",
+      "sha256": "246799ef28ac7dd66f80ad856db4ae71670eb624f23806d9248f4c8f95bf82b7",
+      "tracked": true
+    },
+    {
+      "byte_size": 472,
+      "rel_path": "experiments/R3/results_s2/08001/s2_meta.json",
+      "sha256": "87511c562a9cfaf2d4c766b7fc76aa41ebabc7c7861844305b614159c67d2713",
+      "tracked": true
+    },
+    {
+      "byte_size": 430,
+      "rel_path": "experiments/R3/results_s2/08004/fusion_eval.json",
+      "sha256": "16a5079d97bbfc213868c59fcbea99b2ce7962dbb2c4d40371ef737f36b2b682",
+      "tracked": true
+    },
+    {
+      "byte_size": 4389,
+      "rel_path": "experiments/R3/results_s2/08004/s2_eval.json",
+      "sha256": "648be122a715f18a94c8c10bdb6941ae4ac17a581bcb879cf2e82794de5df933",
+      "tracked": true
+    },
+    {
+      "byte_size": 472,
+      "rel_path": "experiments/R3/results_s2/08004/s2_meta.json",
+      "sha256": "d6cc99e267735e8166218d611169347e0a48d6144f7baab644cf4a90c606573f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1923,
+      "rel_path": "experiments/R3/review/README.md",
+      "sha256": "d68f9d10aa8007a2bdd160d5e59336975cb4a2ced32e3e0184aeaccd667b1927",
+      "tracked": true
+    },
+    {
+      "byte_size": 8201,
+      "rel_path": "experiments/R3/review/same_colour_review_index.json",
+      "sha256": "376e909debe1b97e57bf71ad49676eee7a808552ef7b640beb73ae913d763eab",
+      "tracked": true
+    },
+    {
+      "byte_size": 2878,
+      "rel_path": "experiments/R3/s1_eval.py",
+      "sha256": "b741342968249a906977d09ac5ed44fa5a03b5da16024f4b372b5b5b0a72ecf4",
+      "tracked": true
+    },
+    {
+      "byte_size": 4992,
+      "rel_path": "experiments/R3/s1_legend_ocr.py",
+      "sha256": "22cd0561de971b96bbccae3aff0cca3357e702f18ff50f92dc89dc5b493dc096",
+      "tracked": true
+    },
+    {
+      "byte_size": 3492,
+      "rel_path": "experiments/R3/s1_legend_ref.py",
+      "sha256": "c1662c07f964bd2157658287ad0f8a5187cc57ac3a93bfa1324f09974e65af4d",
+      "tracked": true
+    },
+    {
+      "byte_size": 4891,
+      "rel_path": "experiments/R3/s1_map_spot.py",
+      "sha256": "beb5ce3c3fbccb9e6fbd0e0005fb25a288d8e25c5542d4368b5616ff846549bf",
+      "tracked": true
+    },
+    {
+      "byte_size": 4986,
+      "rel_path": "experiments/R3/s1_ocr_lib.py",
+      "sha256": "d29cb9e7acf79d4f4161bcb09b03ac416e6561b8574802398411609f8766fc0f",
+      "tracked": true
+    },
+    {
+      "byte_size": 2280,
+      "rel_path": "experiments/R3/s1_samecolour_eval.py",
+      "sha256": "f1dbef94b8fce03b5bc94dc4d3599080962e5c2a11a19d781dadddd19fbc6b0b",
+      "tracked": true
+    },
+    {
+      "byte_size": 9974,
+      "rel_path": "experiments/R3/s1_semantic.py",
+      "sha256": "4af6e2678f728679668416f14b77aae5e1dec6fcc1edc17827bd6a57a9afd9a9",
+      "tracked": true
+    },
+    {
+      "byte_size": 3403,
+      "rel_path": "experiments/R3/s1_spot_eval.py",
+      "sha256": "b90725f47ba9d673fd4ada86188b7ebf250b425274eb6db0d1cf4f7679a86836",
+      "tracked": true
+    },
+    {
+      "byte_size": 2977,
+      "rel_path": "experiments/R3/s1_vis.py",
+      "sha256": "71717995af2f36c7d29ab92b94394958b622d5e9739d8842872700db70d6fb75",
+      "tracked": true
+    },
+    {
+      "byte_size": 7308,
+      "rel_path": "experiments/R3/s1v2_eval.py",
+      "sha256": "e3079e096852b840fd9927811b23be60302021b2915bf704719ecc7e4f7dfda8",
+      "tracked": true
+    },
+    {
+      "byte_size": 9325,
+      "rel_path": "experiments/R3/s1v2_semantic.py",
+      "sha256": "2b976044dba18c237f4b4092b637b230cd54bc1dcb19bc21ac2bc9dd88784217",
+      "tracked": true
+    },
+    {
+      "byte_size": 5192,
+      "rel_path": "experiments/R3/s2_eval.py",
+      "sha256": "1867d9f403f172f3dbc13a27992932c0246ad22185d4c435d9273599fd2e2dc0",
+      "tracked": true
+    },
+    {
+      "byte_size": 6846,
+      "rel_path": "experiments/R3/s2_lines.py",
+      "sha256": "9e549bc4b364ed5665e7adbf14d0d83de4fd20fac6289b68f7c4130e186c7c5f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1822,
+      "rel_path": "experiments/R3/s2_vis.py",
+      "sha256": "dbbf6fbc4b417cb055fa0788e38d5ff7637e901a591d2808dc13f7b2c685e45c",
+      "tracked": true
+    },
+    {
+      "byte_size": 7014,
+      "rel_path": "experiments/R4A/data_manifest_r4a.json",
+      "sha256": "d458490f5f8d8150246e1f5781df204cceab8f717eed7ecb7f7a59a9b04bc4a0",
+      "tracked": true
+    },
+    {
+      "byte_size": 3417,
+      "rel_path": "experiments/R4A/data_sha256.txt",
+      "sha256": "7b7c5793fcf1dace4bb6e6815c25730a23762373469db5e27c295a3fa3eb3938",
+      "tracked": true
+    },
+    {
+      "byte_size": 4512,
+      "rel_path": "experiments/R4A/diag_overlays.py",
+      "sha256": "2c7b7c26a595777382f38ae38e454971df37cc02a5b93a7ddac271179ee78873",
+      "tracked": true
+    },
+    {
+      "byte_size": 755,
+      "rel_path": "experiments/R4A/examples/synth_clean_s0_COORDS.txt",
+      "sha256": "2d5912b7a9024ec0cd8f467317d459a36b3da47700e60baf69e5eb6009642b55",
+      "tracked": true
+    },
+    {
+      "byte_size": 10300,
+      "rel_path": "experiments/R4A/export_pixel_vectors.py",
+      "sha256": "d219a906204e7940359ef3df5a16161bb66f5f6a165c7e70306e462169f7b497",
+      "tracked": true
+    },
+    {
+      "byte_size": 69203,
+      "rel_path": "experiments/R4A/gsj_catalog_snapshot.json",
+      "sha256": "7ae9e11fdcce8ea7418edc084875cd798e4a418613df0f37d4c127b8666852c2",
+      "tracked": true
+    },
+    {
+      "byte_size": 5534,
+      "rel_path": "experiments/R4A/gsj_register_v2.py",
+      "sha256": "cc2ba65d8431a698295e870d0f9cb4778c9ed4560cba09c3c3209b73f1ad762c",
+      "tracked": true
+    },
+    {
+      "byte_size": 6281,
+      "rel_path": "experiments/R4A/gsj_register_v3.py",
+      "sha256": "5f9a95447d227b7e2a5d23deb7fec1c330720d753b8aa08af6f0e64719a5984b",
+      "tracked": true
+    },
+    {
+      "byte_size": 6890,
+      "rel_path": "experiments/R4A/gsj_register_v3b.py",
+      "sha256": "e88fa53cf64b674d3cf53ab76822c548c5728dcb0fa94c1d976f47c120375dda",
+      "tracked": true
+    },
+    {
+      "byte_size": 7565,
+      "rel_path": "experiments/R4A/gsj_register_v3c.py",
+      "sha256": "32e715471c3208b7e283610244ef9242fbd88ce00a3b426aaae40c0f5890b72b",
+      "tracked": true
+    },
+    {
+      "byte_size": 9305,
+      "rel_path": "experiments/R4A/gtf_check.py",
+      "sha256": "b3d4628f51b3b0356e5c90c3cdbb9bcaaac5136a0de3cdafd440fe4a2f0d0b0e",
+      "tracked": true
+    },
+    {
+      "byte_size": 7564,
+      "rel_path": "experiments/R4A/gtf_dataset.py",
+      "sha256": "66805873c4612d61caf43ae131951c7d634c02d07aac4d288008367b7236e97c",
+      "tracked": true
+    },
+    {
+      "byte_size": 285,
+      "rel_path": "experiments/R4A/gtf_sha256.txt",
+      "sha256": "1f26417d87886c41286e8d6477923d076420bd367b1a337a93d4b4311f452bf6",
+      "tracked": true
+    },
+    {
+      "byte_size": 2118,
+      "rel_path": "experiments/R4A/prepare_sheet.py",
+      "sha256": "50e74a19b16feb1a57453c7b6c8b120016aa4b3bbef19d28ca8385fcadce8efe",
+      "tracked": true
+    },
+    {
+      "byte_size": 2103,
+      "rel_path": "experiments/R4A/r4a2/M1_overfit_diag.json",
+      "sha256": "5a205d691c241a9ef0efeaf4e7de0f66ac6169dec9cd98c13e777bd5b3103551",
+      "tracked": true
+    },
+    {
+      "byte_size": 822,
+      "rel_path": "experiments/R4A/r4a2/M1_overfit_log.json",
+      "sha256": "e42c58e88dedb59a9f91de1b3981f9bc88efdd2c661283c83a175e95a9952506",
+      "tracked": true
+    },
+    {
+      "byte_size": 2098,
+      "rel_path": "experiments/R4A/r4a2/M2_overfit_diag.json",
+      "sha256": "898286abc529b453aa8f722b7a3567a31e776d453ff8a759b22f5b9e79879577",
+      "tracked": true
+    },
+    {
+      "byte_size": 821,
+      "rel_path": "experiments/R4A/r4a2/M2_overfit_log.json",
+      "sha256": "f089b18c3137e31013453185de86a69c5418806410f454e725aaafcbf9e21e1b",
+      "tracked": true
+    },
+    {
+      "byte_size": 21269,
+      "rel_path": "experiments/R4A/r4a2/dataset_train.json",
+      "sha256": "15219a0992a84a72585093bbebcfe77943b79d7afdaa3c497225041cca0a36c7",
+      "tracked": true
+    },
+    {
+      "byte_size": 3292,
+      "rel_path": "experiments/R4A/r4a2/dataset_validation.json",
+      "sha256": "6134c2a78b0404f29a8796696dabf4ff848c3457d5d3de93db8dc1475fcb9d66",
+      "tracked": true
+    },
+    {
+      "byte_size": 6411,
+      "rel_path": "experiments/R4A/r4a2/freeze_config.json",
+      "sha256": "ced14306854fce32ba1078fee24dbdc4fa04b3f785aeaa4ffa06b17a71daf878",
+      "tracked": true
+    },
+    {
+      "byte_size": 8635,
+      "rel_path": "experiments/R4A/r4a2/label_audit_summary.json",
+      "sha256": "6dcda79c15823c234482d799b92a1217543755cd873d568be107c736bab18a67",
+      "tracked": true
+    },
+    {
+      "byte_size": 332,
+      "rel_path": "experiments/R4A/r4a2/requirements-ml.lock.txt",
+      "sha256": "c174de361cc7b7ce0668f4446c34614c77d7df129f6c8e3adc2c19ad26f15c14",
+      "tracked": true
+    },
+    {
+      "byte_size": 6667,
+      "rel_path": "experiments/R4A/r4a2_1/M1_overfit_v2_log.json",
+      "sha256": "68064cd5d9d6e931030fb97378e4e5ac0d970bb9dd965bb16659e119c11ab213",
+      "tracked": true
+    },
+    {
+      "byte_size": 6971,
+      "rel_path": "experiments/R4A/r4a2_1/M2_overfit_v2_log.json",
+      "sha256": "8c66aa13e0249972c1ba87d843222d7e4ab0cdba9c289fb263ed7ec6c72f9017",
+      "tracked": true
+    },
+    {
+      "byte_size": 8190,
+      "rel_path": "experiments/R4A/r4a2_1/freeze_config_v2.json",
+      "sha256": "b3abbfea08243133516239340de7abb71a048df411eef86f419088d4d641b8cf",
+      "tracked": true
+    },
+    {
+      "byte_size": 8352,
+      "rel_path": "experiments/R4A/r4a2_1/label_sha256.txt",
+      "sha256": "12c30dcfac13f57772b22cfc584b982de36e122752ca085700146e1f536ba64e",
+      "tracked": true
+    },
+    {
+      "byte_size": 5130,
+      "rel_path": "experiments/R4A/r4a2_1/p0_attrib.json",
+      "sha256": "4a268ca0ad889124075fc7cb5acad23e5212bf7ef41c7349d5d85442d2b8a707",
+      "tracked": true
+    },
+    {
+      "byte_size": 8701,
+      "rel_path": "experiments/R4A/r4a2_1/p0_diag.json",
+      "sha256": "a21d91c6b28bbbc4686e9e1b34aa933a1e871b2414fc0e167ef6a0314f17767c",
+      "tracked": true
+    },
+    {
+      "byte_size": 12834,
+      "rel_path": "experiments/R4A/r4a2_1/seed_diag_train.json",
+      "sha256": "bf9cd0b9f1046db4c4d4a4f57da8db7524341d2fbde132173df9c02b6e8e4ee1",
+      "tracked": true
+    },
+    {
+      "byte_size": 12850,
+      "rel_path": "experiments/R4A/r4a2_1/seed_diag_train_hybrid_v1.json",
+      "sha256": "6b1e1e0e6e2a79fe197aa4818bf4a1cd1da202dc35de4ca252314445b535d083",
+      "tracked": true
+    },
+    {
+      "byte_size": 3703,
+      "rel_path": "experiments/R4A/r4a2_1/seed_diag_validation.json",
+      "sha256": "dba6e41eb5c8a5a75fd78b7ccbd7d82b169ff08834d35849a6e9ca9d34251b32",
+      "tracked": true
+    },
+    {
+      "byte_size": 1054,
+      "rel_path": "experiments/R4A/r4a2_1_labels.py",
+      "sha256": "0ad9b54abd76d554479a35ef28ba22cebb799a7405770fd12e5c9aba68584660",
+      "tracked": true
+    },
+    {
+      "byte_size": 3336,
+      "rel_path": "experiments/R4A/r4a2_1_p0_attrib.py",
+      "sha256": "51bb6051d05a4519429c2984debc8c2929147d683f2e2795b5201a7dfa945fe0",
+      "tracked": true
+    },
+    {
+      "byte_size": 5891,
+      "rel_path": "experiments/R4A/r4a2_1_p0_diag.py",
+      "sha256": "aa4d6e4293b27f405e4460e335c9ca7d8299a19f5502e3e52ca7e67957c5fd0c",
+      "tracked": true
+    },
+    {
+      "byte_size": 5522,
+      "rel_path": "experiments/R4A/r4a2_1_seed_diag.py",
+      "sha256": "a67600ebc5514cd5c0d2a341029f3bae05da33ce25cf47efa9d09a7fabf4ef43",
+      "tracked": true
+    },
+    {
+      "byte_size": 3400,
+      "rel_path": "experiments/R4A/r4a2_1_seeds.py",
+      "sha256": "80b006860f19fc9bd9885de998b84f5531a6f63c098959179d25e28d32372efd",
+      "tracked": true
+    },
+    {
+      "byte_size": 7599,
+      "rel_path": "experiments/R4A/r4a2_1_train.py",
+      "sha256": "a6534a13287c0e3978abf464528ac646a23a238a0672c6cfedd2262e3254aa85",
+      "tracked": true
+    },
+    {
+      "byte_size": 3288,
+      "rel_path": "experiments/R4A/r4a2_2/15023_vis_index.json",
+      "sha256": "1ef0fd5b58c6f427f8d7a2b935ada704433fec0bb9f94df3b18ce524c88b9642",
+      "tracked": true
+    },
+    {
+      "byte_size": 3298,
+      "rel_path": "experiments/R4A/r4a2_2/15041_vis_index.json",
+      "sha256": "84c17cd6af7a69cc831a6b0633d404a34da56850f562ba85e9ca7886cd2b1d87",
+      "tracked": true
+    },
+    {
+      "byte_size": 1366,
+      "rel_path": "experiments/R4A/r4a2_2/M1_formal_train_log.json",
+      "sha256": "def07a1ec48293777ca89124583c9981075ec2ecf5e55872ef43ddcc7804980b",
+      "tracked": true
+    },
+    {
+      "byte_size": 1397,
+      "rel_path": "experiments/R4A/r4a2_2/M2_formal_train_log.json",
+      "sha256": "3dda40ce3c5d71248ea1295666d9f0c100814c4f2a5121fe8efaea25e60b61ae",
+      "tracked": true
+    },
+    {
+      "byte_size": 204,
+      "rel_path": "experiments/R4A/r4a2_2/checkpoint_sha256.txt",
+      "sha256": "e93f97f94568d694e43be6c1e921a81136445ef2b54228d8a8e7f984e76c2bf0",
+      "tracked": true
+    },
+    {
+      "byte_size": 1715,
+      "rel_path": "experiments/R4A/r4a2_2/china_zero_shot.json",
+      "sha256": "bfc80cb8a02d6dcc5db45720e98f57e585b9e3572067de83749cc32f967614e7",
+      "tracked": true
+    },
+    {
+      "byte_size": 1957,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15023_M0.json",
+      "sha256": "f28e53dac2aa5bb20d3450d118309461b79d15f7f30d5832403c6b32fb10caf6",
+      "tracked": true
+    },
+    {
+      "byte_size": 5249,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15023_M1.json",
+      "sha256": "4013bb925bbfff2cab9e92425c41b0ea5b92e556085c213bbea4ed05cbcf54c1",
+      "tracked": true
+    },
+    {
+      "byte_size": 1952,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15023_M2_hybrid.json",
+      "sha256": "a5ed0e5591397a18101c1853e2d4a9c3a7a7d10398a66452966b0b9f0c33aa60",
+      "tracked": true
+    },
+    {
+      "byte_size": 5267,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15023_M2_oldseed.json",
+      "sha256": "e3b65aeb35d2cb7d32a39e5999f6fa8390b63ec2720c3f501556e9563c033909",
+      "tracked": true
+    },
+    {
+      "byte_size": 1948,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15041_M0.json",
+      "sha256": "77a09fb242fe3fb5917414a6612307dc98fdc0e309960b3ec61661d20da2b011",
+      "tracked": true
+    },
+    {
+      "byte_size": 5250,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15041_M1.json",
+      "sha256": "614b8970660ad7d465953b770cb04f6e89e966ab64722e668df48fdabd5920cf",
+      "tracked": true
+    },
+    {
+      "byte_size": 1963,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15041_M2_hybrid.json",
+      "sha256": "1b0e76dba303cb0dccd967dc41491bac8cf3530f59320f37b9876f6f564b2c01",
+      "tracked": true
+    },
+    {
+      "byte_size": 5285,
+      "rel_path": "experiments/R4A/r4a2_2/eval/15041_M2_oldseed.json",
+      "sha256": "4785d8dd51cbbb4d7896c005f90388be102a28e581f6ec88b598fc4906028d05",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M0_export_summary.json",
+      "sha256": "80ece247e82fb428b3d7749358b487c6a1e5d5af646d1ea856a5b3d44136509f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1414,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M0_validation.json",
+      "sha256": "012cbafcea978aca99551cef935c662002c7fa10dbcad564ab5df52219f629e4",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M1_export_summary.json",
+      "sha256": "fc8037a270d69a7b9a4127146e81a9b26b7f0bbe3233038d6bef691309a6ba37",
+      "tracked": true
+    },
+    {
+      "byte_size": 1414,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M1_validation.json",
+      "sha256": "47ec53edbc0b696a29145aee1ef7c622449a47474ae387137f99d30cd73ca64a",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M2_hybrid_export_summary.json",
+      "sha256": "d0734290b21730cd2f628aec86c36eba9c28e400101507c1732d644e03fb9a6c",
+      "tracked": true
+    },
+    {
+      "byte_size": 1421,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M2_hybrid_validation.json",
+      "sha256": "81316868c89a8306b3b16d8f6ad30b136990deeaa8ef07a136e9bccd24ea9627",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M2_oldseed_export_summary.json",
+      "sha256": "238d1935d6388cd80b961f92c0020b3115c803c5acc5d7848a002a828e3859ab",
+      "tracked": true
+    },
+    {
+      "byte_size": 1422,
+      "rel_path": "experiments/R4A/r4a2_2/export/15023_M2_oldseed_validation.json",
+      "sha256": "5884c5e4efa63d734d7e59469a654a287cc5848663dcb22cf5ce2784c86ac948",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M0_export_summary.json",
+      "sha256": "578e06b7989cb641c1360571d42f12ba8545617948cf5389d8cd20ea0443a07d",
+      "tracked": true
+    },
+    {
+      "byte_size": 1414,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M0_validation.json",
+      "sha256": "fa6f815c948b170a81e33a92783e5790c3d347731bbd33198401da1a22c963eb",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M1_export_summary.json",
+      "sha256": "69e0064344312d44690e384c569780dde9de367be45c3a94507406e92371ab13",
+      "tracked": true
+    },
+    {
+      "byte_size": 1414,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M1_validation.json",
+      "sha256": "e2db699812aa3d396fa434e35271b3ab33df262991eb29f5d317a8f733edbe24",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M2_hybrid_export_summary.json",
+      "sha256": "f6a40627e0d05de68e9af2b935f9dd81134c19a410f2cb02b66412a9dc5d7891",
+      "tracked": true
+    },
+    {
+      "byte_size": 1421,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M2_hybrid_validation.json",
+      "sha256": "b97ed8017a0e2e4c4174a6bb483a39deee8d40eacfb876be2d100ba3dc0f55e2",
+      "tracked": true
+    },
+    {
+      "byte_size": 162,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M2_oldseed_export_summary.json",
+      "sha256": "f9833f3577de9b47a3672dd4a1993bd7f164d991179c2db3be426b8ad65c9ad7",
+      "tracked": true
+    },
+    {
+      "byte_size": 1422,
+      "rel_path": "experiments/R4A/r4a2_2/export/15041_M2_oldseed_validation.json",
+      "sha256": "14618cd9056832cd81bb98e95f021cfadc7e3748c768f93102675ce0c1585a5e",
+      "tracked": true
+    },
+    {
+      "byte_size": 2442,
+      "rel_path": "experiments/R4A/r4a2_2_china.py",
+      "sha256": "497f5218d4962e341fa9e760bfae90ec1e4d6366084ed5095da5540835eb4c45",
+      "tracked": true
+    },
+    {
+      "byte_size": 9666,
+      "rel_path": "experiments/R4A/r4a2_2_eval.py",
+      "sha256": "c66f2860fe14633bd42ac859f6ef0ab8ffdd8935f045f11880cd12842c528006",
+      "tracked": true
+    },
+    {
+      "byte_size": 3340,
+      "rel_path": "experiments/R4A/r4a2_2_export.py",
+      "sha256": "da287bf99364349d95a485f2a50005fd38200dd9eeb0cf4e2d79f7904272e8ad",
+      "tracked": true
+    },
+    {
+      "byte_size": 4234,
+      "rel_path": "experiments/R4A/r4a2_2_infer.py",
+      "sha256": "6b116653b87f105dc15a414358a0eeadf462df65b692840ac1b62a5a7d2fcb8d",
+      "tracked": true
+    },
+    {
+      "byte_size": 4276,
+      "rel_path": "experiments/R4A/r4a2_2_m0.py",
+      "sha256": "5ff00beb0f85778178d04d6b859cf179ed3fc0d1a7d3bb5a94baec11d4646ae8",
+      "tracked": true
+    },
+    {
+      "byte_size": 3664,
+      "rel_path": "experiments/R4A/r4a2_2_vis.py",
+      "sha256": "7942aa1ec6d3a713277253424d5d60c1e7d24531f1edaa38ac8399f6f8ef0823",
+      "tracked": true
+    },
+    {
+      "byte_size": 998,
+      "rel_path": "experiments/R4A/r4a2_gate_ignore_check.py",
+      "sha256": "feda935539f2e5a1822a41b9efc352766f6d6085e57223eb2a33fe74a4125adc",
+      "tracked": true
+    },
+    {
+      "byte_size": 7224,
+      "rel_path": "experiments/R4A/r4a2_labels.py",
+      "sha256": "96bd344c7781fea4614aa0850c6318a45170a1ba7119f3e23b790641df048014",
+      "tracked": true
+    },
+    {
+      "byte_size": 3358,
+      "rel_path": "experiments/R4A/r4a2_overfit_diag.py",
+      "sha256": "d81abc85b06262135b93a01851feef6fc5b089302110b8f8c8c9c2d815a29f5e",
+      "tracked": true
+    },
+    {
+      "byte_size": 10394,
+      "rel_path": "experiments/R4A/r4a2_train.py",
+      "sha256": "f77b20f8586fdd05e4f89f55f73e83b8e1c61d9c5b4371c5e8d792b7c3875bc7",
+      "tracked": true
+    },
+    {
+      "byte_size": 4385,
+      "rel_path": "experiments/R4A/results/geotiff_check.json",
+      "sha256": "effeee60f00a406f15878cb4e651e75419ff1d99c4fa3c2af2c24a68cda621c6",
+      "tracked": true
+    },
+    {
+      "byte_size": 14149,
+      "rel_path": "experiments/R4A/results/registration_qc_old_vs_new.json",
+      "sha256": "aade9cc35090a92769aae9986fb38f368726444d06008668929e6bb58bc63fb6",
+      "tracked": true
+    },
+    {
+      "byte_size": 659,
+      "rel_path": "experiments/R4A/results/vector_check_08001.json",
+      "sha256": "e538e2e9740e66ed0563dfd76dff0fab072dc760f968298df1bdb4adf0bb3ea5",
+      "tracked": true
+    },
+    {
+      "byte_size": 657,
+      "rel_path": "experiments/R4A/results/vector_check_08004.json",
+      "sha256": "9424846448bb4d3a949538fa6446327787163045b91b03604ee6141c71c0caea",
+      "tracked": true
+    },
+    {
+      "byte_size": 1399,
+      "rel_path": "experiments/R4A/results/vector_check_synth_clean_s0.json",
+      "sha256": "cbf8e8cc966fd5e0ed16c4639dffecfc9ac4f433fb7f80add8d1aecc84697089",
+      "tracked": true
+    },
+    {
+      "byte_size": 2030,
+      "rel_path": "experiments/R4A/select_sheets.py",
+      "sha256": "343e08d6476d9ccd431f522e95f908f00ac75ab3165130991af34506f5d1401d",
+      "tracked": true
+    },
+    {
+      "byte_size": 35168,
+      "rel_path": "experiments/R4A/sheet_draw.json",
+      "sha256": "e91cb7bcd62e6cf6511bade862be26e31f010a31a42a7cc54bfb8d31bb873a6f",
+      "tracked": true
+    },
+    {
+      "byte_size": 6014,
+      "rel_path": "experiments/R4A/sheet_qc_results.json",
+      "sha256": "d45ecdb9f7b76add76d9025453a383fcf053df2dd90016c0f2e7c3f33f3add6d",
+      "tracked": true
+    },
+    {
+      "byte_size": 1355,
+      "rel_path": "experiments/R4A/sheet_qc_rules.md",
+      "sha256": "fe1bf7d8e2365e10c26e6038d212440dc7b3ef0c6af5eb27c287d4474fa318b9",
+      "tracked": true
+    },
+    {
+      "byte_size": 7184,
+      "rel_path": "experiments/R4A/validate_pixel_vectors.py",
+      "sha256": "1324fb5554e9ee2d40cfc202df2ef16780b47e6cfdb847eb6451856d2e664890",
+      "tracked": true
+    },
+    {
+      "byte_size": 10384,
+      "rel_path": "experiments/R4B0/gate0/baseline_manifest_r4a2_2.json",
+      "sha256": "b1c8e136796e1939d3ab66e3c6531a95bd0627e65e75b7ffec5cb54d780c9d32",
+      "tracked": true
+    },
+    {
+      "byte_size": 929,
+      "rel_path": "experiments/R4B0/gate0/recompute_check.json",
+      "sha256": "4fb86a8c0038a4204c3bced5bf706ed3b5490d1ff9b95d571d26ed3aa0035a35",
+      "tracked": true
+    },
+    {
+      "byte_size": 1810,
+      "rel_path": "experiments/R4B0/gate1/gate1_posthoc_band_cover.json",
+      "sha256": "62d28797a22682d430db1b5d2c280e62bd263e79c918f1b9ce69d488620d0be7",
+      "tracked": true
+    },
+    {
+      "byte_size": 53934,
+      "rel_path": "experiments/R4B0/gate1/gate1_summary.json",
+      "sha256": "caf19425fd345648f070fab4bacb7e34b374e7fa7caf00721ee64dc610404961",
+      "tracked": true
+    },
+    {
+      "byte_size": 18392,
+      "rel_path": "experiments/R4B0/gate2/gate2_comparison.json",
+      "sha256": "8d44bbdf5697ea9928a9d6694147640c70b28e623ab5cc4312077b6334c5f66f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1164,
+      "rel_path": "experiments/R4B0/gate2/gate2_reproduction_check.json",
+      "sha256": "d7637f1ef405f0ab0c6094102052e194ecca63509040f76d991c112764459819",
+      "tracked": true
+    },
+    {
+      "byte_size": 18831,
+      "rel_path": "experiments/R4B0/gate3/gate3_oracle.json",
+      "sha256": "58f0c2c40779abaa9cab0dd809efe7a983cd3277848eb155bbd9eb86d79bcddf",
+      "tracked": true
+    },
+    {
+      "byte_size": 23368,
+      "rel_path": "experiments/R4B0/gate4/gate4_transfer.json",
+      "sha256": "87a20388212d4633a060cc9c26fd0c45b4a100b33be288f5cb36860b211652e9",
+      "tracked": true
+    },
+    {
+      "byte_size": 10743,
+      "rel_path": "experiments/R4B0/preregistration.json",
+      "sha256": "c1906d5a7907e60ed77a128f8c6905980fca4f2f928fd62b7d4f7ee917fa0daf",
+      "tracked": true
+    },
+    {
+      "byte_size": 1414,
+      "rel_path": "experiments/R4B0/r4b0_1/a1/15023_A1_export_validation.json",
+      "sha256": "a56647f55f5f8539f055fc3a8d28dca890cd16d8059b78ee7a9aa65204e832be",
+      "tracked": true
+    },
+    {
+      "byte_size": 1414,
+      "rel_path": "experiments/R4B0/r4b0_1/a1/15041_A1_export_validation.json",
+      "sha256": "bb5377cd453d7d44c41ddbd32f3cb3907350a8a3b23040099d708f695eb4a0a0",
+      "tracked": true
+    },
+    {
+      "byte_size": 10996,
+      "rel_path": "experiments/R4B0/r4b0_1/a1/a1_comparison.json",
+      "sha256": "083bf82a23b9b3f85702c1350dc9d748b1324c7b9ece451742fb08429064647c",
+      "tracked": true
+    },
+    {
+      "byte_size": 3945,
+      "rel_path": "experiments/R4B0/r4b0_1/c1/c1_validation.json",
+      "sha256": "e8c36bae346d12abb5b702796f0a39acff5172b6ff8551cc04425efe9a90ad19",
+      "tracked": true
+    },
+    {
+      "byte_size": 4581,
+      "rel_path": "experiments/R4B0/r4b0_1_a1.py",
+      "sha256": "4fe80c7278c01ebdaabf5aa21dd13ec42963ae88670bb280fb3f0885fd48e3fa",
+      "tracked": true
+    },
+    {
+      "byte_size": 3235,
+      "rel_path": "experiments/R4B0/r4b0_1_c1.py",
+      "sha256": "b6bb9df1bdd0c7782906a54057e2ea2c69bd9250452846966dec70902e23cd52",
+      "tracked": true
+    },
+    {
+      "byte_size": 6516,
+      "rel_path": "experiments/R4B0/r4b0_1_common.py",
+      "sha256": "3641091359aa8eab9a5149c1798b3d21bcb219b2d9be97728efad64aeac583ad",
+      "tracked": true
+    },
+    {
+      "byte_size": 7219,
+      "rel_path": "experiments/R4B0/r4b0_1_preregistration.json",
+      "sha256": "85b557191b97dff7157df7e2cc574d854e0512593f82e580ef4a2e3f6e06a8ea",
+      "tracked": true
+    },
+    {
+      "byte_size": 15004,
+      "rel_path": "experiments/R4B0/r4b0_common.py",
+      "sha256": "abfaf8d4734626c9f9dac74c8756f5b648ad73c1ef3037366e6108f3ff2d2350",
+      "tracked": true
+    },
+    {
+      "byte_size": 7437,
+      "rel_path": "experiments/R4B0/r4b0_gate1.py",
+      "sha256": "5323494bfc3df02dced5ac5eacb324435a06684039dc31b55eac5bd7fc5c1ab9",
+      "tracked": true
+    },
+    {
+      "byte_size": 4063,
+      "rel_path": "experiments/R4B0/r4b0_gate2.py",
+      "sha256": "3c3a0c7baebdfbf45169226149f31f5628a625131b6c67ce44485780845ed273",
+      "tracked": true
+    },
+    {
+      "byte_size": 3935,
+      "rel_path": "experiments/R4B0/r4b0_gate3.py",
+      "sha256": "a210c7a60833230bebb2abe4e11bee656d8181d27a7aa3813765e588e7aa1496",
+      "tracked": true
+    },
+    {
+      "byte_size": 11473,
+      "rel_path": "experiments/R4B0/r4b0_gate4.py",
+      "sha256": "95b072f52552cb5a3febd6e0d75bd82f300f3696be215b5a4c409b402e6937d1",
+      "tracked": true
+    },
+    {
+      "byte_size": 2260,
+      "rel_path": "experiments/R4B1/gate0/seal_manifest.json",
+      "sha256": "5c2a17bb5c6037dbf1affaffcea2b46ff2a0d5845eb903e55b087fcdfcab3d84",
+      "tracked": true
+    },
+    {
+      "byte_size": 23403,
+      "rel_path": "experiments/R4B1/gate1/gate1_sampling_audit.json",
+      "sha256": "d7f5d1b4ead48b21095201213c85574c1b50ba90a5df2e270c922822c280740c",
+      "tracked": true
+    },
+    {
+      "byte_size": 7114,
+      "rel_path": "experiments/R4B1/gate2/gate2_label_audit.json",
+      "sha256": "1b606c2c1a0e118f4f1277fcf2229eec1538f63600db87c35ba8d26daf596fbb",
+      "tracked": true
+    },
+    {
+      "byte_size": 7527,
+      "rel_path": "experiments/R4B1/r4b1_gate1.py",
+      "sha256": "4a0daf29e2a74602c4841606a184dd707b34e7c54f9db236c483d3734ac7cc31",
+      "tracked": true
+    },
+    {
+      "byte_size": 8287,
+      "rel_path": "experiments/R4B1/r4b1_gate2.py",
+      "sha256": "d55718f2a5881a0ff89a1ef98d66527a7342a36105dd957809bc66cf385d96e4",
+      "tracked": true
+    },
+    {
+      "byte_size": 2413,
+      "rel_path": "experiments/R4B1/r4b1_labels.py",
+      "sha256": "85ab97db5c212c335d760565605582d63e4d9a110e60d06d731d8b275dbed697",
+      "tracked": true
+    },
+    {
+      "byte_size": 2214,
+      "rel_path": "experiments/R4B1/r4b1_sampling.py",
+      "sha256": "d884398679ffc47d57110b7084c9ef199f9144bf7dc9d1a2b685512cec01953c",
+      "tracked": true
+    },
+    {
+      "byte_size": 11999,
+      "rel_path": "experiments/R4B1T/gate0/width_reconciliation.json",
+      "sha256": "e2240aa277955db25e0aef31516ab3c163902be5ffbec5ba2fe6020f253ab3ab",
+      "tracked": true
+    },
+    {
+      "byte_size": 26135,
+      "rel_path": "experiments/R4B1T/gate1/gate1_candidate_A.json",
+      "sha256": "188936db24ca4b6114b4d80ddf44ab98a9f9734b2e4facd6fc098facad09e5b9",
+      "tracked": true
+    },
+    {
+      "byte_size": 9250,
+      "rel_path": "experiments/R4B1T/gate2/gate2_candidate_B.json",
+      "sha256": "b55edb65b2affb19d989e12f4b11aeb1255f3dd4d9db13c7d1ec3a4661c6f18e",
+      "tracked": true
+    },
+    {
+      "byte_size": 23175,
+      "rel_path": "experiments/R4B1T/gate3/gate3_reliability.json",
+      "sha256": "9bb5a8fa2cb2a1833397d4a72b8bc91e12738e9aabd64d7d3eca9b02e5dfd7dc",
+      "tracked": true
+    },
+    {
+      "byte_size": 6036,
+      "rel_path": "experiments/R4B1T/gate5_candidates.json",
+      "sha256": "caf9da38a7387e77e82dc651636747b8b41059d2723da99ac0f89f2f48807f1d",
+      "tracked": true
+    },
+    {
+      "byte_size": 2828,
+      "rel_path": "experiments/R4B1T/r4b1t_gate0.py",
+      "sha256": "b2f402e2af9acc62decb746e2272e335893aa1780ee297a57fbbb84159941af5",
+      "tracked": true
+    },
+    {
+      "byte_size": 5587,
+      "rel_path": "experiments/R4B1T/r4b1t_gate1.py",
+      "sha256": "93933bf8a4d3d0c740422afc998d0ec60c91400149cfd6c6b5e5488792ea332e",
+      "tracked": true
+    },
+    {
+      "byte_size": 9202,
+      "rel_path": "experiments/R4B1T/r4b1t_gate2.py",
+      "sha256": "eac6ea20fe405af44b5d685ac30064949b3aa7ae6c731afbdf0dd67d9b4b1f7d",
+      "tracked": true
+    },
+    {
+      "byte_size": 8569,
+      "rel_path": "experiments/R4B1T/r4b1t_gate3.py",
+      "sha256": "7d6bb09f903e6ce5266a10d0b26eef76e0462c64f3b43958b72d69267d667899",
+      "tracked": true
+    },
+    {
+      "byte_size": 4310,
+      "rel_path": "experiments/R4B1T/r4b1t_labels.py",
+      "sha256": "8c2e0cdf2b7f4745cdd3403c46de187aa4065b7ef944274a7855b1080fd98f41",
+      "tracked": true
+    },
+    {
+      "byte_size": 7793,
+      "rel_path": "experiments/R4B1T/r4b1t_preregistration.json",
+      "sha256": "cedc88991eff404c5c650b6d1f3dd5dd7152c10348cbfea143a829f845bb4e14",
+      "tracked": true
+    },
+    {
+      "byte_size": 2640,
+      "rel_path": "experiments/R4B1T/r4b1t_width.py",
+      "sha256": "5c86a03ea2cfdce135b30822e90901ea3746bf4502ab7d232bac828d248ff765",
+      "tracked": true
+    },
+    {
+      "byte_size": 5235,
+      "rel_path": "experiments/R4B2/r4b2_edges.py",
+      "sha256": "71ce7427b548bece9bd50700d8dc00f70b415f3d4a33c878cf48829a934223f8",
+      "tracked": true
+    },
+    {
+      "byte_size": 7458,
+      "rel_path": "experiments/R4B2/r4b2_eval.py",
+      "sha256": "6b74c0d170732a0b33a3f0068a14ce4c04328d234c704e72a6428bb4cf98c06d",
+      "tracked": true
+    },
+    {
+      "byte_size": 1949,
+      "rel_path": "experiments/R4B2/r4b2_infer.py",
+      "sha256": "64d5cd70ca05829ec7f80b49cac378ab20831f0681458e632f0d8587f79d12e3",
+      "tracked": true
+    },
+    {
+      "byte_size": 6414,
+      "rel_path": "experiments/R4B2/r4b2_preregistration.json",
+      "sha256": "ac94f3c9ad383a2667d1704542e7e4229c53089320da6ff616524bd950b3b64b",
+      "tracked": true
+    },
+    {
+      "byte_size": 5820,
+      "rel_path": "experiments/R4B2/r4b2_stage1.py",
+      "sha256": "323ec8840b974e86f1085fce8ad456e5ee7d836f76b4a7bbcca050f90bb6f8c9",
+      "tracked": true
+    },
+    {
+      "byte_size": 2923,
+      "rel_path": "experiments/R4B2/r4b2_stage1_amendment.json",
+      "sha256": "2229610a89df959286ece1f7b5b83d2a91a4587beff0d66e2d657c96adb5e4cc",
+      "tracked": true
+    },
+    {
+      "byte_size": 5284,
+      "rel_path": "experiments/R4B2/r4b2_stage1_rev.py",
+      "sha256": "7895885415d010898ca1b4606e30d8e53374289939feeb272d66c433c28d461a",
+      "tracked": true
+    },
+    {
+      "byte_size": 2433,
+      "rel_path": "experiments/R4B2/r4b2_stage3.py",
+      "sha256": "e46dc289fb632e51cdca474614d60d71fe83a31f5bd2f89a7001e339ce55624e",
+      "tracked": true
+    },
+    {
+      "byte_size": 8337,
+      "rel_path": "experiments/R4B2/r4b2_train.py",
+      "sha256": "7a7f8132acd16711ad7a3e5877e6acbcaffc1f45eeb4f2e9edaa7f6d6d1d56b4",
+      "tracked": true
+    },
+    {
+      "byte_size": 2413,
+      "rel_path": "experiments/R4B2/stage1/stage1_reconstruction.json",
+      "sha256": "4cd4efc8e3a66881eb3ab78eeb470e727e0b4b6eedc6538828ad226e3e8e6a3a",
+      "tracked": true
+    },
+    {
+      "byte_size": 10285,
+      "rel_path": "experiments/R4B2/stage1/stage1_rev.json",
+      "sha256": "cacfdb576450e063ac1e98733a7684e7c8ceaeb311a428f87ec3570d7f63541d",
+      "tracked": true
+    },
+    {
+      "byte_size": 5143,
+      "rel_path": "experiments/R4B2/stage1/stage1_stop_diagnostic.json",
+      "sha256": "012e57f5d68aecc0eae2cff6686f5c9772b65616c681f8e3ad853c9f3296b3d7",
+      "tracked": true
+    },
+    {
+      "byte_size": 5253,
+      "rel_path": "experiments/R4B2/stage2/B2_formal_train_log.json",
+      "sha256": "0b25bc7313f91e652ccf94652e9f97320a5bf72fe6311093441871df5b6baae4",
+      "tracked": true
+    },
+    {
+      "byte_size": 95,
+      "rel_path": "experiments/R4B2/stage2/checkpoint_sha256.txt",
+      "sha256": "2f7342cb1f717b8723830ad2eac27b2648a6f019943f6a8f517e9077d5c1548d",
+      "tracked": true
+    },
+    {
+      "byte_size": 5239,
+      "rel_path": "experiments/R4B2/stage3/test_sheet_selection.json",
+      "sha256": "56cff343d205ea4e02808421611f320f9b2a93377b5975f942d689f455806724",
+      "tracked": true
+    },
+    {
+      "byte_size": 1422,
+      "rel_path": "experiments/R4B2/stage4/13015_B2_export_validation.json",
+      "sha256": "e78efb2600b3dff1abadebdcca50a8f18a173ad944ec453b47cf64d73fefee8c",
+      "tracked": true
+    },
+    {
+      "byte_size": 1415,
+      "rel_path": "experiments/R4B2/stage4/13015_M2_hybrid_export_validation.json",
+      "sha256": "e01414581099a516012ebf37090cf7566cdc66141afacf9b106ba84de5876143",
+      "tracked": true
+    },
+    {
+      "byte_size": 6366,
+      "rel_path": "experiments/R4B2/stage4/13015_eval.json",
+      "sha256": "d2cff07f6aaf016d7e589f11349d02c9bcff83f63640d7b26f0ebfdd1647b1c7",
+      "tracked": true
+    },
+    {
+      "byte_size": 1414,
+      "rel_path": "experiments/R4B2/stage4/14030_B2_export_validation.json",
+      "sha256": "274b58cf79f3bf6c3d0190ee6c777697ee9ffb433455e1541198b013ea069cdb",
+      "tracked": true
+    },
+    {
+      "byte_size": 1407,
+      "rel_path": "experiments/R4B2/stage4/14030_M2_hybrid_export_validation.json",
+      "sha256": "9c88310729b513d80446bd4bca0773efe4f39dbfb8649b33e79a5368478385d0",
+      "tracked": true
+    },
+    {
+      "byte_size": 5704,
+      "rel_path": "experiments/R4B2/stage4/14030_eval.json",
+      "sha256": "0d5df1ad263216c21142049e512778bcef08fafeb9c3a373c4a9347529cb6fea",
+      "tracked": true
+    },
+    {
+      "byte_size": 6477,
+      "rel_path": "experiments/R4B2/stage4/15023_eval.json",
+      "sha256": "c03814a20d495d5fa66f7a845b1829b8f273fcd9c749c66d3fc29b0e912e3ab1",
+      "tracked": true
+    },
+    {
+      "byte_size": 6747,
+      "rel_path": "experiments/R4B2/stage4/15041_eval.json",
+      "sha256": "a5549a8a90ae21a1468e08b43f1108909301b85ef09e348ef801e1c6e2b77755",
+      "tracked": true
+    },
+    {
+      "byte_size": 1734,
+      "rel_path": "experiments/R4B2/stage4/stage4_failure_diagnostic.json",
+      "sha256": "bd31ba80181fe5d3b120d40b66bffcdc9b3c403074c43bd628e1d25fdf9dde01",
+      "tracked": true
+    },
+    {
+      "byte_size": 1132,
+      "rel_path": "experiments/R4C0/gate1/05015_B2.json",
+      "sha256": "a50925593ec94469ec3297f3ca2879524b791ebb6fabd5d69a8e3003357770f3",
+      "tracked": true
+    },
+    {
+      "byte_size": 1118,
+      "rel_path": "experiments/R4C0/gate1/05015_M1.json",
+      "sha256": "b4c12b23c4210846dfba5a1f825831174f8efb720775d2715cd78d8742e45647",
+      "tracked": true
+    },
+    {
+      "byte_size": 1118,
+      "rel_path": "experiments/R4C0/gate1/05015_M2.json",
+      "sha256": "d9d530347000672ef21667766664fc4d6ff779bb35343a7fe32992b84a37f4f6",
+      "tracked": true
+    },
+    {
+      "byte_size": 1074,
+      "rel_path": "experiments/R4C0/gate1/05016_B2.json",
+      "sha256": "0e0653c5c5566481a2481b0338dac84d514edcaa87a66bea8f6ac7ac1b6e7ba5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1054,
+      "rel_path": "experiments/R4C0/gate1/05016_M1.json",
+      "sha256": "e98ba004f0c1aa7e5e0ce9adbd492a2df41bc0f09069e8e8e498b0aa46d47672",
+      "tracked": true
+    },
+    {
+      "byte_size": 1055,
+      "rel_path": "experiments/R4C0/gate1/05016_M2.json",
+      "sha256": "41c1b16c1b2138c5da775c1e399388caadbca811b231c0538206e7ff339dc517",
+      "tracked": true
+    },
+    {
+      "byte_size": 1228,
+      "rel_path": "experiments/R4C0/gate1/05021_B2.json",
+      "sha256": "217ab495576d57f7c02809d12e6af65b090c6be324abbac77b6cf95d78cf66d1",
+      "tracked": true
+    },
+    {
+      "byte_size": 1207,
+      "rel_path": "experiments/R4C0/gate1/05021_M1.json",
+      "sha256": "21a5acce84d25c06c1c4a4d138aa61b46c31c1693beb6fa6aff542e4ca81498f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1236,
+      "rel_path": "experiments/R4C0/gate1/05021_M2.json",
+      "sha256": "9ab070c0cb59108eabc3ebae27170d5ac68f1122edbb28985ae3c49794e331f4",
+      "tracked": true
+    },
+    {
+      "byte_size": 1259,
+      "rel_path": "experiments/R4C0/gate1/06005_B2.json",
+      "sha256": "3c8368cf20fbd6ff3d472659a39acd04a4e286346339c733a8b57960879da5f8",
+      "tracked": true
+    },
+    {
+      "byte_size": 1180,
+      "rel_path": "experiments/R4C0/gate1/06005_M1.json",
+      "sha256": "94b7dc1a531a24b3eddd3b93f99b6ea890ddbaddbf09885febd8b78e569537f0",
+      "tracked": true
+    },
+    {
+      "byte_size": 1225,
+      "rel_path": "experiments/R4C0/gate1/06005_M2.json",
+      "sha256": "e0c7fc2093393521967b5a0e004509235dad9f6efb679edef1e4ad5f7318a7c1",
+      "tracked": true
+    },
+    {
+      "byte_size": 1292,
+      "rel_path": "experiments/R4C0/gate1/06020_B2.json",
+      "sha256": "77ea32466b6a1af2f4bdc2ca73cd946c8a99fd3aa701476520fbfa5ee0528276",
+      "tracked": true
+    },
+    {
+      "byte_size": 1323,
+      "rel_path": "experiments/R4C0/gate1/06020_M1.json",
+      "sha256": "31648eceeb3a860b3e9c19f62f167b286874ba23dd12ea71f17bafb8e156e972",
+      "tracked": true
+    },
+    {
+      "byte_size": 1287,
+      "rel_path": "experiments/R4C0/gate1/06020_M2.json",
+      "sha256": "54cc1004da1ff1e5eec743d952e0b0100f03db07ed5b408f8414e926fb974fba",
+      "tracked": true
+    },
+    {
+      "byte_size": 1326,
+      "rel_path": "experiments/R4C0/gate1/06054_B2.json",
+      "sha256": "d175341a2cb9d5dd1789e3bf1d3569fa9a0413a605f6e81336ce60a9c1d8e061",
+      "tracked": true
+    },
+    {
+      "byte_size": 1263,
+      "rel_path": "experiments/R4C0/gate1/06054_M1.json",
+      "sha256": "5ab08f6f2e045d76f43e18ca1ac6e5a94a96d7475d8c77ed906f8100b5316375",
+      "tracked": true
+    },
+    {
+      "byte_size": 1256,
+      "rel_path": "experiments/R4C0/gate1/06054_M2.json",
+      "sha256": "101ade9b4851373b8483cb645bf32b786c43b92a1bcfe3b5858eaf6d68625d69",
+      "tracked": true
+    },
+    {
+      "byte_size": 1226,
+      "rel_path": "experiments/R4C0/gate1/06055_B2.json",
+      "sha256": "133cebf18d4d3e07997bbd5777123ea4d95eb42fd508e1cc964823e94913d9ce",
+      "tracked": true
+    },
+    {
+      "byte_size": 1230,
+      "rel_path": "experiments/R4C0/gate1/06055_M1.json",
+      "sha256": "eaaa103c0fae0322f6f5900d730a453160e3bac1a951633453f4ac638572a1a2",
+      "tracked": true
+    },
+    {
+      "byte_size": 1226,
+      "rel_path": "experiments/R4C0/gate1/06055_M2.json",
+      "sha256": "6ee01935cfb74a3e4ddf3342539a736612141567ae7273e42ecf6eaf63e3eef0",
+      "tracked": true
+    },
+    {
+      "byte_size": 1243,
+      "rel_path": "experiments/R4C0/gate1/06090_B2.json",
+      "sha256": "ab0f102dd5b59e15681c2a2e6de740236882632da1210229e8476b6cc9e08c34",
+      "tracked": true
+    },
+    {
+      "byte_size": 1270,
+      "rel_path": "experiments/R4C0/gate1/06090_M1.json",
+      "sha256": "9f5fa54deb6d40e2d5dcc139725fe7c81da932b9e756e84e60bd3234465e532f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1236,
+      "rel_path": "experiments/R4C0/gate1/06090_M2.json",
+      "sha256": "844df4cbf9c7893b2bfc7dcac717553b5138f0c85516f21ede2d32ac3a9b7335",
+      "tracked": true
+    },
+    {
+      "byte_size": 1314,
+      "rel_path": "experiments/R4C0/gate1/07038_B2.json",
+      "sha256": "6c76e8f3aabbbcbae5de70db7111e23011c28b5f1f4cd6e924beb567ad4db584",
+      "tracked": true
+    },
+    {
+      "byte_size": 1219,
+      "rel_path": "experiments/R4C0/gate1/07038_M1.json",
+      "sha256": "6ad7f0a7154740ab4b53acb3ade3c2880a1873e68bd4c0fa89eb09bfd7b66ba3",
+      "tracked": true
+    },
+    {
+      "byte_size": 1267,
+      "rel_path": "experiments/R4C0/gate1/07038_M2.json",
+      "sha256": "5fa7bec966a2058b5f169060d5e25ff3dab744d8b4971090e430e05b99cb7a0b",
+      "tracked": true
+    },
+    {
+      "byte_size": 1301,
+      "rel_path": "experiments/R4C0/gate1/07089_B2.json",
+      "sha256": "ac603e545de06d39f888ae6c9039fea61eb92c3d02e2e1899473566e7cdd9479",
+      "tracked": true
+    },
+    {
+      "byte_size": 1285,
+      "rel_path": "experiments/R4C0/gate1/07089_M1.json",
+      "sha256": "809c7f9b960516ffeaa2529bab299f9a2d1d4fabc8d7f251a7d0eae6f387cdee",
+      "tracked": true
+    },
+    {
+      "byte_size": 1284,
+      "rel_path": "experiments/R4C0/gate1/07089_M2.json",
+      "sha256": "e27682d460ef55cdb8f631cc53e5302a07cf179a812b7d6322e75bdf3fce7cef",
+      "tracked": true
+    },
+    {
+      "byte_size": 44625,
+      "rel_path": "experiments/R4C0/gate1/gate1_summary.json",
+      "sha256": "e6739a7aa5a754169949ad83e0315423aa40316b8ac40c0a54c8358a572fbac7",
+      "tracked": true
+    },
+    {
+      "byte_size": 618,
+      "rel_path": "experiments/R4C0/gate2/gate2_freeze.json",
+      "sha256": "b85fb7ee98094b05bdd31447393b107276fbaec66462adde7d387b3b70d94a06",
+      "tracked": true
+    },
+    {
+      "byte_size": 12228,
+      "rel_path": "experiments/R4C0/gate2/gate2_selection.json",
+      "sha256": "b51ba20f1356cac2d44e4dfa6a7d9e0a75dabb267e174b77fd8d78df5b5427e6",
+      "tracked": true
+    },
+    {
+      "byte_size": 5875,
+      "rel_path": "experiments/R4C0/gate3/13015_gate3.json",
+      "sha256": "7d375664900ec2e489ab0a66be49cbcf210cbb2baf65630c6c2aada7621e1044",
+      "tracked": true
+    },
+    {
+      "byte_size": 5448,
+      "rel_path": "experiments/R4C0/gate3/14030_gate3.json",
+      "sha256": "564f97f17ce0b1cb60bc5aabf3edc104f09aa57f06461f9cbf58aa79c36a1479",
+      "tracked": true
+    },
+    {
+      "byte_size": 1435,
+      "rel_path": "experiments/R4C0/gate3/15023_RAG_BOUNDARY_APPEARANCE_export_validation.json",
+      "sha256": "6d2c5ba7c543264ed99558a5262688d656b41a5441e00d54e36eb6e6940584ad",
+      "tracked": true
+    },
+    {
+      "byte_size": 1429,
+      "rel_path": "experiments/R4C0/gate3/15023_RAG_BOUNDARY_ONLY_export_validation.json",
+      "sha256": "b0516c2627d59083f5371a3b0aef35062f8dade5519f60110439422bcaa8fbb9",
+      "tracked": true
+    },
+    {
+      "byte_size": 6015,
+      "rel_path": "experiments/R4C0/gate3/15023_gate3.json",
+      "sha256": "10fa5c784b87c970912668209716f536a2930392337ce53276e6dceb5fb6a232",
+      "tracked": true
+    },
+    {
+      "byte_size": 1435,
+      "rel_path": "experiments/R4C0/gate3/15041_RAG_BOUNDARY_APPEARANCE_export_validation.json",
+      "sha256": "6bec6493c8ca81123759fd52fd973f18f054a40d458ccc3e0e06864490dae66d",
+      "tracked": true
+    },
+    {
+      "byte_size": 1429,
+      "rel_path": "experiments/R4C0/gate3/15041_RAG_BOUNDARY_ONLY_export_validation.json",
+      "sha256": "6424414f131b73a36b1a7bea2bebcafbf2e8301f5b8991b7989aa13c2a3fefbe",
+      "tracked": true
+    },
+    {
+      "byte_size": 6158,
+      "rel_path": "experiments/R4C0/gate3/15041_gate3.json",
+      "sha256": "1a28297b3694a0daa916751cb9eca978242a5f3f40e38133fa31983d6dcc9ef7",
+      "tracked": true
+    },
+    {
+      "byte_size": 1435,
+      "rel_path": "experiments/R4C0/gate4/13014_RAG_BOUNDARY_APPEARANCE_export_validation.json",
+      "sha256": "d825c6ec416f67c131a6e9d0f351808e005872ef4f27e20d8984934a886ef966",
+      "tracked": true
+    },
+    {
+      "byte_size": 1429,
+      "rel_path": "experiments/R4C0/gate4/13014_RAG_BOUNDARY_ONLY_export_validation.json",
+      "sha256": "2300b5f634eec082078dde7c36acbf97b8545cff698327cb91de5f2f7315ed11",
+      "tracked": true
+    },
+    {
+      "byte_size": 6556,
+      "rel_path": "experiments/R4C0/gate4/13014_gate4.json",
+      "sha256": "a1918277961722ddab29ec6929d3bcf2d9772162664526922821181863ede465",
+      "tracked": true
+    },
+    {
+      "byte_size": 1435,
+      "rel_path": "experiments/R4C0/gate4/15076_RAG_BOUNDARY_APPEARANCE_export_validation.json",
+      "sha256": "393cf6d06b903c8c6f561dcdae0b0f033d5863ae7be75beaf0d5fe4a65550af5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1429,
+      "rel_path": "experiments/R4C0/gate4/15076_RAG_BOUNDARY_ONLY_export_validation.json",
+      "sha256": "f840607d31c39bc87e6758243cd0f60d1e64b298d7a9b4af44badf4165c8278a",
+      "tracked": true
+    },
+    {
+      "byte_size": 6538,
+      "rel_path": "experiments/R4C0/gate4/15076_gate4.json",
+      "sha256": "8ebe9f15008b1ca6251052dc7ae99cf337868d8ce80dfc4f0fcaabd35749f188",
+      "tracked": true
+    },
+    {
+      "byte_size": 3353,
+      "rel_path": "experiments/R4C0/gate4/gate4_selection.json",
+      "sha256": "c25a43a9aff5f3910c5a68a09af6619d509b01792dd0044e0d7940a9a049c341",
+      "tracked": true
+    },
+    {
+      "byte_size": 1421,
+      "rel_path": "experiments/R4C0/r4c0_1/13014_M2_hybrid_export_validation.json",
+      "sha256": "9879d664c4efb1f46d0db8dea9dc28486312972cbf78007c2a26b27a9eb05aeb",
+      "tracked": true
+    },
+    {
+      "byte_size": 1421,
+      "rel_path": "experiments/R4C0/r4c0_1/15076_M2_hybrid_export_validation.json",
+      "sha256": "68ee7340fb3d14a09efab751e18cf90448f186df9614740b749687c8d12043e1",
+      "tracked": true
+    },
+    {
+      "byte_size": 3099,
+      "rel_path": "experiments/R4C0/r4c0_1/gate0_audit.json",
+      "sha256": "05632a6b75063e2c749c59f1baee3f277d8c0594499181b0512091b897e85092",
+      "tracked": true
+    },
+    {
+      "byte_size": 23271,
+      "rel_path": "experiments/R4C0/r4c0_1/gate1_qa_index.json",
+      "sha256": "cfdef8d7cfa7b36d5d34964f15740ed14e4c3231699e89dfb3971fd2fa3dba44",
+      "tracked": true
+    },
+    {
+      "byte_size": 4531,
+      "rel_path": "experiments/R4C0/r4c0_1/gate2_repair_burden.json",
+      "sha256": "bfda2dbfe96810308964174ecd80932e4236de10ee97f531d83bfc794076a296",
+      "tracked": true
+    },
+    {
+      "byte_size": 5614,
+      "rel_path": "experiments/R4C0/r4c0_1_gate0.py",
+      "sha256": "2234e58114417e6eed8e2d5e53d4bc7cacf9c54aedc88a0a1e61cba5cddc6838",
+      "tracked": true
+    },
+    {
+      "byte_size": 9971,
+      "rel_path": "experiments/R4C0/r4c0_1_gate1.py",
+      "sha256": "2f4ebd50c7efa94ca0b9b570d99559c7283c4a2817a97706948291ffe3ef340e",
+      "tracked": true
+    },
+    {
+      "byte_size": 6440,
+      "rel_path": "experiments/R4C0/r4c0_1_gate2.py",
+      "sha256": "fb2e0f2451dc2cad0a09f4f920eb7b7359ac9da74deb84441a099eedd9934498",
+      "tracked": true
+    },
+    {
+      "byte_size": 1420,
+      "rel_path": "experiments/R4C0/r4c0_1b/13014_M2_hybrid_export_validation.json",
+      "sha256": "6a9c0901bbb5e9a35192ea63260da336f17c3871748eede1a32b15d0e04c20c7",
+      "tracked": true
+    },
+    {
+      "byte_size": 1452,
+      "rel_path": "experiments/R4C0/r4c0_1b/13014_RAG_BOUNDARY_ONLY_export_validation.json",
+      "sha256": "daab9d6c342dc0a9de6952f44e29e976995c67fd0507ad532b1af9948c955120",
+      "tracked": true
+    },
+    {
+      "byte_size": 1420,
+      "rel_path": "experiments/R4C0/r4c0_1b/15076_M2_hybrid_export_validation.json",
+      "sha256": "b2a849dd94ee2481df56d495d758ec0590b0948d43ee67d934c4f2d131af97ce",
+      "tracked": true
+    },
+    {
+      "byte_size": 1428,
+      "rel_path": "experiments/R4C0/r4c0_1b/15076_RAG_BOUNDARY_ONLY_export_validation.json",
+      "sha256": "687cdc01ee870e594f892a0fe5cf47ae1fd7e4efaeebfbbf1b4215fc69300e01",
+      "tracked": true
+    },
+    {
+      "byte_size": 3949,
+      "rel_path": "experiments/R4C0/r4c0_1b/attribution.json",
+      "sha256": "e34d9d827a53ee9f45ef642a8182d34ed5b34f77ed243ab85bc61bb9aa517b73",
+      "tracked": true
+    },
+    {
+      "byte_size": 1116,
+      "rel_path": "experiments/R4C0/r4c0_1b/export_regression.json",
+      "sha256": "554aed2bb0974071375155589bcf85af1df9d4d006343b2083116793cf6be2a7",
+      "tracked": true
+    },
+    {
+      "byte_size": 4981,
+      "rel_path": "experiments/R4C0/r4c0_1b/fragment_diagnostics.json",
+      "sha256": "717f671d0064c687b2aed21b47cc971e22fe198d2972d797108d08b5aee6eac9",
+      "tracked": true
+    },
+    {
+      "byte_size": 4125,
+      "rel_path": "experiments/R4C0/r4c0_1b_attribution.py",
+      "sha256": "76f9c9bccd10ac0b600192bce5f38a57136d9175049f9426667551973a91531a",
+      "tracked": true
+    },
+    {
+      "byte_size": 4156,
+      "rel_path": "experiments/R4C0/r4c0_1b_export.py",
+      "sha256": "264367ae49d91cb368c638c8d415efdf1cfbfada538b022b16f64db782eb72f2",
+      "tracked": true
+    },
+    {
+      "byte_size": 9808,
+      "rel_path": "experiments/R4C0/r4c0_1b_fragments.py",
+      "sha256": "cb7fce5f2baf38929a01e0faf925d94c2515cff0904d3043a9794d43fcb3117e",
+      "tracked": true
+    },
+    {
+      "byte_size": 4443,
+      "rel_path": "experiments/R4C0/r4c0_gate1_one.py",
+      "sha256": "052927bda3dbe931329e7444afadbb60076861f2c1e5a4a535b6bb7d33814b32",
+      "tracked": true
+    },
+    {
+      "byte_size": 4421,
+      "rel_path": "experiments/R4C0/r4c0_gate2.py",
+      "sha256": "a881fd75a2f5b0a245116845264677690d5131062e92005dbb4aa0c027057227",
+      "tracked": true
+    },
+    {
+      "byte_size": 7107,
+      "rel_path": "experiments/R4C0/r4c0_gate3.py",
+      "sha256": "c68386599fcf1995e4624a1e0f5d46e2c8c626ee9268efc207b7c81855b7511f",
+      "tracked": true
+    },
+    {
+      "byte_size": 5522,
+      "rel_path": "experiments/R4C0/r4c0_gate4.py",
+      "sha256": "7e0f69e6d040e47587ef100d2df6633618420bd863694bba1fa7f60a8caf9aa3",
+      "tracked": true
+    },
+    {
+      "byte_size": 10555,
+      "rel_path": "experiments/R4C0/r4c0_preregistration.json",
+      "sha256": "9db34ee34786c3b2bf99dfddf948fd3d43d66aff51a694eec1c2336397200774",
+      "tracked": true
+    },
+    {
+      "byte_size": 8966,
+      "rel_path": "experiments/R4C0/r4c0_rag.py",
+      "sha256": "bae05775d7566dbe8b16f4bbcb18ecdc9c5e6f4317ee1a7f567eac843aa1384e",
+      "tracked": true
+    },
+    {
+      "byte_size": 745,
+      "rel_path": "experiments/README.md",
+      "sha256": "f3eccbaa58d6b2fb5de351b326df6f5b7e6b738de1f0d369db451b776976d84c",
+      "tracked": true
+    },
+    {
+      "byte_size": 9842,
+      "rel_path": "experiments/STITCHVECTOR/autoline/autoline_dev.json",
+      "sha256": "dd9d1d28f43241af2441e273c798738b119e667f5e231a5982e7b6fcb458726f",
+      "tracked": true
+    },
+    {
+      "byte_size": 14647,
+      "rel_path": "experiments/STITCHVECTOR/autoline/autoline_test.json",
+      "sha256": "d2938fc379fd921797f201a64021ec0f5c5c9238455c9a4a7345fcb6cfbf8ca5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1012,
+      "rel_path": "experiments/STITCHVECTOR/autoline/posthoc_test.json",
+      "sha256": "830183b9ed749179e1b5df31b0a053977b944c8c6bb2b9dfc47e379ec2142715",
+      "tracked": true
+    },
+    {
+      "byte_size": 33241,
+      "rel_path": "experiments/STITCHVECTOR/b2b/phaseA_features_viewed.json",
+      "sha256": "c236395f8ad2bc685d3618a3579f1da230ba2bcefcfa1a6b9bd1efd6acb50f3a",
+      "tracked": true
+    },
+    {
+      "byte_size": 56957,
+      "rel_path": "experiments/STITCHVECTOR/b2c/b2c_dev.json",
+      "sha256": "9a0d98db44064967253eccb3663acd5c4d316e1e920d94ad7969b92e6799e740",
+      "tracked": true
+    },
+    {
+      "byte_size": 90217,
+      "rel_path": "experiments/STITCHVECTOR/b2c/b2c_test.json",
+      "sha256": "0f57525ba709cf1fb90efc786e534c97cb79c0a89f8e863abfa078079dd4758c",
+      "tracked": true
+    },
+    {
+      "byte_size": 1107,
+      "rel_path": "experiments/STITCHVECTOR/b2c/b2c_test_posthoc.json",
+      "sha256": "d7b47117d342be473fe07d178ad705ad2dad27301b5c987cccca7e52de1aa48d",
+      "tracked": true
+    },
+    {
+      "byte_size": 28676,
+      "rel_path": "experiments/STITCHVECTOR/b2c/phaseA_dev.json",
+      "sha256": "70fb476524c6d62647ea3916f6bf74f002cc499e5a7d319c6faac6d40cb8bcf9",
+      "tracked": true
+    },
+    {
+      "byte_size": 12597,
+      "rel_path": "experiments/STITCHVECTOR/d71/d71_result.json",
+      "sha256": "23d3b6db7b0c6830e98d2712404f7631e0cb002454442fd1f3229f8112005835",
+      "tracked": true
+    },
+    {
+      "byte_size": 1321,
+      "rel_path": "experiments/STITCHVECTOR/d71/posthoc_descriptive.json",
+      "sha256": "3858b58367370b52bb92b99ca36ff5fef0c30a88f77af3843fd7251e0c2587c5",
+      "tracked": true
+    },
+    {
+      "byte_size": 492,
+      "rel_path": "experiments/STITCHVECTOR/editor_poc/artifacts_sha256.txt",
+      "sha256": "ec950f94eb053a57d39a8ef1828ffd771f4e2f1154bffff8a17a67ca2710f2e9",
+      "tracked": true
+    },
+    {
+      "byte_size": 115048,
+      "rel_path": "experiments/STITCHVECTOR/editor_poc/poc0_u2_B2c.json",
+      "sha256": "f7b5772237e22d71a30e01b11c78b1f0324dcd67e8223e61e847b340f04fba9b",
+      "tracked": true
+    },
+    {
+      "byte_size": 2861,
+      "rel_path": "experiments/STITCHVECTOR/editor_poc/poc1_result.json",
+      "sha256": "56e646eb542a776f448157a0f1a95a2970e0e55b6c4308ac5ac87626918a795c",
+      "tracked": true
+    },
+    {
+      "byte_size": 1993,
+      "rel_path": "experiments/STITCHVECTOR/editor_uat/artifacts_sha256.txt",
+      "sha256": "53779b905ae166cc984ff95649b5c981befbbcda78ee09d2dd76063e14d5c41f",
+      "tracked": true
+    },
+    {
+      "byte_size": 8771,
+      "rel_path": "experiments/STITCHVECTOR/editor_uat/uat_result.json",
+      "sha256": "8c78073e9b724b746437bf4f8a769f1576c76754e915aa934877cfa3701e7b64",
+      "tracked": true
+    },
+    {
+      "byte_size": 1114,
+      "rel_path": "experiments/STITCHVECTOR/editor_uat/ui_e2e_result.json",
+      "sha256": "284e22508ea2e7c16e2ed338668cd4e6d92b4be652ff084db2e8326dcddcb6f6",
+      "tracked": true
+    },
+    {
+      "byte_size": 284797,
+      "rel_path": "experiments/STITCHVECTOR/g3/g3_result.json",
+      "sha256": "bd5d9243bf52064eaa8f669df4b74371b39618ae87ea3725fb8d398f2b520ac2",
+      "tracked": true
+    },
+    {
+      "byte_size": 371,
+      "rel_path": "experiments/STITCHVECTOR/geo_attr/geo_images_sha256.txt",
+      "sha256": "0406a09f024eae7b56c9c6efa712c54b7257481bbcc90a66da4fb482e0aa2e2f",
+      "tracked": true
+    },
+    {
+      "byte_size": 38664,
+      "rel_path": "experiments/STITCHVECTOR/geo_attr/geo_result.json",
+      "sha256": "a1c68d7f74436bff20c6a1fc0a13d6c32973132e96b6c781966b9e0ba334b447",
+      "tracked": true
+    },
+    {
+      "byte_size": 97344,
+      "rel_path": "experiments/STITCHVECTOR/lf/lf_dev.json",
+      "sha256": "dd918dec9aeed18113f960eaf2fd85a24f1f5923f918dbc7a63ed0e5256732b1",
+      "tracked": true
+    },
+    {
+      "byte_size": 159801,
+      "rel_path": "experiments/STITCHVECTOR/lf/lf_test.json",
+      "sha256": "02be8e702921161038d67065a345fb4ea7bc71088608fdfc15c48d0d0159c99a",
+      "tracked": true
+    },
+    {
+      "byte_size": 547,
+      "rel_path": "experiments/STITCHVECTOR/lf/lf_test_band_check.json",
+      "sha256": "d5bcdf42bab9509cc49f88fa0e9a1a15a57eb0be5bddbc5ab738b2622f0b2a79",
+      "tracked": true
+    },
+    {
+      "byte_size": 41680,
+      "rel_path": "experiments/STITCHVECTOR/lf/linefaces_test_artifacts_sha256.txt",
+      "sha256": "daf6c5f06e45a209288808f503e62b481283d264ad85966352091604ad9e752f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1079,
+      "rel_path": "experiments/STITCHVECTOR/line_repair/artifacts_sha256.txt",
+      "sha256": "a02b25e68e050c0d0af654d499e534e42c84a183c005649d80ca2c53dc378abf",
+      "tracked": true
+    },
+    {
+      "byte_size": 3100,
+      "rel_path": "experiments/STITCHVECTOR/line_repair/lr_result.json",
+      "sha256": "84b658090c796c82e0558a78ca00d465631665e5585cb17c7de62d9f9a79e4aa",
+      "tracked": true
+    },
+    {
+      "byte_size": 2160,
+      "rel_path": "experiments/STITCHVECTOR/line_repair/lr_ui_e2e_result.json",
+      "sha256": "b36e37e5f1760fdcf7d9a39c4d39ce75b83cff912b5ecb28454465e5f82cad4a",
+      "tracked": true
+    },
+    {
+      "byte_size": 19319,
+      "rel_path": "experiments/STITCHVECTOR/linedet/ld_dev.json",
+      "sha256": "986c0a63c729bcdfdc3d67d84418c57384c270afa6acc92fa0707011f0064e86",
+      "tracked": true
+    },
+    {
+      "byte_size": 23111,
+      "rel_path": "experiments/STITCHVECTOR/linedet/ld_test.json",
+      "sha256": "29e6435b74094175c6d10a7e50bbbfe73d1ba96a1ad063d189c399fb9a88069e",
+      "tracked": true
+    },
+    {
+      "byte_size": 2877,
+      "rel_path": "experiments/STITCHVECTOR/linedet/ld_test_posthoc.json",
+      "sha256": "8abcb8779716980f901096398bd02a56a3a919cafcbc87d23448c3d3d99588e8",
+      "tracked": true
+    },
+    {
+      "byte_size": 13606,
+      "rel_path": "experiments/STITCHVECTOR/linedet/phaseA_stages_p1test.json",
+      "sha256": "13bf71b0606ec7a559a2369016f264db5be5213a5691b35d76678aab0d5b0202",
+      "tracked": true
+    },
+    {
+      "byte_size": 18011,
+      "rel_path": "experiments/STITCHVECTOR/linerec/lr_dev.json",
+      "sha256": "99ee30e83b8e6117ce1217e263d08de1bae857e9c300fcf43e7d618b002509b0",
+      "tracked": true
+    },
+    {
+      "byte_size": 29066,
+      "rel_path": "experiments/STITCHVECTOR/linerec/lr_test.json",
+      "sha256": "21c902e672abc273acbba117cd27c57c013f9bd8780ed1af03f5cd2fb6a31f5d",
+      "tracked": true
+    },
+    {
+      "byte_size": 188480,
+      "rel_path": "experiments/STITCHVECTOR/linerec/phaseA_attribution.json",
+      "sha256": "7e302bb263aaf94a4ae21650b144b65585e8e38340305c9002b7815797792ac8",
+      "tracked": true
+    },
+    {
+      "byte_size": 789,
+      "rel_path": "experiments/STITCHVECTOR/linerec/phaseA_gap_bridging_bound.json",
+      "sha256": "5f99adcbbfca59d0631e9ee2f5bf32b3c5a287595d8510f28ebfee4cc2d5f78e",
+      "tracked": true
+    },
+    {
+      "byte_size": 9900,
+      "rel_path": "experiments/STITCHVECTOR/linerec/phaseA_link_upper_bound.json",
+      "sha256": "b69248e516228e32cc7accc1f5f3cb6c1f811cbdd6a4d0a6d771dbc465db4b92",
+      "tracked": true
+    },
+    {
+      "byte_size": 6780,
+      "rel_path": "experiments/STITCHVECTOR/oracle/u2_300_oracle.json",
+      "sha256": "97ce3e970dda6b6834a0c0e8250a8dd3fc9e96ceb0e04915c0f21b45c9d2d507",
+      "tracked": true
+    },
+    {
+      "byte_size": 47646,
+      "rel_path": "experiments/STITCHVECTOR/oracle/u2_300_result/oracle_result.json",
+      "sha256": "ef3da8a382d0221b44cf563e2a0c3a38c08723f39e253bc850866a6df843ead5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1329,
+      "rel_path": "experiments/STITCHVECTOR/oracle/u2_300_result/posthoc_descriptive.json",
+      "sha256": "513038dee159439399c3ed9d8124e56205716e3a51c8929dde51ac731060d289",
+      "tracked": true
+    },
+    {
+      "byte_size": 37050,
+      "rel_path": "experiments/STITCHVECTOR/oracle/u2_300_result_v2/oracle_v2_result.json",
+      "sha256": "b0dda5596eeaa868e0b85fd02e7a357c9fe4406cbbe2e8950c9b4f7d9c9b28b8",
+      "tracked": true
+    },
+    {
+      "byte_size": 5922,
+      "rel_path": "experiments/STITCHVECTOR/oracle/u2_300_result_v2/p0_diagnosis_v1code.json",
+      "sha256": "4684837d6236c6b32f3ee706bd9b3c5c22ea49680025768b45fa93a5a2a80198",
+      "tracked": true
+    },
+    {
+      "byte_size": 1613,
+      "rel_path": "experiments/STITCHVECTOR/oracle/u2_300_result_v2/posthoc_symbols.json",
+      "sha256": "2c20dbdf094a1d1aaa2ad5bec1d968d569d03aa78725a226d08e910f51c3f405",
+      "tracked": true
+    },
+    {
+      "byte_size": 7029,
+      "rel_path": "experiments/STITCHVECTOR/poc01_preregistration.json",
+      "sha256": "01b727edee3ed52b74c215b0c780f25fe145a84d770a43e804c649daad3d4acc",
+      "tracked": true
+    },
+    {
+      "byte_size": 2910,
+      "rel_path": "experiments/STITCHVECTOR/poc01_r2_amendment1.json",
+      "sha256": "0ad48021253d11317bd7df607fdd6757616f44ca8a309bb0add265d2468a152c",
+      "tracked": true
+    },
+    {
+      "byte_size": 86671,
+      "rel_path": "experiments/STITCHVECTOR/protabl/pa_dev.json",
+      "sha256": "5916f3cd2bc6cadf1ddd4a7ace6ea1ea9e196a98666563ea9a9d4cb5fb301759",
+      "tracked": true
+    },
+    {
+      "byte_size": 2382,
+      "rel_path": "experiments/STITCHVECTOR/protabl/pa_diag_viewed.json",
+      "sha256": "3e050ff76e4bf94f8475f1188031ef3e1ec44185247a9ecbc04a3cd5150b5a94",
+      "tracked": true
+    },
+    {
+      "byte_size": 1793,
+      "rel_path": "experiments/STITCHVECTOR/protabl/pa_images_sha256.txt",
+      "sha256": "8011411baa1d2346219022d5b1c452ff661a4e313a6267230f78714b676d583a",
+      "tracked": true
+    },
+    {
+      "byte_size": 140496,
+      "rel_path": "experiments/STITCHVECTOR/protabl/pa_test.json",
+      "sha256": "e144b9f2433c62b2490adc18c5cdd2928b881273a32fa954d6979fd1963e8eb0",
+      "tracked": true
+    },
+    {
+      "byte_size": 3547,
+      "rel_path": "experiments/STITCHVECTOR/protabl/pa_u2.json",
+      "sha256": "fa8588f266be0d4b1c8ad89ca911651d44c2cffd6effc6b2232f83073483e521",
+      "tracked": true
+    },
+    {
+      "byte_size": 68802,
+      "rel_path": "experiments/STITCHVECTOR/protabl_triage/tri_result.json",
+      "sha256": "7f0e89c5f5defc6b7c2da387b15d59aa4bd5b3f2e8a2208d57fc57562486df80",
+      "tracked": true
+    },
+    {
+      "byte_size": 1741,
+      "rel_path": "experiments/STITCHVECTOR/r0/r0_results.json",
+      "sha256": "b57c2cb2b18fae2985816cf66b4dca551c0118ef2d4f492caec8e51beef1f3c6",
+      "tracked": true
+    },
+    {
+      "byte_size": 14408,
+      "rel_path": "experiments/STITCHVECTOR/r1_verify/r1_conversion_check.json",
+      "sha256": "11fe2d6a9c049bc9f1db76d705fa61453240f92300b39908e7576c7ff4d05a40",
+      "tracked": true
+    },
+    {
+      "byte_size": 24686,
+      "rel_path": "experiments/STITCHVECTOR/r1_verify/r1_verify.json",
+      "sha256": "5d1dd2c948f5294a381f69b54b3b8217d345a48509e7d4f9dd345df82ab9b5d2",
+      "tracked": true
+    },
+    {
+      "byte_size": 3581,
+      "rel_path": "experiments/STITCHVECTOR/r2_failcase/failcase.json",
+      "sha256": "4fb8382143e4a5e8e3278580dcff2506806c9a9290dda3f88e8529ffc224f4b2",
+      "tracked": true
+    },
+    {
+      "byte_size": 4017,
+      "rel_path": "experiments/STITCHVECTOR/r2b/r2b_u2_300.json",
+      "sha256": "e1d5c9844dfee24bddba1aa81724017fe68b0c37595b19c9e37f6979b187f730",
+      "tracked": true
+    },
+    {
+      "byte_size": 6479,
+      "rel_path": "experiments/STITCHVECTOR/repair/u2_band_repairability.json",
+      "sha256": "274cd1d28cbcfeb17fbe1b76609b3867ffdfbda773aa05f41d4b22555294e891",
+      "tracked": true
+    },
+    {
+      "byte_size": 23935,
+      "rel_path": "experiments/STITCHVECTOR/results/r1_summary.json",
+      "sha256": "3f69fcb48df7cc69be8ed38c6463857310b5f3ab6d91b6192ee04ff24360ab05",
+      "tracked": true
+    },
+    {
+      "byte_size": 2412,
+      "rel_path": "experiments/STITCHVECTOR/studio_v01/devin_reverification_2026-11-02.json",
+      "sha256": "922a605678f95017729472357f53ab8951f87af709ae51ced06620ae3e1514d1",
+      "tracked": true
+    },
+    {
+      "byte_size": 2439,
+      "rel_path": "experiments/STITCHVECTOR/studio_v01/e2e_u2_browser_result.json",
+      "sha256": "7e8a5a16815cbf279f433ce3a478a4079ac6315e665a65a2035a794bbb7d38a2",
+      "tracked": true
+    },
+    {
+      "byte_size": 3176,
+      "rel_path": "experiments/STITCHVECTOR/studio_v01/input_format_results.json",
+      "sha256": "019e6a1c4ad4b6d312a568f0f4843cc17169a14cf06f54ecb3dfcd561b32a2c1",
+      "tracked": true
+    },
+    {
+      "byte_size": 2193,
+      "rel_path": "experiments/STITCHVECTOR/studio_v01/make_samples.py",
+      "sha256": "f0d92685bc574dd4af5d86c2e12804d51f9e2232aee257821d1c5bc03dcd9cd5",
+      "tracked": true
+    },
+    {
+      "byte_size": 7737,
+      "rel_path": "experiments/STITCHVECTOR/sv_arcs.py",
+      "sha256": "d469a63adde19397614afd1dd1117f0b2ac650bfd9e94ac1b7914ca79e6e694d",
+      "tracked": true
+    },
+    {
+      "byte_size": 5675,
+      "rel_path": "experiments/STITCHVECTOR/sv_autoline.py",
+      "sha256": "737de646362caa16271ff18370260e3129f3f2b144379a00fff6e28ce375c002",
+      "tracked": true
+    },
+    {
+      "byte_size": 2517,
+      "rel_path": "experiments/STITCHVECTOR/sv_autoline_eval.py",
+      "sha256": "4bf38e83216dc71d03ab2ea8c84ae0722d792c85c6de0f025f814ff136ed020a",
+      "tracked": true
+    },
+    {
+      "byte_size": 3921,
+      "rel_path": "experiments/STITCHVECTOR/sv_autoline_prereg.json",
+      "sha256": "bb0d07cd4106bff9dd08fcb7ee664af43a05b8506ea7822cc54af7cbcfc10e27",
+      "tracked": true
+    },
+    {
+      "byte_size": 4096,
+      "rel_path": "experiments/STITCHVECTOR/sv_autoline_run.py",
+      "sha256": "913702e9432872be00b7187b59aaad005e2d7dc8de8b0eb7bc7c484e91fc401c",
+      "tracked": true
+    },
+    {
+      "byte_size": 4653,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2b.py",
+      "sha256": "70ed253602c97a6c9b1af011e9ffad6c637c6fa31a79f8c76ef21aca78441cc7",
+      "tracked": true
+    },
+    {
+      "byte_size": 6118,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2b_phaseA.py",
+      "sha256": "5cb504839c22e59dcef6facf3306db5ee23b52eded053565018be1a3a46861be",
+      "tracked": true
+    },
+    {
+      "byte_size": 2761,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2c.py",
+      "sha256": "78aa6f52a5bf4d1b9c08bb3ec9cd91fe86f7836dededbc89104856a8e741a1a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 6196,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2c_phaseA.py",
+      "sha256": "f4402f55541fdea49d5bed627f8a0e99c280a1fc62b71425db52c26c55fc4231",
+      "tracked": true
+    },
+    {
+      "byte_size": 2093,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2c_phaseA_rules.json",
+      "sha256": "005cfc9320a6c54c9940adc36a836b816c69658f54d0b82ee87bac306afa0f2e",
+      "tracked": true
+    },
+    {
+      "byte_size": 4456,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2c_prereg.json",
+      "sha256": "16a1ae1530cba1dddfe209b71959a4b85f9b8f54e561c98b2ede44313cad2c65",
+      "tracked": true
+    },
+    {
+      "byte_size": 11592,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2c_run.py",
+      "sha256": "e2a6f7cd3f8c19d57fb7672032b9377141888c4559e1f4459b4ebd6111dfc196",
+      "tracked": true
+    },
+    {
+      "byte_size": 5497,
+      "rel_path": "experiments/STITCHVECTOR/sv_b2c_scenes.py",
+      "sha256": "4572a1054ad38ef5436ae05043b1b6eeaedaa48a40d87aff3729f42bace36e11",
+      "tracked": true
+    },
+    {
+      "byte_size": 6160,
+      "rel_path": "experiments/STITCHVECTOR/sv_common.py",
+      "sha256": "f7c99d8221574d21f97d5881b98051f3d314030980a02e856c88a3e6771fe73f",
+      "tracked": true
+    },
+    {
+      "byte_size": 11527,
+      "rel_path": "experiments/STITCHVECTOR/sv_d71.py",
+      "sha256": "e0708d23b66eed0daf79126bbda88597391d57717ffb1a11655d58f3b5efe2ea",
+      "tracked": true
+    },
+    {
+      "byte_size": 6544,
+      "rel_path": "experiments/STITCHVECTOR/sv_d71_prereg.json",
+      "sha256": "51f8a904b36c0df744c3b208b85a115c6a987605548a738c947d3a63e02fc982",
+      "tracked": true
+    },
+    {
+      "byte_size": 7857,
+      "rel_path": "experiments/STITCHVECTOR/sv_d71_run.py",
+      "sha256": "e202e94605a6caba062c21b1aa3a82a56da3e8851acdf153b3b082657150ebf3",
+      "tracked": true
+    },
+    {
+      "byte_size": 13836,
+      "rel_path": "experiments/STITCHVECTOR/sv_editor_uat.py",
+      "sha256": "e12503ea0b8117ae30cbab01d64061330c72fd20a092348fb353174461ce819a",
+      "tracked": true
+    },
+    {
+      "byte_size": 11678,
+      "rel_path": "experiments/STITCHVECTOR/sv_g3.py",
+      "sha256": "45df65ea8e9238cbf4f30a83611dd3e9b00fd5b6de6bf19bbf0a8b25b2be108d",
+      "tracked": true
+    },
+    {
+      "byte_size": 5785,
+      "rel_path": "experiments/STITCHVECTOR/sv_g3_plan.json",
+      "sha256": "618dea5e6efd315b484b8ae0ca1ec49461272545b7297997553d81c8772eb1df",
+      "tracked": true
+    },
+    {
+      "byte_size": 16935,
+      "rel_path": "experiments/STITCHVECTOR/sv_g3_run.py",
+      "sha256": "03b7381d151d84f256035ec0dca2e7baed7862a9dedc8988ff3f98ebf610c226",
+      "tracked": true
+    },
+    {
+      "byte_size": 5181,
+      "rel_path": "experiments/STITCHVECTOR/sv_gc_repairability.py",
+      "sha256": "46d18810f9e5fb375a794d065c38bc45f6528fd5306d41b423084639f80f3eda",
+      "tracked": true
+    },
+    {
+      "byte_size": 17053,
+      "rel_path": "experiments/STITCHVECTOR/sv_geo.py",
+      "sha256": "5350b54542c29e3df99e2ea584663e922f5bf43378cada8ce0269fe8ae578851",
+      "tracked": true
+    },
+    {
+      "byte_size": 4211,
+      "rel_path": "experiments/STITCHVECTOR/sv_geo_rules.json",
+      "sha256": "0e4187252411d16cc22aa3c789a5149d5fa19980122313c5435af65f6f43b12d",
+      "tracked": true
+    },
+    {
+      "byte_size": 4852,
+      "rel_path": "experiments/STITCHVECTOR/sv_ld_compare.py",
+      "sha256": "ed156b0029dfa83bf693246ddfa986bb73d50579ba589c8cd1c4618e17d288a8",
+      "tracked": true
+    },
+    {
+      "byte_size": 5220,
+      "rel_path": "experiments/STITCHVECTOR/sv_ld_fix.py",
+      "sha256": "3e92cf50227a507dde36ab590d3e1bb541e683951882198a776bd4df7ba4ade0",
+      "tracked": true
+    },
+    {
+      "byte_size": 3334,
+      "rel_path": "experiments/STITCHVECTOR/sv_ld_prereg.json",
+      "sha256": "a853cc2c4fd11128ce81dbfed5fc7a3801854db758b6328df0aff8a56f5bf312",
+      "tracked": true
+    },
+    {
+      "byte_size": 3685,
+      "rel_path": "experiments/STITCHVECTOR/sv_ld_run.py",
+      "sha256": "99e959c4eee7f23233f58f440cf3e4d72252630dcf4885a4ed2310c6051c0039",
+      "tracked": true
+    },
+    {
+      "byte_size": 10067,
+      "rel_path": "experiments/STITCHVECTOR/sv_ld_stages.py",
+      "sha256": "a93efeb8bd60a59e6baa46d0ff4969ad8ff96e0dd8c13987ad9aa1d3be6943e1",
+      "tracked": true
+    },
+    {
+      "byte_size": 2950,
+      "rel_path": "experiments/STITCHVECTOR/sv_lf.py",
+      "sha256": "05191559bf2015d8d20792ed9bd36f5d5d541bff87077f0ae8a51d84a2a0bfd0",
+      "tracked": true
+    },
+    {
+      "byte_size": 6083,
+      "rel_path": "experiments/STITCHVECTOR/sv_lf_eval.py",
+      "sha256": "099f653701480fa6b41e1722df9c442361f0ce47906cc09763e7c1dc134d2f28",
+      "tracked": true
+    },
+    {
+      "byte_size": 4122,
+      "rel_path": "experiments/STITCHVECTOR/sv_lf_prereg.json",
+      "sha256": "5b3ee6f488f6ee1f884b41350dee855eb747e01d88512fbb01c989f25e09dccb",
+      "tracked": true
+    },
+    {
+      "byte_size": 6671,
+      "rel_path": "experiments/STITCHVECTOR/sv_lf_run.py",
+      "sha256": "b906cf9ebd7ddd4ba92f26582c3101c80924442e6123a9331c609fcf0f742ac0",
+      "tracked": true
+    },
+    {
+      "byte_size": 9975,
+      "rel_path": "experiments/STITCHVECTOR/sv_line_repair_uat.py",
+      "sha256": "acc6ab2e37bb36608b170affb1952956a33f049e06b95848a8663722d3959e59",
+      "tracked": true
+    },
+    {
+      "byte_size": 7507,
+      "rel_path": "experiments/STITCHVECTOR/sv_linker.py",
+      "sha256": "3b9c5e0ea91694c5de9ab541ad5d9ede3f18a70c1711daeef1eb830916759f1a",
+      "tracked": true
+    },
+    {
+      "byte_size": 10954,
+      "rel_path": "experiments/STITCHVECTOR/sv_lr_bench.py",
+      "sha256": "9ab09499877e7aab5a5b90d86a3ca68ddd6f93a61e70f2b97ed2bc68f2dc1bad",
+      "tracked": true
+    },
+    {
+      "byte_size": 10760,
+      "rel_path": "experiments/STITCHVECTOR/sv_lr_phaseA.py",
+      "sha256": "391e4c27800e2de781850128b6a56ad77f0fb3fb39e713dea16f0581929a0002",
+      "tracked": true
+    },
+    {
+      "byte_size": 4841,
+      "rel_path": "experiments/STITCHVECTOR/sv_lr_prereg.json",
+      "sha256": "452bd17b9b8d1421ebfb4d7288ab8894253ff5b48aea8c899df2f566117b675f",
+      "tracked": true
+    },
+    {
+      "byte_size": 4283,
+      "rel_path": "experiments/STITCHVECTOR/sv_lr_run.py",
+      "sha256": "b2fec742b8cd03c73bed22f80f94d4037ad302482a07909077ccec240c48651a",
+      "tracked": true
+    },
+    {
+      "byte_size": 2996,
+      "rel_path": "experiments/STITCHVECTOR/sv_lr_upper.py",
+      "sha256": "51a98a07bd67a4ee85e6bb4e4fd33379a05ce3d470fde2597294f841d226e773",
+      "tracked": true
+    },
+    {
+      "byte_size": 5883,
+      "rel_path": "experiments/STITCHVECTOR/sv_oracle.py",
+      "sha256": "a06d35ff1686c21253d11edde8da41784d96fc072e8b242f0b0077ab5e81fb72",
+      "tracked": true
+    },
+    {
+      "byte_size": 7295,
+      "rel_path": "experiments/STITCHVECTOR/sv_oracle_eval.py",
+      "sha256": "f896a4bfcbd84c52ddb6944b2bc37bfa2af6ca76401a515a80705340d882bb6d",
+      "tracked": true
+    },
+    {
+      "byte_size": 7482,
+      "rel_path": "experiments/STITCHVECTOR/sv_oracle_prereg.json",
+      "sha256": "b2ed104386d84656bb79bace0859eed49393357c1410776c6fba6fa8e38631f0",
+      "tracked": true
+    },
+    {
+      "byte_size": 11663,
+      "rel_path": "experiments/STITCHVECTOR/sv_oracle_run.py",
+      "sha256": "9236019d22087dd249c38257cb47cafed5a400e5da526298da92745fd154cbb8",
+      "tracked": true
+    },
+    {
+      "byte_size": 11675,
+      "rel_path": "experiments/STITCHVECTOR/sv_oracle_v2.py",
+      "sha256": "ee0fd711ed085ab10ada3186dc72f5046607a84777f07c5a9bef1ba62ffbc7b0",
+      "tracked": true
+    },
+    {
+      "byte_size": 3451,
+      "rel_path": "experiments/STITCHVECTOR/sv_oracle_v2_prereg.json",
+      "sha256": "f5f2c8cdfdf506bd914602fb115fd39c8f5e87b78aadc0781063f0073649cccd",
+      "tracked": true
+    },
+    {
+      "byte_size": 2910,
+      "rel_path": "experiments/STITCHVECTOR/sv_pa.py",
+      "sha256": "a329344c1d0b06bb3ea9b483521414256132b48cdc236b463a84df8cd5b9abce",
+      "tracked": true
+    },
+    {
+      "byte_size": 2943,
+      "rel_path": "experiments/STITCHVECTOR/sv_pa_diag.py",
+      "sha256": "07545d0601dcf9f7b77f1eb1905dfa939de7a6fa1c9832b88c11f3afe680fea3",
+      "tracked": true
+    },
+    {
+      "byte_size": 5051,
+      "rel_path": "experiments/STITCHVECTOR/sv_pa_prereg.json",
+      "sha256": "5674277dbcfd4361cfa0c6e79210a4bb14e4c9ee0f10efe856b348327d9827cf",
+      "tracked": true
+    },
+    {
+      "byte_size": 10057,
+      "rel_path": "experiments/STITCHVECTOR/sv_pa_run.py",
+      "sha256": "330cdb6eb30070ea022c58c1a9cd8cd0df03fe2d7f4990d83037bbe1b95a541e",
+      "tracked": true
+    },
+    {
+      "byte_size": 3775,
+      "rel_path": "experiments/STITCHVECTOR/sv_pa_u2.py",
+      "sha256": "164bfb988522e62e6a470ed667bd3c7721c68999ffb858ff760dc43f0d74bbd2",
+      "tracked": true
+    },
+    {
+      "byte_size": 6134,
+      "rel_path": "experiments/STITCHVECTOR/sv_poc0_fragments.py",
+      "sha256": "e64af678141111c2c966c06fc78f3b57dd1d109ac3a1e85b4c94f24dc5a3e6f3",
+      "tracked": true
+    },
+    {
+      "byte_size": 6910,
+      "rel_path": "experiments/STITCHVECTOR/sv_poc1_check.py",
+      "sha256": "b93e83e6ec06b0775687e2e388fa798e43f555a33d07f643a89cfe5c85dae3b8",
+      "tracked": true
+    },
+    {
+      "byte_size": 2332,
+      "rel_path": "experiments/STITCHVECTOR/sv_r0.py",
+      "sha256": "74112d416e1a07fb225e396644fedce322fb300db4ed9c0bb95b24dc5227ad17",
+      "tracked": true
+    },
+    {
+      "byte_size": 4348,
+      "rel_path": "experiments/STITCHVECTOR/sv_r1.py",
+      "sha256": "2cb683228620a5702549e7d3356886b26820155f526edac5c7242634bd3c0dba",
+      "tracked": true
+    },
+    {
+      "byte_size": 2539,
+      "rel_path": "experiments/STITCHVECTOR/sv_r1_summary.py",
+      "sha256": "1518ed6dd24f25e976d753a2a387d1da15afaf5851e127497d76e3c104555054",
+      "tracked": true
+    },
+    {
+      "byte_size": 2810,
+      "rel_path": "experiments/STITCHVECTOR/sv_r1_verify.py",
+      "sha256": "765d0f30211dd55701161712569cf4bac4c88ce075a9ac7abe473d46e6f2d30e",
+      "tracked": true
+    },
+    {
+      "byte_size": 2464,
+      "rel_path": "experiments/STITCHVECTOR/sv_r1_verify_crisp.py",
+      "sha256": "6ef2abc40bf7a4ea3a465ed20b03e0a34221fd2ee83fdddb98f6625294e8e0a9",
+      "tracked": true
+    },
+    {
+      "byte_size": 8468,
+      "rel_path": "experiments/STITCHVECTOR/sv_r2.py",
+      "sha256": "499f206b37afa92f3821c4488b64e8436b182af9195ff611be87896062577a46",
+      "tracked": true
+    },
+    {
+      "byte_size": 3811,
+      "rel_path": "experiments/STITCHVECTOR/sv_r2_failcase.py",
+      "sha256": "5117a2a10788d63d855fac9b64763bed7b834b4ce6b5e9a6ebf820fea7cfe710",
+      "tracked": true
+    },
+    {
+      "byte_size": 3408,
+      "rel_path": "experiments/STITCHVECTOR/sv_r2_run.py",
+      "sha256": "641c29f8bceac717d6c4b1fdb624383137f3d84b1d3564e4bfabf48ade8ee86a",
+      "tracked": true
+    },
+    {
+      "byte_size": 2401,
+      "rel_path": "experiments/STITCHVECTOR/sv_r2b_run.py",
+      "sha256": "b7bb6cda5ab68856b74bcb07a639be2b956fc8f193d649a0e9cd3cc920ceb235",
+      "tracked": true
+    },
+    {
+      "byte_size": 2787,
+      "rel_path": "experiments/STITCHVECTOR/sv_svg.py",
+      "sha256": "dcd8e0233a070c5124a01fc7f85029195772ae72df3f37a931a889440e722f3e",
+      "tracked": true
+    },
+    {
+      "byte_size": 3944,
+      "rel_path": "experiments/STITCHVECTOR/sv_synth.py",
+      "sha256": "ccf368452950ef75ae25fdb0a53e57a327742523f2c771129c3bb1fbe967cca1",
+      "tracked": true
+    },
+    {
+      "byte_size": 2785,
+      "rel_path": "experiments/STITCHVECTOR/sv_text_demo.py",
+      "sha256": "b7d08d7b43b622333454e1ecdae95d0c4ced00d592e73e02f353b3a2c9f10b49",
+      "tracked": true
+    },
+    {
+      "byte_size": 5579,
+      "rel_path": "experiments/STITCHVECTOR/sv_text_layer_uat.py",
+      "sha256": "c981189d2ede1b7595d62df6067a613d25fdb078b99658956c8b5dec7bda1f55",
+      "tracked": true
+    },
+    {
+      "byte_size": 3432,
+      "rel_path": "experiments/STITCHVECTOR/sv_text_shots_diff.py",
+      "sha256": "da13bc9585e11e402aacb2beb8416761bf5bc4b8bb32a39396646eaa548b6c89",
+      "tracked": true
+    },
+    {
+      "byte_size": 8445,
+      "rel_path": "experiments/STITCHVECTOR/sv_text_uat_pack.py",
+      "sha256": "e7fbe99758adad3ae08ea2a0ea03488469960cf547d483bb7acc6610b05c2a68",
+      "tracked": true
+    },
+    {
+      "byte_size": 16385,
+      "rel_path": "experiments/STITCHVECTOR/sv_tri.py",
+      "sha256": "937badeeb62e11add843a432c75f87f3b84a53f22b365c772814f354b965eaf6",
+      "tracked": true
+    },
+    {
+      "byte_size": 4889,
+      "rel_path": "experiments/STITCHVECTOR/sv_tri_rules.json",
+      "sha256": "700124fccde62047bf477256cb593f8027c56188af8ede2b3ffc9bb82e54db1d",
+      "tracked": true
+    },
+    {
+      "byte_size": 22217,
+      "rel_path": "experiments/STITCHVECTOR/sv_u2_full_audit.py",
+      "sha256": "5c8b69d5a3a2f6082c9bb5aeb20b7be3899b363dcedc791dc3e9aa56d4ae3e68",
+      "tracked": true
+    },
+    {
+      "byte_size": 4133,
+      "rel_path": "experiments/STITCHVECTOR/sv_u2_full_build.py",
+      "sha256": "6544091cd3b9bffc3cecb0ca3115906cce1dbec17c474faecb934ef63531245a",
+      "tracked": true
+    },
+    {
+      "byte_size": 586,
+      "rel_path": "experiments/STITCHVECTOR/sv_u2_full_ocr.py",
+      "sha256": "2c8864bf0dc293e6b4e7123282bf9841aa8fa2e07eaa0a9a085b9e208f046c8a",
+      "tracked": true
+    },
+    {
+      "byte_size": 4188,
+      "rel_path": "experiments/STITCHVECTOR/sv_u2_plan.json",
+      "sha256": "a6450f9d453049979d8d216a45241ecea1c7e37699396a4c2761fa2ee1f75ff8",
+      "tracked": true
+    },
+    {
+      "byte_size": 11836,
+      "rel_path": "experiments/STITCHVECTOR/sv_u2_run.py",
+      "sha256": "62005db5369417aaa4503e8fb2824e75ab6c91b149e3b85559918a85faf3d313",
+      "tracked": true
+    },
+    {
+      "byte_size": 4428,
+      "rel_path": "experiments/STITCHVECTOR/sv_u2_visual_diff.py",
+      "sha256": "9a9cd9a9300f0a944631c9c66696a3956b9405fd1909045617f4ec42f6816a23",
+      "tracked": true
+    },
+    {
+      "byte_size": 6334,
+      "rel_path": "experiments/STITCHVECTOR/sv_v3.py",
+      "sha256": "ad04bdf5c23f329fb9597fc314078954abee37b6dbd7e33377f63e0f291ae94a",
+      "tracked": true
+    },
+    {
+      "byte_size": 2673,
+      "rel_path": "experiments/STITCHVECTOR/sv_v3_compare.py",
+      "sha256": "a4e3c35ef6beb1b62aa3537cadcff3eb6925b6b19ee518c9c94da3c67afa2820",
+      "tracked": true
+    },
+    {
+      "byte_size": 2735,
+      "rel_path": "experiments/STITCHVECTOR/sv_v3_eval.py",
+      "sha256": "7145cc65705c539e15315d49f83a6182ce76b10b28576498ee5dbed0c471394d",
+      "tracked": true
+    },
+    {
+      "byte_size": 3607,
+      "rel_path": "experiments/STITCHVECTOR/sv_v3_prereg.json",
+      "sha256": "75ca36eecfce9ef75ca1af67bf5e354d45f5df7894dda88aa7200f25cd45b42e",
+      "tracked": true
+    },
+    {
+      "byte_size": 3883,
+      "rel_path": "experiments/STITCHVECTOR/sv_v3_run.py",
+      "sha256": "432cd141e715d5199bda95dc92a44bccadb28073e5c24afef7969c1e903bcbe1",
+      "tracked": true
+    },
+    {
+      "byte_size": 10359,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/ar2e_pending_fragments.json",
+      "sha256": "5b75f315b4da863d02bd7be6aeeaf928eb65432408498dc7272199bf335bb079",
+      "tracked": true
+    },
+    {
+      "byte_size": 2403,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/artifacts_sha256.txt",
+      "sha256": "d7d1121f990a93d3857245ca0779c23824ab650662031709d980a57c62ffe0f8",
+      "tracked": true
+    },
+    {
+      "byte_size": 246,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/demo_geometry_check.json",
+      "sha256": "c825c3bdd2c9b11a165d0df1ce544234a2725653df106360f7df61ee01b07448",
+      "tracked": true
+    },
+    {
+      "byte_size": 601,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/demo_interaction_check.json",
+      "sha256": "aae33c75173f729f7e74b86a92bbe84ed10929c255e720a347ddb53d60724a4f",
+      "tracked": true
+    },
+    {
+      "byte_size": 712,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/demo_ui_check_result.json",
+      "sha256": "5490bed31515c188656975f223ef3298a3451d9077c13578f743b935d67eccbf",
+      "tracked": true
+    },
+    {
+      "byte_size": 2122,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/text_demo.json",
+      "sha256": "688423b4c2a7329b7e0013070a8f03b449d120952c3ee8542d42b147d4af6d31",
+      "tracked": true
+    },
+    {
+      "byte_size": 4444,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/text_result.json",
+      "sha256": "0b11e1565f6dd430fe2962ec316962aa2b9b83b8dc43ad9449918646d37e0b81",
+      "tracked": true
+    },
+    {
+      "byte_size": 1734,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/text_shots_diff.json",
+      "sha256": "e02fd08b775b880a13056f9ebfa20d592757cc6e878b142a079554805a55a3d1",
+      "tracked": true
+    },
+    {
+      "byte_size": 1560,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/text_uat_e2e_result.json",
+      "sha256": "b9af82e4b421049eb2facda247cc7368065ba375ef2ae328deb05ff38cc8a3e3",
+      "tracked": true
+    },
+    {
+      "byte_size": 1171,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/text_ui_e2e_result.json",
+      "sha256": "9c511b56c4a5ac64c52b81171ba8e760f3fc323d0cfe563cde108a096d28e394",
+      "tracked": true
+    },
+    {
+      "byte_size": 3107,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/uat_metrics.json",
+      "sha256": "0f19e50a042d681ff7e11d0b82c83805ab5e56f87b0961f5ae85ed7000ab364d",
+      "tracked": true
+    },
+    {
+      "byte_size": 2888,
+      "rel_path": "experiments/STITCHVECTOR/text_layer/visual_diff.json",
+      "sha256": "c15d754740c36a4dbc6c0d97de595ae3a2795856f799e54755c81374c1eeab21",
+      "tracked": true
+    },
+    {
+      "byte_size": 1511,
+      "rel_path": "experiments/STITCHVECTOR/u2_full/u2_build_run.json",
+      "sha256": "bacfff96fba2e3d7731a1bcb8e9caa37733b7dcff3db227e134a67ed4c173249",
+      "tracked": true
+    },
+    {
+      "byte_size": 6991435,
+      "rel_path": "experiments/STITCHVECTOR/u2_full/u2_text_clearing_log.json",
+      "sha256": "853e11a8ce8d656539220f6671f6b6fa502a90d660e959a3b4d2284773d6fd5f",
+      "tracked": true
+    },
+    {
+      "byte_size": 6167,
+      "rel_path": "experiments/STITCHVECTOR/u2_full/u2_validation_summary.json",
+      "sha256": "01be9a8ed39501392aef1b9d8e1f0a676821fa7a81f331fc3d582a4d24ee2e86",
+      "tracked": true
+    },
+    {
+      "byte_size": 4212,
+      "rel_path": "experiments/STITCHVECTOR/u2_visual_diff/u2_visual_diff_metrics.json",
+      "sha256": "f06c2dccde18a19a1446847d51ff9ade6dec6dbff9dfe891765b9f5747773ec0",
+      "tracked": true
+    },
+    {
+      "byte_size": 1102,
+      "rel_path": "experiments/STITCHVECTOR/u2_visual_diff/u2_visual_diff_ui_result.json",
+      "sha256": "4657753ae332615cf376d42e4df130132ba65c885eff1784927933e643cbab5c",
+      "tracked": true
+    },
+    {
+      "byte_size": 2398,
+      "rel_path": "experiments/STITCHVECTOR/u2real/u2_artifacts_sha256.txt",
+      "sha256": "28fbb3b48f43f3ecc5930a8d8827ef0af270d4f9b1ede0351ed08b993ba1285b",
+      "tracked": true
+    },
+    {
+      "byte_size": 651,
+      "rel_path": "experiments/STITCHVECTOR/u2real/u2_posthoc_lines.json",
+      "sha256": "8b5d5c50b6c76b7ae5f2eb70bcbfdc27a54bdae1b8193320927a50288fdccfd5",
+      "tracked": true
+    },
+    {
+      "byte_size": 29410,
+      "rel_path": "experiments/STITCHVECTOR/u2real/u2_result.json",
+      "sha256": "7121a68b5fb6d61a43806b43fa5a17fde6dade5c8265cf3606bbee90925f1d40",
+      "tracked": true
+    },
+    {
+      "byte_size": 16914,
+      "rel_path": "experiments/STITCHVECTOR/v3/v3_dev.json",
+      "sha256": "471582fde6de70f31078c9eedba59ebea134f6749f82f9dc33c5c39100effce8",
+      "tracked": true
+    },
+    {
+      "byte_size": 481,
+      "rel_path": "experiments/STITCHVECTOR/v3/v3_miss_diagnosis_p1test.json",
+      "sha256": "4598dbac618bf482c102ee6a1fdb68d68311fec0e42bdbc1ee60bc643b4a3e3d",
+      "tracked": true
+    },
+    {
+      "byte_size": 29563,
+      "rel_path": "experiments/STITCHVECTOR/v3/v3_test.json",
+      "sha256": "d7154af93608bec398709865dc51df5bf9648672f1702d00f6e12a6a204b0f59",
+      "tracked": true
+    },
+    {
+      "byte_size": 2296,
+      "rel_path": "experiments/STITCHVECTOR/v3/v3_test_posthoc.json",
+      "sha256": "0239767f257c3736d92013285b1bcdcf6e1954da3cb6283f16c402794ef71575",
+      "tracked": true
+    },
+    {
+      "byte_size": 27536,
+      "rel_path": "experiments/STITCHVECTOR/v3/v3_viewed_p1test.json",
+      "sha256": "a6b75b135cb78dac117afe597816f48826bddd528a143d203bdc74fb4ba7380c",
+      "tracked": true
+    },
+    {
+      "byte_size": 512,
+      "rel_path": "pyproject.toml",
+      "sha256": "aa062b722655a6b7f6d3f36f2777d678d3220d113d425825f6b680aaf33751e7",
+      "tracked": true
+    },
+    {
+      "byte_size": 3271,
+      "rel_path": "schemas/d0/feature_record.schema.json",
+      "sha256": "f60b2544a5583872675c8ba0c2bc218eac5f6868b7fefab5725b27960c35a21a",
+      "tracked": true
+    },
+    {
+      "byte_size": 100,
+      "rel_path": "src/scan2arcgis/__init__.py",
+      "sha256": "5b018cf3746fec0e3ce1fbcb49fb68b38df8921e9f11c3080907e34ff0704d97",
+      "tracked": true
+    },
+    {
+      "byte_size": 2,
+      "rel_path": "src/scan2arcgis/adapters/__init__.py",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 3710,
+      "rel_path": "src/scan2arcgis/adapters/legacy.py",
+      "sha256": "d390619ed62e717667a0aefc43953176ac6fece9c5f8f27d1a2da7461f1a7dc7",
+      "tracked": true
+    },
+    {
+      "byte_size": 2,
+      "rel_path": "src/scan2arcgis/confidence/__init__.py",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 1068,
+      "rel_path": "src/scan2arcgis/confidence/decide.py",
+      "sha256": "f1750d9f85b0d1b6e9bda8dfcab89c9cdecadde8b9b4242e7c2a81fda6494551",
+      "tracked": true
+    },
+    {
+      "byte_size": 1980,
+      "rel_path": "src/scan2arcgis/confidence/signals.py",
+      "sha256": "ee947abb24ed1ef1e36e26262eefc8b2180f84d6a3f4cf7192d03fef89a1fd86",
+      "tracked": true
+    },
+    {
+      "byte_size": 146,
+      "rel_path": "src/scan2arcgis/d0/__init__.py",
+      "sha256": "d445b0cbf140164a1d547ae3062180e957d29e469142a04b5a7dc24c3d239fc0",
+      "tracked": true
+    },
+    {
+      "byte_size": 4221,
+      "rel_path": "src/scan2arcgis/d0/validate.py",
+      "sha256": "a5a4248ec2370e82e222ac3a6af1b4e769848e9c402181116baf78a84a02faae",
+      "tracked": true
+    },
+    {
+      "byte_size": 2,
+      "rel_path": "src/scan2arcgis/eval/__init__.py",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 5663,
+      "rel_path": "src/scan2arcgis/eval/raster_metrics.py",
+      "sha256": "c64379ecbc38f6d83d2feef8ca616e32f2c6d4dcbb74154ba7a47b49ba5f5784",
+      "tracked": true
+    },
+    {
+      "byte_size": 2,
+      "rel_path": "src/scan2arcgis/export/__init__.py",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 2609,
+      "rel_path": "src/scan2arcgis/export/gpkg.py",
+      "sha256": "b35eced275ce1bb1349cd5eaa7a91be019f2c5efa0b742ac946d004e1d19a66b",
+      "tracked": true
+    },
+    {
+      "byte_size": 2,
+      "rel_path": "src/scan2arcgis/recog/__init__.py",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 9392,
+      "rel_path": "src/scan2arcgis/recog/legend_classifier.py",
+      "sha256": "5781233becd4f5364b43e0b291dbe54f4b8c66e5150e5dd0170c537bdaeee133",
+      "tracked": true
+    },
+    {
+      "byte_size": 3653,
+      "rel_path": "src/scan2arcgis/recog/legend_swatches.py",
+      "sha256": "ff57ffe49c4d928b38accbcf91032b142fa1e27a60caacde6e213e23c7e86246",
+      "tracked": true
+    },
+    {
+      "byte_size": 2297,
+      "rel_path": "src/scan2arcgis/recog/lines.py",
+      "sha256": "5f5c628a602d17bbc3c6085de0861a5cb46b51ced2abde27e950653752f46e06",
+      "tracked": true
+    },
+    {
+      "byte_size": 2511,
+      "rel_path": "src/scan2arcgis/recog/sam2_onnx.py",
+      "sha256": "2b9e9eab785f5a20d9a1be8154db6efb1e067edec265778c02bbcddd2868ff64",
+      "tracked": true
+    },
+    {
+      "byte_size": 2839,
+      "rel_path": "src/scan2arcgis/recog/sam_refine.py",
+      "sha256": "39806359d3ebdb85b6b9deeededaf561884ee2e9d9376916be1946d23113dcf1",
+      "tracked": true
+    },
+    {
+      "byte_size": 2,
+      "rel_path": "src/scan2arcgis/synth/__init__.py",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 12268,
+      "rel_path": "src/scan2arcgis/synth/generate.py",
+      "sha256": "c44bdbcf50068919c9a1ade0824ac5632d125fdfdf36120c5f44e4347951302f",
+      "tracked": true
+    },
+    {
+      "byte_size": 2,
+      "rel_path": "src/scan2arcgis/vector/__init__.py",
+      "sha256": "7eb70257593da06f682a3ddda54a9d260d4fc514f645237f5ca74b08f8da61a6",
+      "tracked": true
+    },
+    {
+      "byte_size": 4306,
+      "rel_path": "src/scan2arcgis/vector/polygonize.py",
+      "sha256": "d7f2a4041846b05019992bf0b4b7da869bb8febc707ed8a1999fc4fdb497101d",
+      "tracked": true
+    },
+    {
+      "byte_size": 184,
+      "rel_path": "start_stitchvector_studio.cmd",
+      "sha256": "5f60c84044832657aba89de629de310557a1ec24118cd7fb29fd892151f75030",
+      "tracked": false
+    },
+    {
+      "byte_size": 1153,
+      "rel_path": "tests/arch1/test_arch1_decision_store.py",
+      "sha256": "dc6e1816dc84ed3ba46d56997184cebc70c589d594d687eeb79e5d23019cf4bc",
+      "tracked": true
+    },
+    {
+      "byte_size": 1171,
+      "rel_path": "tests/arch1/test_arch1_linewidth.py",
+      "sha256": "f1ad8e525f0c9afb2d7eeff16b6123679aae44b052dbef6ab9ecb4c0cf785c24",
+      "tracked": true
+    },
+    {
+      "byte_size": 2547,
+      "rel_path": "tests/arch2/test_arch2_cpair.py",
+      "sha256": "ba734b5032e8ac93a01adde03ac7b548a227cdd6935a944393a0d91bce6e5412",
+      "tracked": true
+    },
+    {
+      "byte_size": 1520,
+      "rel_path": "tests/arch2/test_arch2_metrics.py",
+      "sha256": "a8060642491005f29cbcf1c3288e89c808550b78b1df3510c3eee3c602a54bed",
+      "tracked": true
+    },
+    {
+      "byte_size": 3130,
+      "rel_path": "tests/arch2/test_arch2_subdivision.py",
+      "sha256": "9412164cc59f1958f7a6ae7504e1882034a13e0c3f77780013e4742ad3d2deda",
+      "tracked": true
+    },
+    {
+      "byte_size": 4080,
+      "rel_path": "tests/d0/test_validate.py",
+      "sha256": "6e8da1bb89a28b4de778b3f748a6feface90bf6e5a28a120920aae57e7afbe13",
+      "tracked": true
+    },
+    {
+      "byte_size": 5895,
+      "rel_path": "tests/r1/test_r1_pipeline.py",
+      "sha256": "39f755f37133bf8bbab98e0d251768210e5da2f0a9fd8e522196493206b2716e",
+      "tracked": true
+    },
+    {
+      "byte_size": 1249,
+      "rel_path": "tests/r2/test_gsj_diag.py",
+      "sha256": "34962a191ce40141b6207b8cc1092a91c2e0d4608b21be43334a90b878eb1319",
+      "tracked": true
+    },
+    {
+      "byte_size": 1689,
+      "rel_path": "tests/r2/test_gsj_eval.py",
+      "sha256": "ed234ca192e17df5a9d1f24abc877e088277beb1579626912114e8072a42ebbe",
+      "tracked": true
+    },
+    {
+      "byte_size": 1620,
+      "rel_path": "tests/r3/test_fixes.py",
+      "sha256": "4cdb3956ef35872da0199c7fb50ff91e0c033a114c30408c22d69a07c94724f5",
+      "tracked": true
+    },
+    {
+      "byte_size": 1298,
+      "rel_path": "tests/r3/test_s1.py",
+      "sha256": "b39d980d78c372e94d7e332579cb36436125ae246f473446510575b8dda72b45",
+      "tracked": true
+    },
+    {
+      "byte_size": 902,
+      "rel_path": "tests/r3/test_s2.py",
+      "sha256": "56819870927ccfbcc2ae9d172c04292083f0ac7e6f081738c097bcdd644d78d8",
+      "tracked": true
+    },
+    {
+      "byte_size": 709,
+      "rel_path": "tests/r4a/test_export_pixel.py",
+      "sha256": "3beffe3558a9c840676b76cc94ad3d559cda0e9233c17020f5c83c8eca691960",
+      "tracked": true
+    },
+    {
+      "byte_size": 2688,
+      "rel_path": "tests/r4a/test_r4a2_1.py",
+      "sha256": "aa4f53c4246fcd17504a13835e9b688539ddb91c4a1a08b647dadee800b8fcae",
+      "tracked": true
+    },
+    {
+      "byte_size": 2482,
+      "rel_path": "tests/r4a/test_r4a2_2.py",
+      "sha256": "363ec135da018c249ad6ec34de43b44957880f53b485e4d9a02c157a36d45230",
+      "tracked": true
+    },
+    {
+      "byte_size": 689,
+      "rel_path": "tests/r4a/test_register_v2.py",
+      "sha256": "344297cc5f20f264bd57f76b814ad98730e7e4f157e63be5911363097448e6f5",
+      "tracked": true
+    },
+    {
+      "byte_size": 2311,
+      "rel_path": "tests/r4b0/test_r4b0_1.py",
+      "sha256": "543cb1ea47a8a61a6c625285ac211ee28bf78a8a45e1db7155c0bf4d7a1169fc",
+      "tracked": true
+    },
+    {
+      "byte_size": 3175,
+      "rel_path": "tests/r4b0/test_r4b0_common.py",
+      "sha256": "937681ebe7530842678ca27b6e281b2f7e970d9ae759a30d8c285e301cb7474f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1675,
+      "rel_path": "tests/r4b1/test_r4b1_labels.py",
+      "sha256": "718d4a9641d3df3c19b60fdfaa0bb1f7f14b68faa5a75f21907a08b29c4f7c45",
+      "tracked": true
+    },
+    {
+      "byte_size": 1642,
+      "rel_path": "tests/r4b1/test_r4b1_sampling.py",
+      "sha256": "a03a55602d7f12a7d794255f262f5fcc672460f7dc0ed3413f346839e21405f5",
+      "tracked": true
+    },
+    {
+      "byte_size": 3084,
+      "rel_path": "tests/r4b1t/test_r4b1t_labels.py",
+      "sha256": "20c9cbc4edfdc8648f3a14f2282a9b13cdbf2ed9df54f7ab09e1367db7f56b66",
+      "tracked": true
+    },
+    {
+      "byte_size": 1236,
+      "rel_path": "tests/r4b1t/test_r4b1t_width.py",
+      "sha256": "d932acb6d705b8439dd3cbdc818dc80218f7f7dc19d01b000855ff72faa05f15",
+      "tracked": true
+    },
+    {
+      "byte_size": 3971,
+      "rel_path": "tests/r4b2/test_r4b2_edges.py",
+      "sha256": "4b2b15431749cdaf1393c094dcca2bc460b3cb7cbd8346852aee422ca77f2ba7",
+      "tracked": true
+    },
+    {
+      "byte_size": 2867,
+      "rel_path": "tests/r4c0/test_r4c0_rag.py",
+      "sha256": "f8fc2c5dc2997c5d4afa987a926ced7b11519e398803a3f1cd67f992a9165baf",
+      "tracked": true
+    },
+    {
+      "byte_size": 1722,
+      "rel_path": "tests/stitchvector/test_sv_arcs.py",
+      "sha256": "6815f180c4e780f31c78277589c78dceb02c17308b96cd304c15450577264927",
+      "tracked": true
+    },
+    {
+      "byte_size": 2833,
+      "rel_path": "tests/stitchvector/test_sv_d71.py",
+      "sha256": "bbf5d70fe56e90628af6c2d79c251977bb7a7f56ab6231a4b6788cbea19ea13f",
+      "tracked": true
+    },
+    {
+      "byte_size": 1403,
+      "rel_path": "tests/stitchvector/test_sv_linker.py",
+      "sha256": "b136c99fadd4a6f81f0432ed912482524dde25aa9edc188e6132a8d014e4937f",
+      "tracked": true
+    },
+    {
+      "byte_size": 2313,
+      "rel_path": "tests/stitchvector/test_sv_oracle.py",
+      "sha256": "628b362cba471eb0c66ff1ec540624822007b632a525ddb4baa8694d31a99281",
+      "tracked": true
+    },
+    {
+      "byte_size": 1187,
+      "rel_path": "tests/stitchvector/test_sv_r0.py",
+      "sha256": "f0e72bf4f5923ba6e0492160227b9208b7393bf410c6eedd01b9adbcf85ce7b8",
+      "tracked": true
+    },
+    {
+      "byte_size": 1555,
+      "rel_path": "tests/stitchvector/test_sv_r2.py",
+      "sha256": "4d9e042e095eaa99c5c0afab2a4dc29704b4dae0312515ae921fe6caf051f119",
+      "tracked": true
+    },
+    {
+      "byte_size": 1283,
+      "rel_path": "tests/stitchvector/test_sv_svg.py",
+      "sha256": "6860085955ce3b32281c7b09e90963bbabd2e4d71462d86f008175ed07e3ce77",
+      "tracked": true
+    },
+    {
+      "byte_size": 1711,
+      "rel_path": "tests/stitchvector/test_sv_v3.py",
+      "sha256": "806d00d22ab84b500593cb81630cdc0539a4274186b478f5afe421ebc1e58a7b",
+      "tracked": true
+    },
+    {
+      "byte_size": 3890,
+      "rel_path": "tests/stitchvector_editor/e2e_closeout_ui.js",
+      "sha256": "bf3f31fb90f2ee73d5e949c12c5e13fafceb190c765c3f32cf67a1ae0b34585a",
+      "tracked": true
+    },
+    {
+      "byte_size": 11637,
+      "rel_path": "tests/stitchvector_editor/e2e_line_repair.js",
+      "sha256": "d03b0c2d95146a1c3bc204197cb1bc659bf27450c58c5e885db6042569ab59e2",
+      "tracked": true
+    },
+    {
+      "byte_size": 8246,
+      "rel_path": "tests/stitchvector_editor/e2e_p0_fixes.js",
+      "sha256": "ab5b491d838ce7efe7b91f52ab1c94c2c3d32c3632384314b76b971298284eda",
+      "tracked": true
+    },
+    {
+      "byte_size": 5174,
+      "rel_path": "tests/stitchvector_editor/e2e_review.js",
+      "sha256": "aa76f6e39e4a91f2eab070a456a7b2ad4b3c7c0c539e485cdcd742744838efe1",
+      "tracked": true
+    },
+    {
+      "byte_size": 3044,
+      "rel_path": "tests/stitchvector_editor/e2e_text_demo_check.js",
+      "sha256": "027c0c613589dda4011bed65b650d8f5e9a7679709fa2d699d8365fd12988b18",
+      "tracked": true
+    },
+    {
+      "byte_size": 5681,
+      "rel_path": "tests/stitchvector_editor/e2e_text_layer.js",
+      "sha256": "de3a319d29559625ca9d0b6c58c85d6087999310c9720d7511944b2a560bf266",
+      "tracked": true
+    },
+    {
+      "byte_size": 8682,
+      "rel_path": "tests/stitchvector_editor/e2e_text_uat.js",
+      "sha256": "f597061297c1d558d88b3a771c83985db5733487a832eb29024cf4535b5bec4d",
+      "tracked": true
+    },
+    {
+      "byte_size": 8253,
+      "rel_path": "tests/stitchvector_editor/e2e_ui.js",
+      "sha256": "8557c8faf689d04da08e53d6b4cdcf0eaebd1f4d295d961a7ae125d41a772492",
+      "tracked": true
+    },
+    {
+      "byte_size": 4226,
+      "rel_path": "tests/stitchvector_editor/e2e_visual_diff.js",
+      "sha256": "29e4a965a989ea6ee1195d1ece5f5f6ffe8b836a8cae9b25dcb13fc5e90ef75b",
+      "tracked": true
+    },
+    {
+      "byte_size": 2144,
+      "rel_path": "tests/stitchvector_editor/shots_text_demo.js",
+      "sha256": "6bf04b9e5072c0fadef19439be33d6c9c8bdea9e51e47f51b491836685705659",
+      "tracked": true
+    },
+    {
+      "byte_size": 4389,
+      "rel_path": "tests/stitchvector_editor/test_core.py",
+      "sha256": "c802629ed428b09dc6e024a44e79bc17f6c287ad06531e24f4ea9ae689b832d1",
+      "tracked": true
+    },
+    {
+      "byte_size": 5541,
+      "rel_path": "tests/stitchvector_editor/test_line_repair.py",
+      "sha256": "4b4ba50d3174f46ff9e1bd7bdfcea3b0e9c807a1aeb1950940ed8bae6ea78967",
+      "tracked": true
+    },
+    {
+      "byte_size": 11623,
+      "rel_path": "tests/stitchvector_editor/test_p0_fixes.py",
+      "sha256": "6925d37446f18f49fe6e7e0cf151d847a6130ec346277cf16ad79734dc30b389",
+      "tracked": true
+    },
+    {
+      "byte_size": 6367,
+      "rel_path": "tests/stitchvector_editor/test_p1_1_gate.py",
+      "sha256": "bc041138b28281f7a6c52c74b87a7b7171d0f9c5d9876f445c49a3a7fdcf1b50",
+      "tracked": true
+    },
+    {
+      "byte_size": 5846,
+      "rel_path": "tests/stitchvector_editor/test_p1_review.py",
+      "sha256": "489f74ab40aefe77249cf36ecc2eb594d98887009b6fd020e618bf5394186d4d",
+      "tracked": true
+    },
+    {
+      "byte_size": 23087,
+      "rel_path": "tests/stitchvector_editor/test_p2_semiauto.py",
+      "sha256": "07849909d38b244e18a0ef48b26980184ca5c40193b07cb3102f64062b11d2ec",
+      "tracked": true
+    },
+    {
+      "byte_size": 2189,
+      "rel_path": "tests/stitchvector_editor/test_render_diff.py",
+      "sha256": "e3d7af6595d9c820dd2bde501355747b3395965a344c9aac2acaa31269582d08",
+      "tracked": true
+    },
+    {
+      "byte_size": 2994,
+      "rel_path": "tests/stitchvector_editor/test_selection.py",
+      "sha256": "8e5ac9b358350ed6175c7da574f0334c02986e79e492f42098191d58e3257985",
+      "tracked": true
+    },
+    {
+      "byte_size": 5778,
+      "rel_path": "tests/stitchvector_editor/test_text_layer.py",
+      "sha256": "a2ef0e5ac2dcd502e90bdfbd9f1bf2128732d011485e624d74d494c440cfb7ac",
+      "tracked": true
+    },
+    {
+      "byte_size": 13151,
+      "rel_path": "tests/stitchvector_editor/u2_real_uat.py",
+      "sha256": "9c808d9b9ce82a3edb614693d1ed7860c6c86662fdbd303b620ab470e3ba8ffe",
+      "tracked": true
+    },
+    {
+      "byte_size": 5075,
+      "rel_path": "tests/stitchvector_studio/e2e_studio_closeout.js",
+      "sha256": "aab05d11656fe3efd5ea593e74f3f22a98adfc414c0bdece0136483407577a99",
+      "tracked": true
+    },
+    {
+      "byte_size": 10595,
+      "rel_path": "tests/stitchvector_studio/e2e_studio_u2.js",
+      "sha256": "b4b6acdda91af52a39ced0761c0d2ae85152f5ecf3a865b0718317f2d0e6e177",
+      "tracked": true
+    },
+    {
+      "byte_size": 8038,
+      "rel_path": "tests/stitchvector_studio/test_windows_runtime.py",
+      "sha256": "096cd72c6bb5dac32097f3a7cdc67718f3d8c7ea6342c1dee6421ce3e6221ce4",
+      "tracked": false
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/stitchvector_editor/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 102921,
+      "rel_path": "tools/stitchvector_editor/core.py",
+      "sha256": "a0db22ab5b34bf697177b50d71437dad722d29b7bc4ab89f3eb13c1f6ddfd435",
+      "tracked": true
+    },
+    {
+      "byte_size": 913,
+      "rel_path": "tools/stitchvector_editor/ocr_cli.py",
+      "sha256": "1f5ee6437528fea8b6ff488e57b372627b704797d46011243085ee657ecd0429",
+      "tracked": true
+    },
+    {
+      "byte_size": 6209,
+      "rel_path": "tools/stitchvector_editor/render.py",
+      "sha256": "8263a3ae6ed8fc40a7247a5299e493ea3d162a80efe58e2566a58cb4c01d4f7e",
+      "tracked": true
+    },
+    {
+      "byte_size": 13006,
+      "rel_path": "tools/stitchvector_editor/server.py",
+      "sha256": "1c15e4ab82ccfc7a551c6b85bfb09f1b8810fe9e917b6b7ea958914c26180562",
+      "tracked": true
+    },
+    {
+      "byte_size": 56281,
+      "rel_path": "tools/stitchvector_editor/static/app.js",
+      "sha256": "ef738fb9f041803ab484e319983a1e931af2ae0dfe4c2f33b5805b4ce8eb10af",
+      "tracked": true
+    },
+    {
+      "byte_size": 13449,
+      "rel_path": "tools/stitchvector_editor/static/index.html",
+      "sha256": "f9638de186fced9d6c59081ff5bf5d9a7075f8e9a4abc4ee561b6bb088d85761",
+      "tracked": true
+    },
+    {
+      "byte_size": 111,
+      "rel_path": "tools/stitchvector_studio/__init__.py",
+      "sha256": "3e4d70af8af725aeb5b174b2323965b6efde09d9a638dc4069c1d8d82101fd56",
+      "tracked": true
+    },
+    {
+      "byte_size": 3405,
+      "rel_path": "tools/stitchvector_studio/contracts.py",
+      "sha256": "67145f69537e94a2eef2d682958d668f0a89fb12973c4fbbfd8055a12987d509",
+      "tracked": true
+    },
+    {
+      "byte_size": 10932,
+      "rel_path": "tools/stitchvector_studio/exports.py",
+      "sha256": "16e8c288df2f0a88a465ea6e0f679eb79deaa651ac650ce2327531c6644f54f2",
+      "tracked": true
+    },
+    {
+      "byte_size": 1926,
+      "rel_path": "tools/stitchvector_studio/geo_rules.py",
+      "sha256": "bba24e242343912cd77a5df19cc3238aeed9b223c4cf30778283d692eda56806",
+      "tracked": true
+    },
+    {
+      "byte_size": 7445,
+      "rel_path": "tools/stitchvector_studio/inputs.py",
+      "sha256": "a8cea4e948a5c19c2ed0ef26db5dbc0d6626f323c066fc44ed3b0b49b98abe86",
+      "tracked": true
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/stitchvector_studio/plugins/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/stitchvector_studio/plugins/b2c/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 1045,
+      "rel_path": "tools/stitchvector_studio/plugins/b2c/manifest.json",
+      "sha256": "40b1f09cac761b6e7a5c1b0850c03db5218348336efbc1e31e717008b24d48c3",
+      "tracked": true
+    },
+    {
+      "byte_size": 2063,
+      "rel_path": "tools/stitchvector_studio/plugins/b2c/plugin.py",
+      "sha256": "f8b6eb44c3192215057937db0724f6edfe2edc41b58a8224ab1b8d767f8c14dd",
+      "tracked": true
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/stitchvector_studio/plugins/mock_ocr/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 532,
+      "rel_path": "tools/stitchvector_studio/plugins/mock_ocr/manifest.json",
+      "sha256": "9ada0b147b089bb4025c88caf5afa81c1366498a59408e92ac67ef03c1aa258b",
+      "tracked": true
+    },
+    {
+      "byte_size": 1196,
+      "rel_path": "tools/stitchvector_studio/plugins/mock_ocr/plugin.py",
+      "sha256": "4ecee091a5a5e80d1a53358e62631816de06ab0857ae70ed558ee4ae2a9f4816",
+      "tracked": true
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/stitchvector_studio/plugins/mock_vectorize/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 670,
+      "rel_path": "tools/stitchvector_studio/plugins/mock_vectorize/manifest.json",
+      "sha256": "5503d0429d98138445b74dbc62796c22540b8d6864e54515cebecff66d79b379",
+      "tracked": true
+    },
+    {
+      "byte_size": 2125,
+      "rel_path": "tools/stitchvector_studio/plugins/mock_vectorize/plugin.py",
+      "sha256": "a6d52d6efa3e19a07defe5413c927b22794705091bae58be843e98b7b75c7984",
+      "tracked": true
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/stitchvector_studio/plugins/paddleocr/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 1338,
+      "rel_path": "tools/stitchvector_studio/plugins/paddleocr/manifest.json",
+      "sha256": "c31556cf8373ec93dfbe9b4ee261f072d65813246a4f1d2d1a0ba58492eb6cc3",
+      "tracked": true
+    },
+    {
+      "byte_size": 4261,
+      "rel_path": "tools/stitchvector_studio/plugins/paddleocr/plugin.py",
+      "sha256": "9e39c39bb1eea066ae089c132ca61787f13661d9c4f616ed295105e5378d5f34",
+      "tracked": true
+    },
+    {
+      "byte_size": 0,
+      "rel_path": "tools/stitchvector_studio/plugins/rapidocr/__init__.py",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "tracked": true
+    },
+    {
+      "byte_size": 714,
+      "rel_path": "tools/stitchvector_studio/plugins/rapidocr/manifest.json",
+      "sha256": "5f2cd06d18542d12781d2180154921725c2ebe11c749efb0433aaf4c1680bde1",
+      "tracked": true
+    },
+    {
+      "byte_size": 1761,
+      "rel_path": "tools/stitchvector_studio/plugins/rapidocr/plugin.py",
+      "sha256": "ac68af818ef6d5f4e7774b847eff76eaa78908fd90e72788ef447f0741edea12",
+      "tracked": true
+    },
+    {
+      "byte_size": 1143,
+      "rel_path": "tools/stitchvector_studio/profiles/geology-aware-vnext.json",
+      "sha256": "ccaac97f8342fc89b18453ddf01e08d229cd3fdb4c57098ea80b9f51029e2d8d",
+      "tracked": true
+    },
+    {
+      "byte_size": 705,
+      "rel_path": "tools/stitchvector_studio/profiles/legacy-b2c-v01-rapidocr.json",
+      "sha256": "13e0596224348873dcde4b1e31ebc3083bb7f4c41087be03181c913e9e7ab7fc",
+      "tracked": true
+    },
+    {
+      "byte_size": 787,
+      "rel_path": "tools/stitchvector_studio/profiles/legacy-b2c-v01.json",
+      "sha256": "423cc7858217e6e11e2ebd7c7a23a74f02c9bc775fc5dfa58b3e3f738325459d",
+      "tracked": true
+    },
+    {
+      "byte_size": 483,
+      "rel_path": "tools/stitchvector_studio/profiles/mock-swap-test.json",
+      "sha256": "024a92a7a2a87416afc52c956d3c6957c69f4c2a52e71eeb76e8f1767e844c4d",
+      "tracked": true
+    },
+    {
+      "byte_size": 20112,
+      "rel_path": "tools/stitchvector_studio/projects.py",
+      "sha256": "0281ea92c27f1fe9d0d27cb41ff81ae4d4f73de0dbd9b8cf29f1493e1d2540fd",
+      "tracked": true
+    },
+    {
+      "byte_size": 5660,
+      "rel_path": "tools/stitchvector_studio/registry.py",
+      "sha256": "95d5bbdfb45bdda302b60719b4d66cfd1a7214c5b2db33506a0a4436bf9b2a3d",
+      "tracked": true
+    },
+    {
+      "byte_size": 1344,
+      "rel_path": "tools/stitchvector_studio/runtime.py",
+      "sha256": "c21b3e8b3844ff85122835cc4a65a1f373b8ce259c212620a41b0bc9be318855",
+      "tracked": false
+    },
+    {
+      "byte_size": 15846,
+      "rel_path": "tools/stitchvector_studio/server.py",
+      "sha256": "7c392671b54f4f8367622d0c33406165a80a4aa5667991148778123062b10780",
+      "tracked": true
+    },
+    {
+      "byte_size": 2746,
+      "rel_path": "tools/stitchvector_studio/stage_runner.py",
+      "sha256": "4542860b602913aa760197f8f9e8587b4e3f6fb836b84d646e33f81f9ddffbe8",
+      "tracked": true
+    },
+    {
+      "byte_size": 640,
+      "rel_path": "tools/stitchvector_studio/static/studio.css",
+      "sha256": "c09d7a223a97645c5195f5a65007f80e6e32b5f073fb46f4b1d84c5105c7ea48",
+      "tracked": true
+    },
+    {
+      "byte_size": 11584,
+      "rel_path": "tools/stitchvector_studio/static/studio.js",
+      "sha256": "5ec1e628bec8295ed0ef2bec314fa96b0140a37b6db89d6cd938f3d6b7bd8632",
+      "tracked": true
+    },
+    {
+      "byte_size": 1980,
+      "rel_path": "tools/stitchvector_studio/static/studio_bar.html",
+      "sha256": "7a94090a2dca8a6041a71806e62531f4b414fb59f74bed4506015d9c0953f477",
+      "tracked": true
+    }
+  ],
+  "source_name": "scan2arcgis",
+  "untracked_source_archive": {
+    "file_count": 2,
+    "rel_path": "untracked-source.zip",
+    "sha256": "f23cde2b52a01f5f3be362abea34b427d722372047cce31e6ded0498f254211b"
+  }
+}

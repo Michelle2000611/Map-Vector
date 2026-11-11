@@ -1,0 +1,183 @@
+{
+  "baseline_commit": "c7b74d9c9a16d1b082f0dab694cecc8dc45363f9",
+  "document": {
+    "colour_space": "sRGB (assumed)",
+    "coordinate_mode": "PIXEL_SPACE",
+    "crs": null,
+    "document_id": "doc-p0-d300",
+    "height": 794,
+    "page_count": 1,
+    "page_index": 0,
+    "pdf_render": null,
+    "preprocess": {
+      "decode": "to 8-bit RGB",
+      "resample": "none"
+    },
+    "raster_artifact": "D:\\software\\CodeRepository\\PythonProject\\scan2arcgis\\runs\\stitchvector\\studio_v02\\workspace\\projects\\p-20261106-003921-0933c4\\normalized\\doc-p0-d300\\raster.png",
+    "raster_sha256": "db187917cf4151eb33be3c6bffb45f6ba0e6466957eefe5ae786428ac167d376",
+    "schema": "raster_document.v1",
+    "source_path": "D:\\software\\CodeRepository\\PythonProject\\scan2arcgis\\runs\\stitchvector\\studio_v02\\workspace\\projects\\p-20261106-003921-0933c4\\original\\8830aeef94b94e58a0f53a6f36cf999c_1.png",
+    "source_sha256": "cd40379a70f0dc10ff1ddd3391d66328d1dc13315f7b1d05b7a217b125941104",
+    "source_type": "PNG",
+    "transform": null,
+    "width": 826
+  },
+  "duplicate": false,
+  "height_px": 794,
+  "import_id": "e8dee18b-e214-469a-a03e-abc3e9fd50e9",
+  "import_status": "committed",
+  "issues": [],
+  "layers": [
+    {
+      "bounds_px": [
+        0.0,
+        0.0,
+        826.0,
+        794.0
+      ],
+      "columns": [
+        "label",
+        "colour_class",
+        "rgb",
+        "observed_px",
+        "inferred_px",
+        "source",
+        "geometry"
+      ],
+      "feature_count": 19119,
+      "legacy_layer_name": "colour_faces",
+      "recognized": true
+    },
+    {
+      "bounds_px": [
+        10.5,
+        4.5,
+        825.5,
+        782.3
+      ],
+      "columns": [
+        "line_id",
+        "logical_id",
+        "kind",
+        "width_px",
+        "rgb",
+        "source",
+        "draw_order",
+        "geometry"
+      ],
+      "feature_count": 575,
+      "legacy_layer_name": "visual_lines",
+      "recognized": true
+    },
+    {
+      "bounds_px": [
+        37.5,
+        7.5,
+        823.0,
+        770.0
+      ],
+      "columns": [
+        "label_id",
+        "text",
+        "ocr_text",
+        "ocr_score",
+        "font_px",
+        "angle_deg",
+        "anchor",
+        "rgb",
+        "box_x0",
+        "box_y0",
+        "box_x1",
+        "box_y1",
+        "source",
+        "review_status",
+        "geometry_status",
+        "candidate_texts",
+        "rule_reasons",
+        "ocr_engine",
+        "ocr_model",
+        "ocr_candidate_id",
+        "run_id",
+        "geometry"
+      ],
+      "feature_count": 152,
+      "legacy_layer_name": "text_labels",
+      "recognized": true
+    }
+  ],
+  "legacy_project_id": "p-20261106-003921-0933c4",
+  "mapping_revision": "1.2",
+  "project_id": "237ad80d-539d-46f1-bb84-c5305368757a",
+  "project_name": "V02 人工验收 826x794 新版重新识别",
+  "raster_path": "D:\\software\\CodeRepository\\PythonProject\\scan2arcgis\\runs\\stitchvector\\studio_v02\\workspace\\projects\\p-20261106-003921-0933c4\\normalized\\doc-p0-d300\\raster.png",
+  "raster_sha256": "db187917cf4151eb33be3c6bffb45f6ba0e6466957eefe5ae786428ac167d376",
+  "readback_report": {
+    "attribute_mismatches": [],
+    "feature_counts": {
+      "face": 19119,
+      "line": 575,
+      "text": 152
+    },
+    "foreign_key_check": [],
+    "frozen_vectors_sha256": "73105ef3949c9ce39f97e3f150817a7a6740ad1b6f7ed41da7f03aeaf0030cfd",
+    "geometry_mismatches": [],
+    "integrity_check": "ok",
+    "mapped_feature_count": 19846,
+    "unchanged_geometry_checked": 19846
+  },
+  "relation_counts": {
+    "group_members": 575,
+    "logical_groups": 484,
+    "ocr_candidates": 152,
+    "styles": 0
+  },
+  "run_evidence": [
+    {
+      "evidence": "frozen_independent_rerun",
+      "path": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\workspaces\\migration_proofs\\p-20261106-003921-0933c4.json",
+      "sha256": "bf34d5e8795094de332b94875ceb3a0a85ea97e06ecd2321837378f04822caed"
+    }
+  ],
+  "source_files": [
+    {
+      "byte_size": 810357,
+      "rel_path": "normalized/doc-p0-d300/raster.png",
+      "sha256": "db187917cf4151eb33be3c6bffb45f6ba0e6466957eefe5ae786428ac167d376"
+    },
+    {
+      "byte_size": 945,
+      "rel_path": "normalized/doc-p0-d300/raster_document.json",
+      "sha256": "85f7485b74133cd38304e550bc1adb60639f302d4431b4d74409dce881817367"
+    },
+    {
+      "byte_size": 900324,
+      "rel_path": "original/8830aeef94b94e58a0f53a6f36cf999c_1.png",
+      "sha256": "cd40379a70f0dc10ff1ddd3391d66328d1dc13315f7b1d05b7a217b125941104"
+    },
+    {
+      "byte_size": 1324,
+      "rel_path": "project.json",
+      "sha256": "814ff72704fc7eccf68a7fded61e79e85592519123513b703b2fa35d5cf85df7"
+    },
+    {
+      "byte_size": 7774208,
+      "rel_path": "working/current.gpkg",
+      "sha256": "73105ef3949c9ce39f97e3f150817a7a6740ad1b6f7ed41da7f03aeaf0030cfd"
+    },
+    {
+      "byte_size": 61249,
+      "rel_path": "working/ocr_candidates.json",
+      "sha256": "cfba20870fee0bc8c70d4de7da14b7214a90c610407e61decd129cda4503bdbe"
+    }
+  ],
+  "source_import_key": "f9e16569094b3b204255e57737f5ffbfdf9a33cc3a1e499a4e5d82b9595c87c2",
+  "warnings": [
+    {
+      "candidate_count": 152,
+      "code": "LEGACY_CANDIDATE_RUN_UNPROVEN",
+      "message": "Original run IDs retained in frozen candidate evidence; no synthetic run created"
+    }
+  ],
+  "width_px": 826,
+  "working_path": "D:\\software\\CodeRepository\\PythonProject\\scan2arcgis\\runs\\stitchvector\\studio_v02\\workspace\\projects\\p-20261106-003921-0933c4\\working\\current.gpkg"
+}

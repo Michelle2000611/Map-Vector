@@ -1,0 +1,10 @@
+import React from "react";
+import {createRoot} from "react-dom/client";
+import {App} from "./app/App";
+import {ConfigProvider,App as AntApp} from 'antd';
+import {LoadingFeedback} from './components/LoadingFeedback';
+import "./app/workspace.css";
+import "./app/toolbar.css";
+import "./app/panels.css";
+import "./app/workspace-refinement.css";
+createRoot(document.getElementById("root")!).render(<React.StrictMode><ConfigProvider button={{autoInsertSpace:false}} wave={{disabled:true}}><AntApp component={false} notification={{placement:'topRight',top:88,maxCount:3,stack:false}}><LoadingFeedback/><App/></AntApp></ConfigProvider></React.StrictMode>);

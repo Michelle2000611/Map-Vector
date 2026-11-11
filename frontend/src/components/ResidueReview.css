@@ -1,0 +1,26 @@
+.residue-workspace{display:flex;flex-direction:column;gap:12px;min-width:0}
+.residue-workspace .residue-display-controls{padding:0;gap:8px 12px;font-size:12px}
+.residue-line-review{display:flex;flex-direction:column;gap:10px;min-width:0}
+.residue-review-actions{display:flex;flex-wrap:wrap;gap:8px}
+.residue-review-groups{max-width:100%;overflow-x:auto}
+.residue-review-groups table{width:100%;min-width:460px;border-collapse:collapse;font-size:12px}
+.residue-review-groups th,.residue-review-groups td{padding:8px;border-bottom:1px solid #edf0f4;text-align:left;vertical-align:middle}
+.residue-review-groups th{background:#f6f8fb;font-weight:500}
+.residue-review-groups .ant-btn{width:auto!important;min-width:56px}
+/* Fixed property navigation applies to every edit layer. Feedback remains below it. */
+.property-card .property-section-tabs{display:contents}
+.property-card .property-section-tabs>.ant-tabs-nav{order:-1;position:sticky;top:0;z-index:8;flex:none;background:#fff;margin:0 0 12px;padding-top:2px}
+.property-card .property-section-tabs>.ant-tabs-content-holder{flex:1;min-width:0;min-height:0;overflow:hidden}
+.property-card .property-section-tabs>.ant-tabs-content-holder>.ant-tabs-content{height:100%}
+.property-card .property-section-tabs>.ant-tabs-content-holder>.ant-tabs-content>.ant-tabs-tabpane-active{height:100%;overflow:auto;overscroll-behavior:contain;padding-bottom:4px}
+.property-card .property-section-tabs .object-property-source{display:flex;flex-direction:column;gap:12px;height:100%;min-height:0}
+.property-card .property-section-tabs .object-property-source pre{flex:1;min-height:0;max-height:none;margin:0;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}
+.property-card .property-section-tabs .object-property-source>.ant-btn{flex:none}
+.geometry-workspace{display:flex;flex-direction:column;gap:18px;min-width:0}
+.geometry-workspace>[hidden],.residue-workspace>[hidden]{display:none}
+.residue-workspace .text-review-container{padding:0;border:0}
+.residue-current-object{display:flex;flex-direction:column;gap:12px;padding-top:12px;border-top:1px solid #edf0f4}
+.text-review-row-actions{display:flex;gap:6px;flex-wrap:wrap}
+.property-card .residue-workspace .text-review-row-actions>.ant-btn{width:auto;min-width:48px;padding-inline:8px}
+.property-card .residue-workspace .text-review-toolbar{justify-content:flex-start;margin-bottom:10px}
+.property-card .geometry-workspace .line-check-row-actions>.ant-btn{width:auto;min-width:48px}

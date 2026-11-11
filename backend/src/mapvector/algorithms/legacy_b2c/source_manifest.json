@@ -1,0 +1,111 @@
+{
+  "baseline_commit": "c7b74d9c9a16d1b082f0dab694cecc8dc45363f9",
+  "entry_module": "full_build",
+  "algorithm": "frozen B2c",
+  "source_root": "experiments/STITCHVECTOR",
+  "modules": [
+    {
+      "source_path": "STITCHVECTOR/sv_arcs.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_arcs.py",
+      "sha256": "d469a63adde19397614afd1dd1117f0b2ac650bfd9e94ac1b7914ca79e6e694d",
+      "byte_size": 7737,
+      "adapted_sha256": "d469a63adde19397614afd1dd1117f0b2ac650bfd9e94ac1b7914ca79e6e694d"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_autoline.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_autoline.py",
+      "sha256": "737de646362caa16271ff18370260e3129f3f2b144379a00fff6e28ce375c002",
+      "byte_size": 5675,
+      "adapted_sha256": "539dfc6084e4e65a1613413e378b0694697ba81bdc4f6c59867abe83252934cb"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_b2b.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_b2b.py",
+      "sha256": "70ed253602c97a6c9b1af011e9ffad6c637c6fa31a79f8c76ef21aca78441cc7",
+      "byte_size": 4653,
+      "adapted_sha256": "e18defa5b17dde640080d6dfb2c2c68408c1375d32d9b4f24438c4d457367092"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_b2c.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_b2c.py",
+      "sha256": "78aa6f52a5bf4d1b9c08bb3ec9cd91fe86f7836dededbc89104856a8e741a1a6",
+      "byte_size": 2761,
+      "adapted_sha256": "fc564bc48e805c660707a1b8f72c4d1160048f28553106cf0af62f1c904a8210"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_common.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_common.py",
+      "sha256": "f7c99d8221574d21f97d5881b98051f3d314030980a02e856c88a3e6771fe73f",
+      "byte_size": 6160,
+      "adapted_sha256": "919ddab8bc4e193b125545d94ba871a8ffbc5ab5f53a08bde74e85cbd8e71c37"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_d71.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_d71.py",
+      "sha256": "e0708d23b66eed0daf79126bbda88597391d57717ffb1a11655d58f3b5efe2ea",
+      "byte_size": 11527,
+      "adapted_sha256": "f86ebdd7b8edca931133f17beb2c247accfa3d6a529a89527be3ee09e70ae290"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_ld_fix.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_ld_fix.py",
+      "sha256": "3e92cf50227a507dde36ab590d3e1bb541e683951882198a776bd4df7ba4ade0",
+      "byte_size": 5220,
+      "adapted_sha256": "7e54e566d997859c6648d47900b9908efe9b97072334731e4473f53743358624"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_lf.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_lf.py",
+      "sha256": "05191559bf2015d8d20792ed9bd36f5d5d541bff87077f0ae8a51d84a2a0bfd0",
+      "byte_size": 2950,
+      "adapted_sha256": "c1b4294f7dab27eebbfd736bccfdb806502c09213a199262854427502cc6d465"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_linker.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_linker.py",
+      "sha256": "3b9c5e0ea91694c5de9ab541ad5d9ede3f18a70c1711daeef1eb830916759f1a",
+      "byte_size": 7507,
+      "adapted_sha256": "3b9c5e0ea91694c5de9ab541ad5d9ede3f18a70c1711daeef1eb830916759f1a"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_oracle.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_oracle.py",
+      "sha256": "a06d35ff1686c21253d11edde8da41784d96fc072e8b242f0b0077ab5e81fb72",
+      "byte_size": 5883,
+      "adapted_sha256": "233cef44236f0acc3dfd3351dc7d9ce2d5d24b55b134257385fcc7073901c263"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_oracle_eval.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/sv_oracle_eval.py",
+      "sha256": "f896a4bfcbd84c52ddb6944b2bc37bfa2af6ca76401a515a80705340d882bb6d",
+      "byte_size": 7295,
+      "adapted_sha256": "0098e57a5b51dc718c9eb0f9b11bdf15b01ffb8d5018ed9dd2ae16d472edfeb7"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_oracle_v2.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/vector_writer.py",
+      "sha256": "ee0fd711ed085ab10ada3186dc72f5046607a84777f07c5a9bef1ba62ffbc7b0",
+      "byte_size": 11675,
+      "adapted_sha256": "f7b0e4d2b1e6495a995c1af2bf1795dc57104b9b9555799ea82e85d6cc93e73c"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_u2_full_build.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/full_build.py",
+      "sha256": "6544091cd3b9bffc3cecb0ca3115906cce1dbec17c474faecb934ef63531245a",
+      "byte_size": 4133,
+      "adapted_sha256": "90d331630f3c9ab5621ba00a2466caaf3e99cf03467936c5e55838293fd94706"
+    },
+    {
+      "source_path": "STITCHVECTOR/sv_v3.py",
+      "target_path": "backend/src/mapvector/algorithms/legacy_b2c/link_group.py",
+      "sha256": "ad04bdf5c23f329fb9597fc314078954abee37b6dbd7e33377f63e0f291ae94a",
+      "byte_size": 6334,
+      "adapted_sha256": "9cf7b683dcfd6881087664564f18e5e16af8478a7c1a3def47ab7b9dae4c1493"
+    }
+  ],
+  "adaptations": [
+    "Relative package imports only; algorithm function bodies unchanged",
+    "Resource paths local to package",
+    "Standalone research CLI removed; full_build.line_objects remains unchanged"
+  ]
+}

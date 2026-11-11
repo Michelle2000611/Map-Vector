@@ -1,0 +1,14 @@
+{
+  "baseline_commit": "c7b74d9c9a16d1b082f0dab694cecc8dc45363f9",
+  "source_path": "tools/stitchvector_editor/core.py",
+  "source_sha256": "a0db22ab5b34bf697177b50d71437dad722d29b7bc4ab89f3eb13c1f6ddfd435",
+  "adaptations": [
+    "OCR interpreter lookup disabled: all OCR uses project job service",
+    "No algorithm thresholds or editing rules changed"
+  ],
+  "adapted_sha256": "313415b15cbd577b528d79c13f59ebbab4a8ea63caa47c8784ec4ac88e5247dc",
+  "render_source": {
+    "source_path": "tools/stitchvector_editor/render.py",
+    "sha256": "8263a3ae6ed8fc40a7247a5299e493ea3d162a80efe58e2566a58cb4c01d4f7e"
+  }
+}

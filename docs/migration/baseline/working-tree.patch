@@ -1,0 +1,359 @@
+diff --git a/experiments/STITCHVECTOR/sv_common.py b/experiments/STITCHVECTOR/sv_common.py
+index 6c695e3..11350d3 100644
+--- a/experiments/STITCHVECTOR/sv_common.py
++++ b/experiments/STITCHVECTOR/sv_common.py
+@@ -2,7 +2,7 @@
+ Pixel coordinates: x right, y down, identity affine. Evaluation renderer: rasterio rasterize, all_touched=False,
+ features painted in ascending z. No labels are read anywhere in this module.
+ """
+-import json, resource, time
++import json, sys, time
+ from pathlib import Path
+ import numpy as np
+ from PIL import Image
+@@ -12,7 +12,7 @@ import shapely
+ from shapely.geometry import shape, mapping
+ 
+ ROOT = Path(__file__).resolve().parents[2]
+-PR = json.load(open(ROOT / "experiments/STITCHVECTOR/poc01_preregistration.json"))
++PR = json.loads((ROOT / "experiments/STITCHVECTOR/poc01_preregistration.json").read_text(encoding="utf-8"))
+ SAMPLES = {"u2": "runs/real/u2/work.png", "u3": "runs/real/u3/work.png", "13014": "runs/r4a2/13014/geotiff_rgb.png"}
+ ID = Affine.identity()
+ 
+@@ -64,7 +64,35 @@ def n_vertices(geoms):
+ 
+ 
+ def peak_rss_gb():
+-    return resource.getrusage(resource.RUSAGE_SELF).ru_maxrss / 1e9  # macOS: bytes
++    """Peak resident memory in decimal GB, using platform-specific counters."""
++    if sys.platform == "win32":
++        import ctypes
++        from ctypes import wintypes
++
++        class ProcessMemoryCounters(ctypes.Structure):
++            _fields_ = [("cb", wintypes.DWORD), ("PageFaultCount", wintypes.DWORD)] + [
++                (name, ctypes.c_size_t) for name in (
++                    "PeakWorkingSetSize", "WorkingSetSize", "QuotaPeakPagedPoolUsage",
++                    "QuotaPagedPoolUsage", "QuotaPeakNonPagedPoolUsage",
++                    "QuotaNonPagedPoolUsage", "PagefileUsage", "PeakPagefileUsage",
++                )
++            ]
++
++        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
++        kernel32.GetCurrentProcess.argtypes = []
++        kernel32.GetCurrentProcess.restype = wintypes.HANDLE
++        get_memory = ctypes.WinDLL("psapi", use_last_error=True).GetProcessMemoryInfo
++        get_memory.argtypes = [wintypes.HANDLE, ctypes.POINTER(ProcessMemoryCounters), wintypes.DWORD]
++        get_memory.restype = wintypes.BOOL
++        counters = ProcessMemoryCounters()
++        counters.cb = ctypes.sizeof(counters)
++        if not get_memory(kernel32.GetCurrentProcess(), ctypes.byref(counters), counters.cb):
++            raise ctypes.WinError(ctypes.get_last_error())
++        return counters.PeakWorkingSetSize / 1e9
++
++    import resource
++    peak = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
++    return peak / 1e9 if sys.platform == "darwin" else peak * 1024 / 1e9
+ 
+ 
+ class Timer:
+diff --git a/experiments/STITCHVECTOR/sv_oracle_v2.py b/experiments/STITCHVECTOR/sv_oracle_v2.py
+index 3582a93..4c6529e 100644
+--- a/experiments/STITCHVECTOR/sv_oracle_v2.py
++++ b/experiments/STITCHVECTOR/sv_oracle_v2.py
+@@ -15,7 +15,8 @@ import rasterio.features as RF
+ import sv_common as C, sv_d71 as D, sv_oracle as O, sv_oracle_eval as E
+ 
+ HERE = Path(__file__).resolve().parent
+-PRE = json.load(open(HERE / "sv_oracle_v2_prereg.json")); ORA = json.load(open(HERE / "oracle/u2_300_oracle.json"))
++PRE = json.loads((HERE / "sv_oracle_v2_prereg.json").read_text(encoding="utf-8"))
++ORA = json.loads((HERE / "oracle/u2_300_oracle.json").read_text(encoding="utf-8"))
+ 
+ 
+ def dense(raw):
+diff --git a/tools/stitchvector_editor/core.py b/tools/stitchvector_editor/core.py
+index d65d574..33c63ae 100644
+--- a/tools/stitchvector_editor/core.py
++++ b/tools/stitchvector_editor/core.py
+@@ -1038,22 +1038,25 @@ for _n, _f in list(vars(SelectionMixin).items()):
+ 
+ # ================= text layer: isolate text from faces/lines, keep it as editable text =================
+ def _ocr_python():
+-    """RapidOCR venv interpreter. Resolution order: $STITCHVECTOR_OCR_PY, then .venv-ocr next to the repo's
+-    common git dir (works from worktrees and moved checkouts), then next to this file's repo root, then the
+-    legacy ~/geomap2arcgis path. Returns (Path, where) or (None, reason)."""
+-    import os, subprocess
+-    env = os.environ.get("STITCHVECTOR_OCR_PY")
+-    if env: return (Path(env), "env") if Path(env).exists() else (None, f"STITCHVECTOR_OCR_PY does not exist: {env}")
++    """Resolve an explicit interpreter or the checkout's platform-specific .venv-ocr."""
++    import os, subprocess, sys
+     here = Path(__file__).resolve()
++    root = here.parents[2]
++    env = os.environ.get("STITCHVECTOR_OCR_PY")
++    if env:
++        p = Path(env).expanduser()
++        if not p.is_absolute(): p = root / p
++        return (p, "env") if p.exists() else (None, f"STITCHVECTOR_OCR_PY does not exist: {p}")
++    suffix = "Scripts/python.exe" if sys.platform == "win32" else "bin/python"
++    p = root / ".venv-ocr" / suffix
++    if p.exists(): return p, "repo"
+     try:
+         gd = subprocess.run(["git", "rev-parse", "--path-format=absolute", "--git-common-dir"], cwd=str(here.parent),
+                             capture_output=True, text=True, timeout=5)
+         if gd.returncode == 0 and gd.stdout.strip():
+-            p = Path(gd.stdout.strip()).parent / ".venv-ocr/bin/python"
++            p = Path(gd.stdout.strip()).parent / ".venv-ocr" / suffix
+             if p.exists(): return p, "repo"
+     except Exception: pass
+-    for p in (here.parents[2] / ".venv-ocr/bin/python", Path.home() / "geomap2arcgis/.venv-ocr/bin/python"):
+-        if p.exists(): return p, "path"
+     return None, "no .venv-ocr interpreter found (set STITCHVECTOR_OCR_PY)"
+ 
+ 
+diff --git a/tools/stitchvector_editor/ocr_cli.py b/tools/stitchvector_editor/ocr_cli.py
+index c47b663..9fa41dd 100644
+--- a/tools/stitchvector_editor/ocr_cli.py
++++ b/tools/stitchvector_editor/ocr_cli.py
+@@ -1,6 +1,10 @@
+-"""OCR helper run in a separate interpreter that has RapidOCR (default ~/geomap2arcgis/.venv-ocr).
++"""OCR helper run in the project's separate .venv-ocr interpreter.
+ stdin: PNG bytes of a crop. stdout: JSON {"text": str, "score": float, "parts": [...]}. Gives a candidate only."""
+ import io, json, sys
++from pathlib import Path
++sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
++from tools.stitchvector_studio.runtime import configure_environment
++configure_environment()
+ import numpy as np
+ from PIL import Image
+ from rapidocr import RapidOCR
+diff --git a/tools/stitchvector_editor/server.py b/tools/stitchvector_editor/server.py
+index e56d084..253a7b4 100644
+--- a/tools/stitchvector_editor/server.py
++++ b/tools/stitchvector_editor/server.py
+@@ -59,10 +59,17 @@ def safe_name(name):
+ class H(BaseHTTPRequestHandler):
+     def log_message(self, *a): pass
+ 
+-    def _send(self, code, body, ctype="application/json"):
++    def _send(self, code, body, ctype="application/json", headers=None):
+         b = body if isinstance(body, bytes) else json.dumps(body).encode()
+-        self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
+-        self.send_header("Cache-Control", "no-store"); self.end_headers(); self.wfile.write(b)
++        try:
++            self.send_response(code); self.send_header("Content-Type", ctype); self.send_header("Content-Length", str(len(b)))
++            self.send_header("Cache-Control", "no-store")
++            for name, value in (headers or {}).items(): self.send_header(name, value)
++            self.end_headers(); self.wfile.write(b)
++        except (ConnectionAbortedError, ConnectionResetError, BrokenPipeError):
++            self.close_connection = True
++        # None is reserved for an unmatched Studio route.
++        return True
+ 
+     def do_GET(self):
+         p = self.path.split("?")[0]
+diff --git a/tools/stitchvector_studio/exports.py b/tools/stitchvector_studio/exports.py
+index 98d0b4b..24c78e2 100644
+--- a/tools/stitchvector_studio/exports.py
++++ b/tools/stitchvector_studio/exports.py
+@@ -17,6 +17,7 @@ from pathlib import Path
+ import numpy as np, pyogrio, shapely, geopandas as gpd
+ from shapely import affinity
+ from .contracts import sha256_file, write_json_atomic
++from .runtime import temporary_directory
+ from tools.stitchvector_editor.core import REVIEW_DELIVERABLE, review_status_series, review_pending, review_status_counts
+ 
+ LAYERS = {"geological_faces": "colour_faces", "geological_lines": "visual_lines", "text_confirmed": "text_labels",
+@@ -154,7 +155,7 @@ def readback(f, fmt, data, doc):
+     if fmt == "GPKG":
+         for k, ref in data.items(): G = pyogrio.read_dataframe(f, layer=k); chk(k, G, ref); res["crs"] = None if G.crs is None else G.crs.to_wkt()[:60]
+     elif fmt == "SHP":
+-        with tempfile.TemporaryDirectory() as td:
++        with tempfile.TemporaryDirectory(dir=temporary_directory()) as td:
+             zipfile.ZipFile(f).extractall(td)
+             fmap = json.load(open(Path(td) / "field_mapping.json"))
+             for k, ref in data.items():
+@@ -166,7 +167,7 @@ def readback(f, fmt, data, doc):
+             obj = json.loads(f.read_text())
+             for k, ref in data.items(): G = gpd.GeoDataFrame.from_features(obj["layers"][k]["features"]); chk(k, G, ref)
+         else:
+-            with tempfile.TemporaryDirectory() as td:
++            with tempfile.TemporaryDirectory(dir=temporary_directory()) as td:
+                 zipfile.ZipFile(f).extractall(td)
+                 for k, ref in data.items():
+                     G = pyogrio.read_dataframe(Path(td) / f"{k}.geojson"); chk(k, G, ref)
+diff --git a/tools/stitchvector_studio/plugins/paddleocr/manifest.json b/tools/stitchvector_studio/plugins/paddleocr/manifest.json
+index 28b3434..dde7153 100644
+--- a/tools/stitchvector_studio/plugins/paddleocr/manifest.json
++++ b/tools/stitchvector_studio/plugins/paddleocr/manifest.json
+@@ -2,12 +2,12 @@
+  "entrypoint": "tools.stitchvector_studio.plugins.paddleocr.plugin:Plugin",
+  "input_schemas": ["raster_document.v1"], "output_schemas": ["ocr_candidates.v1"],
+  "capabilities": ["text_detection", "text_recognition_zh_en", "geological_generic_rules"],
+- "runtime": {"type": "python_subprocess", "python": "geomap2arcgis/runs/ocr_poc01/venvs/paddle/bin/python", "timeout_s": 1800,
+-             "model_cache": "geomap2arcgis/runs/ocr_poc01/cache/paddle"},
++ "runtime": {"type": "python_subprocess", "python": "runs/ocr_poc01/venvs/paddle/bin/python", "timeout_s": 1800,
++             "model_cache": "runs/ocr_poc01/cache/paddle"},
+  "parameters": {"min_score": {"type": "number", "default": 0.0, "min": 0, "max": 1},
+                 "geological_generic_rules": {"type": "boolean", "default": true},
+                 "deduplicate": {"type": "boolean", "default": true}},
+- "code_files": ["tools/stitchvector_studio/plugins/paddleocr/plugin.py", "tools/stitchvector_studio/geo_rules.py"],
++ "code_files": ["tools/stitchvector_studio/plugins/paddleocr/plugin.py", "tools/stitchvector_studio/geo_rules.py", "tools/stitchvector_studio/runtime.py"],
+  "fixed_params": {"scales": [1, 2], "model": "PP-OCRv6_medium"},
+  "packages_verified": {"paddleocr": "3.7.0", "paddlex": "3.7.2", "paddlepaddle": "3.3.1"},
+  "models": ["PP-OCRv6_medium_det", "PP-OCRv6_medium_rec", "PP-LCNet_x1_0_textline_ori"],
+diff --git a/tools/stitchvector_studio/plugins/paddleocr/plugin.py b/tools/stitchvector_studio/plugins/paddleocr/plugin.py
+index 7c6bb9b..e32efee 100644
+--- a/tools/stitchvector_studio/plugins/paddleocr/plugin.py
++++ b/tools/stitchvector_studio/plugins/paddleocr/plugin.py
+@@ -2,12 +2,14 @@
+ Same call as experiments/STITCHVECTOR/ocr_poc01/adapters/paddleocr_adapter.py (e2e mode). Model weights are read from the
+ local POC cache (PADDLE_PDX_CACHE_HOME); nothing is downloaded or committed. Output: OCR candidates with raw text,
+ score, polygon, and GENERIC geological rule suggestions (status OCR_CANDIDATE, nothing confirmed)."""
+-import json, os
++import json, sys
+ from pathlib import Path
+ from tools.stitchvector_studio.contracts import StageResult, artifact, write_json_atomic, OK
+ from tools.stitchvector_studio import geo_rules as G
++from tools.stitchvector_studio.runtime import configure_environment
+ 
+-CACHE = Path.home() / "geomap2arcgis/runs/ocr_poc01/cache/paddle"
++ROOT = Path(__file__).resolve().parents[4]
++CACHE = ROOT / "runs/ocr_poc01/cache/paddle"
+ 
+ 
+ def _iou(a, b):
+@@ -23,12 +25,14 @@ class Plugin:
+         if not CACHE.is_dir(): raise ValueError(f"PaddleOCR model cache not found: {CACHE}")
+ 
+     def run(self, ctx, inputs, params):
+-        os.environ.setdefault("PADDLE_PDX_CACHE_HOME", str(CACHE)); os.environ.setdefault("PADDLE_PDX_DISABLE_MODEL_SOURCE_CHECK", "True")
++        configure_environment()
+         import numpy as np, paddleocr
+         from PIL import Image
+         from paddleocr import PaddleOCR
+         doc = json.load(open(inputs["raster"]["path"], encoding="utf-8")); im = Image.open(doc["raster_artifact"]).convert("RGB")
+-        ocr = PaddleOCR(lang="ch", use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=True, device="cpu")
++        # Paddle 3.3.1 oneDNN on Windows can fail during prediction with PIR attributes.
++        cpu_options = {"enable_mkldnn": False} if sys.platform == "win32" else {}
++        ocr = PaddleOCR(lang="ch", use_doc_orientation_classify=False, use_doc_unwarping=False, use_textline_orientation=True, device="cpu", **cpu_options)
+         raw = []
+         for k in params["scales"]:
+             a = np.asarray(im if k == 1 else im.resize((im.width * k, im.height * k), Image.LANCZOS))[:, :, ::-1].copy()
+@@ -52,4 +56,5 @@ class Plugin:
+                                 "rules": G.RULES_VERSION if params["geological_generic_rules"] else None, "items": items})
+         return StageResult(OK, outputs={"ocr": artifact(out, "ocr_candidates.v1")},
+                            stats={"candidates": len(items), "raw_detections": len(raw), "rule_changed": sum(1 for x in items if x["rule_reasons"])},
+-                           provenance={"engine": f"paddleocr {paddleocr.__version__}", "model_cache": str(CACHE), "scales": params["scales"], "rules": G.RULES_VERSION})
++                           provenance={"engine": f"paddleocr {paddleocr.__version__}", "model_cache": str(CACHE), "scales": params["scales"], "rules": G.RULES_VERSION,
++                                       "cpu_options": cpu_options})
+diff --git a/tools/stitchvector_studio/plugins/rapidocr/manifest.json b/tools/stitchvector_studio/plugins/rapidocr/manifest.json
+index 0a80c72..a0eefe1 100644
+--- a/tools/stitchvector_studio/plugins/rapidocr/manifest.json
++++ b/tools/stitchvector_studio/plugins/rapidocr/manifest.json
+@@ -2,7 +2,7 @@
+  "entrypoint": "tools.stitchvector_studio.plugins.rapidocr.plugin:Plugin",
+  "input_schemas": ["raster_document.v1"], "output_schemas": ["ocr_candidates.v1"],
+  "capabilities": ["text_detection", "text_recognition_zh_en"],
+- "runtime": {"type": "python_subprocess", "python": "geomap2arcgis/.venv-ocr/bin/python", "timeout_s": 900},
++ "runtime": {"type": "python_subprocess", "python": ".venv-ocr/bin/python", "timeout_s": 900},
+  "parameters": {"min_score": {"type": "number", "default": 0.0, "min": 0, "max": 1}},
+  "code_files": ["tools/stitchvector_studio/plugins/rapidocr/plugin.py"],
+  "fixed_params": {"scales": [1, 2]},
+diff --git a/tools/stitchvector_studio/registry.py b/tools/stitchvector_studio/registry.py
+index 6eb3063..183958d 100644
+--- a/tools/stitchvector_studio/registry.py
++++ b/tools/stitchvector_studio/registry.py
+@@ -3,7 +3,7 @@
+ Manifests are JSON (no extra dependency). Plugins are installed by an administrator by adding a folder under
+ tools/stitchvector_studio/plugins/; uploaded files never carry code and are never loaded as plugins.
+ """
+-import hashlib, json
++import hashlib, json, sys
+ from pathlib import Path
+ from .contracts import API_VERSION, SCHEMAS, STAGES, sha256_file
+ 
+@@ -34,12 +34,14 @@ def _check(m, src):
+ 
+ 
+ def resolve_python(runtime):
+-    """runtime.python: 'studio' (the server's interpreter) or a path relative to the user's home / absolute."""
+-    import sys
++    """Resolve relative venv paths from the checkout, adapting their layout for Windows."""
+     py = runtime.get("python", "studio")
+     if py == "studio": return sys.executable
+     p = Path(py).expanduser()
+-    if not p.is_absolute(): p = Path.home() / py
++    if not p.is_absolute():
++        if sys.platform == "win32" and p.parts[-2:] == ("bin", "python"):
++            p = p.parent.parent / "Scripts/python.exe"
++        p = ROOT / p
+     return str(p)
+ 
+ 
+diff --git a/tools/stitchvector_studio/server.py b/tools/stitchvector_studio/server.py
+index 6bf90fe..70ca7da 100644
+--- a/tools/stitchvector_studio/server.py
++++ b/tools/stitchvector_studio/server.py
+@@ -1,6 +1,6 @@
+ """StitchVector Studio V0.1 - local web server (stdlib HTTP, binds 127.0.0.1 only).
+ 
+-Usage: python -m tools.stitchvector_studio.server --workspace ~/geomap2arcgis/runs/stitchvector/studio_ws [--port 8820]
++Usage: python -m tools.stitchvector_studio.server [--workspace runs/stitchvector/studio_v02/workspace] [--port 8820]
+ 
+ Routes
+   GET  /                                 Studio page (projects / import / process / export) + editor canvases
+@@ -36,6 +36,7 @@ from tools.stitchvector_editor.core import EditError  # noqa: E402
+ from tools.stitchvector_studio import registry as REG, inputs as INP, exports as EXP  # noqa: E402
+ from tools.stitchvector_studio.projects import Workspace, ProjectError  # noqa: E402
+ from tools.stitchvector_studio.contracts import sha256_file  # noqa: E402
++from tools.stitchvector_studio.runtime import DEFAULT_WORKSPACE, configure_environment  # noqa: E402
+ 
+ HERE = Path(__file__).resolve().parent
+ WS = None
+@@ -175,10 +176,8 @@ class H(ED.H):
+         if not EXP_RE.match(eid): raise ProjectError("bad export id")
+         f = WS.pdir(_pid(pid)) / "exports" / eid / Path(fn).name
+         if not f.is_file() or f.name.endswith(".manifest.json") and False: raise ProjectError("file not found")
+-        b = f.read_bytes(); self.send_response(200)
+-        self.send_header("Content-Type", "application/octet-stream"); self.send_header("Content-Length", str(len(b)))
+-        self.send_header("Content-Disposition", f'attachment; filename="{f.name}"'); self.send_header("X-SHA256", sha256_file(f))
+-        self.end_headers(); self.wfile.write(b)
++        return self._send(200, f.read_bytes(), "application/octet-stream",
++                          headers={"Content-Disposition": f'attachment; filename="{f.name}"', "X-SHA256": sha256_file(f)})
+ 
+     def _route(self, method):
+         u = urlparse(self.path); p = u.path; q = parse_qs(u.query)
+@@ -234,8 +233,11 @@ class H(ED.H):
+ def main(argv=None):
+     global WS
+     ap = argparse.ArgumentParser(description="StitchVector Studio V0.1")
+-    ap.add_argument("--workspace", required=True); ap.add_argument("--port", type=int, default=8820); a = ap.parse_args(argv)
+-    WS = Workspace(Path(a.workspace).expanduser().resolve())
++    ap.add_argument("--workspace", default=str(DEFAULT_WORKSPACE)); ap.add_argument("--port", type=int, default=8820); a = ap.parse_args(argv)
++    configure_environment()
++    workspace = Path(a.workspace).expanduser()
++    if not workspace.is_absolute(): workspace = ROOT / workspace
++    WS = Workspace(workspace.resolve())
+     srv = ThreadingHTTPServer(("127.0.0.1", a.port), H)
+     print(f"StitchVector Studio V0.1: http://127.0.0.1:{a.port}/  (workspace {WS.root})", flush=True)
+     try: srv.serve_forever()
+diff --git a/tools/stitchvector_studio/stage_runner.py b/tools/stitchvector_studio/stage_runner.py
+index a3f48eb..bcd77fe 100644
+--- a/tools/stitchvector_studio/stage_runner.py
++++ b/tools/stitchvector_studio/stage_runner.py
+@@ -10,6 +10,7 @@ from pathlib import Path
+ ROOT = Path(__file__).resolve().parents[2]
+ sys.path.insert(0, str(ROOT))
+ from tools.stitchvector_studio.contracts import StageResult, RunContext, FAILED, OK, SCHEMAS, sha256_file, write_json_atomic  # noqa: E402
++from tools.stitchvector_studio.runtime import configure_environment  # noqa: E402
+ 
+ 
+ def code_hash(files):
+@@ -20,6 +21,7 @@ def code_hash(files):
+ 
+ 
+ def main(req_path):
++    configure_environment()
+     req = json.load(open(req_path, encoding="utf-8")); t0 = time.time(); out = Path(req["result_path"])
+     try:
+         now = code_hash(req["code_files"])

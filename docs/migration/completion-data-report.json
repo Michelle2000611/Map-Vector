@@ -1,0 +1,89 @@
+{
+  "after_restore": {
+    "attribute_mismatches": [],
+    "feature_counts": {
+      "face": 19119,
+      "line": 575,
+      "text": 152
+    },
+    "foreign_key_check": [],
+    "frozen_vectors_sha256": "73105ef3949c9ce39f97e3f150817a7a6740ad1b6f7ed41da7f03aeaf0030cfd",
+    "geometry_mismatches": [],
+    "integrity_check": "ok",
+    "mapped_feature_count": 19846,
+    "unchanged_geometry_checked": 19846
+  },
+  "backup": {
+    "backup_sha256": "6b2f0119770621832dca82d5c06fe1bfe2935e30e369707c4f53c45dd9d134a7",
+    "file_count": 20,
+    "output": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\completion-data-7c2119\\project.zip",
+    "project_id": "237ad80d-539d-46f1-bb84-c5305368757a",
+    "working_revision": 0
+  },
+  "before": {
+    "attribute_mismatches": [],
+    "feature_counts": {
+      "face": 19119,
+      "line": 575,
+      "text": 152
+    },
+    "foreign_key_check": [],
+    "frozen_vectors_sha256": "73105ef3949c9ce39f97e3f150817a7a6740ad1b6f7ed41da7f03aeaf0030cfd",
+    "geometry_mismatches": [],
+    "integrity_check": "ok",
+    "mapped_feature_count": 19846,
+    "unchanged_geometry_checked": 19846
+  },
+  "legacy": {
+    "feature_count": 19846,
+    "manifest": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\completion-data-7c2119\\legacy.compatibility.json",
+    "output": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\completion-data-7c2119\\legacy.gpkg",
+    "output_sha256": "389d5dfcec17d29ecf9ebeb80843c42c7eb42b9df8968f2d1c2e23e565f1d11f",
+    "verification": {
+      "accepted": true,
+      "all_polygon": true,
+      "area_sum_minus_window": 0.0,
+      "coverage_is_valid": true,
+      "edit_log": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\completion-data-7c2119\\legacy.edits.json",
+      "export_mode": "draft",
+      "face_columns_kept": true,
+      "faces": 19119,
+      "geometries_valid": true,
+      "input_sha256_unchanged": true,
+      "layers": [
+        "colour_faces",
+        "visual_lines",
+        "text_labels",
+        "legend_styles",
+        "layer_styles"
+      ],
+      "line_columns_kept": true,
+      "lines": 575,
+      "path": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\completion-data-7c2119\\legacy.gpkg",
+      "path_sha256": "389d5dfcec17d29ecf9ebeb80843c42c7eb42b9df8968f2d1c2e23e565f1d11f",
+      "readback_matches_memory": true,
+      "roi": {
+        "roi": null
+      },
+      "scoped_objects": {
+        "dropped_outside": 0
+      },
+      "text_labels": 152,
+      "text_matches_memory": true,
+      "text_residue_lines": 0,
+      "union_area_minus_window": 0.0,
+      "unreviewed": 152
+    }
+  },
+  "legacy_counts": {
+    "face": 19119,
+    "line": 575,
+    "text": 152
+  },
+  "restore": {
+    "project_id": "237ad80d-539d-46f1-bb84-c5305368757a",
+    "restored_directory": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\completion-data-7c2119\\workspace\\projects\\237ad80d-539d-46f1-bb84-c5305368757a",
+    "working_revision": 0
+  },
+  "source_project_modified": false
+}

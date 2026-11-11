@@ -1,0 +1,91 @@
+{
+  "checked_at": "2026-11-07T06:48:07.495138+00:00",
+  "backend": {
+    "passed": 101,
+    "failed": 0,
+    "skipped": 0
+  },
+  "browser": {
+    "passed": 21,
+    "failed": 0
+  },
+  "npm_vulnerabilities": 0,
+  "records": {
+    "backend": {
+      "rel_path": "runtime/completion-final.log",
+      "sha256": "ce781ca99d278e4bcdef5a48d6e835ead20478d11b6a26c0c4decc6b0197102a",
+      "summary": "pshots.py::test_restore_removes_styles_created_after_snapshot_and_undo_recovers PASSED [ 92%]\nbackend\\tests\\test_snapshots.py::test_restore_undo_restores_current_asset_identity PASSED [ 93%]\nbackend\\tests\\test_text_metrics.py::test_vertical_quad_uses_short_edge_for_font_height PASSED [ 94%]\nbackend\\tests\\test_text_metrics.py::test_nearly_horizontal_quad_retains_frozen_angle_snap PASSED [ 95%]\nbackend\\tests\\test_text_residue.py::test_residue_cleanup_preserves_explicit_review_and_source_detection PASSED [ 96%]\nbackend\\tests\\test_text_residue.py::test_cleanup_changes_only_target_text PASSED [ 97%]\nbackend\\tests\\test_text_spatial_index.py::test_text_viewport_uses_display_box_and_moving_reindexes PASSED [ 98%]\nbackend\\tests\\test_worker_process.py::test_cancellation_terminates_only_owned_process_tree PASSED [ 99%]\nbackend\\tests\\test_worker_process.py::test_large_worker_logs_do_not_block_completion PASSED [100%]\n\n================ 101 passed, 102 warnings in 321.72s (0:05:21) ================\n"
+    },
+    "browser": {
+      "rel_path": "runtime/browser/completion-final.log",
+      "sha256": "c889631ab8b978284d054a8431b90344da0de2bb8677381514a096e4abaed00b",
+      "summary": ":577:1 › deleting drawn line is scoped confirmed and undoable (7.2s)\n  ok 12 tests\\advanced.spec.ts:611:1 › remaining legacy commands have browser actions for line grouping review and local OCR (12.5s)\n  ok 13 tests\\interaction.spec.ts:58:1 › line drawing isolation picking restore and ROI export (13.6s)\n  ok 14 tests\\interaction.spec.ts:145:1 › review row focuses text and confirms the same object (4.5s)\n  ok 15 tests\\interaction.spec.ts:205:5 › layout 1366x768 (4.5s)\n  ok 16 tests\\interaction.spec.ts:205:5 › layout 1600x900 (3.8s)\n  ok 17 tests\\interaction.spec.ts:205:5 › layout 1920x1080 (3.5s)\n  ok 18 tests\\interaction.spec.ts:205:5 › layout 683x384 (3.6s)\n  ok 19 tests\\real-project.spec.ts:2:1 › real imported project paginates all faces and renders matching canvases (15.8s)\n  ok 20 tests\\workflow.spec.ts:7:1 › create upload recognize adopt and save (13.6s)\n  ok 21 tests\\workflow.spec.ts:58:1 › canvas text edit undo redo and snapshot export survive reload (11.9s)\n\n  21 passed (3.0m)\n"
+    },
+    "frontend_build": {
+      "rel_path": "runtime/completion-build.log",
+      "sha256": "cb11b526830ff10c04aa79b038633ce16c5849c421bd5aef06f7eff41f681a01",
+      "summary": "cker/components/ColorSteppers.js (1:0): Module level directives cause errors when bundled, \"use client\" in \"node_modules/antd/es/color-picker/components/ColorSteppers.js\" was ignored.\nnode_modules/antd/es/table/hooks/useFilter/FilterWrapper.js (1:0): Module level directives cause errors when bundled, \"use client\" in \"node_modules/antd/es/table/hooks/useFilter/FilterWrapper.js\" was ignored.\n✓ 3007 modules transformed.\nrendering chunks...\ncomputing gzip size...\ndist/index.html                     0.36 kB │ gzip:   0.26 kB\ndist/assets/index-BcUKKw8l.css      2.24 kB │ gzip:   0.88 kB\ndist/assets/index-z2iwg0-n.js   1,041.45 kB │ gzip: 326.91 kB\n\n(!) Some chunks are larger than 500 kB after minification. Consider:\n- Using dynamic import() to code-split the application\n- Use build.rollupOptions.output.manualChunks to improve chunking: https://rollupjs.org/configuration-options/#output-manualchunks\n- Adjust chunk size limit for this warning via build.chunkSizeWarningLimit.\n✓ built in 11.91s\n"
+    },
+    "pip": {
+      "rel_path": "runtime/pip-check.log",
+      "sha256": "672aec65a45bed50e70229c70934a7eebf0462595c459b83023027645d57cccf",
+      "summary": "No broken requirements found.\n"
+    },
+    "paddle_pip": {
+      "rel_path": "runtime/pip-paddle-check.log",
+      "sha256": "672aec65a45bed50e70229c70934a7eebf0462595c459b83023027645d57cccf",
+      "summary": "No broken requirements found.\n"
+    },
+    "npm_install": {
+      "rel_path": "runtime/npm-ci.log",
+      "sha256": "fd610ab98c8ba7c0e4e3bdf9add105009f7e30243a280394bb469d98ea4eb392",
+      "summary": "\nadded 126 packages, and audited 127 packages in 2m\n\n12 packages are looking for funding\n  run `npm fund` for details\n\nfound 0 vulnerabilities\n"
+    },
+    "npm_audit": {
+      "rel_path": "runtime/npm-audit.json",
+      "sha256": "728c5f125520c5c0c76906180ca3b37c266516313280ba32d663ee84749105a8",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "real_import": {
+      "rel_path": "runtime/migration/real_verify_completion.json",
+      "sha256": "5caf15d95b83564a61765fa622413ef4ef75bca636988016bef7529740821a83",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "legacy_readback": {
+      "rel_path": "runtime/legacy-compatibility/report.json",
+      "sha256": "718e9a46dec3ad4ebb89ec2638c397cb6710245a2c0f89e75b536eb302cca0d9",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "backup_create": {
+      "rel_path": "runtime/backup-create.log",
+      "sha256": "cb09becc7956353a32081826c074547603828a46314cf194144f025bfad220c2",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "backup_restore": {
+      "rel_path": "runtime/backup-restore.log",
+      "sha256": "c56f2e5f0564a57c44d2500cbe8f93bfbcac1100df5f0fe95800bebfb012c3da",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "data_recovery": {
+      "rel_path": "runtime/completion-data-report.json",
+      "sha256": "ccfa63660f6d776113c6d98c2098fca92df9dac83fda52d15d358fb9cc0b342c",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "post_review": {
+      "rel_path": "runtime/post-review-check.log",
+      "sha256": "2a562819bbdb291fc0853daaad0d81d39de0f3fd0627be1a4083a77cf643d453",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "typed_port_review": {
+      "rel_path": "runtime/review-types.log",
+      "sha256": "b7de62733753bda0a8f3fe0df218fe1751fe0a2d90c83e8d30c554b16720451a",
+      "summary": "Structured report retained at the recorded path"
+    },
+    "explicit_text_target": {
+      "rel_path": "runtime/residue-target-check.log",
+      "sha256": "e14480657ead03e1da74265f665c26de1c85c03bd1d71bf0cf47e9a17d14f130",
+      "summary": "Structured report retained at the recorded path"
+    }
+  },
+  "manual_acceptance": "See acceptance-report.md; external GIS, all real U2 locations, native zoom, additional large inputs, cross-platform and redistribution licensing remain unsigned"
+}

@@ -1,0 +1,101 @@
+{
+  "engine_id": "paddleocr",
+  "engine_version": "3.7.0",
+  "runtime_version": "3.3.1",
+  "plugin_version": "3.7.2",
+  "model_id": "PP-OCRv6_medium_det+PP-OCRv6_medium_rec+PP-LCNet_x1_0_textline_ori",
+  "source": "scan2arcgis local POC cache",
+  "license_review": "pending",
+  "files": [
+    {
+      "rel_path": "PP-LCNet_x1_0_textline_ori/.gitattributes",
+      "sha256": "16a369b9b94903ada962eff2255c71a84238e4d8e475b6ce64768b0c1bd4d811",
+      "byte_size": 2132
+    },
+    {
+      "rel_path": "PP-LCNet_x1_0_textline_ori/config.json",
+      "sha256": "c1a2576f9713adabdc4a58d9d654fcc9ea93b6efd0e2d3581d5aab409a33f14f",
+      "byte_size": 2487
+    },
+    {
+      "rel_path": "PP-LCNet_x1_0_textline_ori/configuration.json",
+      "sha256": "2e1c5a9e1cdae7ee2a28ac27d4e25172029cfa661cbeb4418f6be9998ef02f79",
+      "byte_size": 71
+    },
+    {
+      "rel_path": "PP-LCNet_x1_0_textline_ori/inference.json",
+      "sha256": "b81929eeaff8e52db0fafb49c9fbfc5bc0572f81641fe0179cc52096323fb4d4",
+      "byte_size": 104399
+    },
+    {
+      "rel_path": "PP-LCNet_x1_0_textline_ori/inference.pdiparams",
+      "sha256": "0de2bcf996cf553e2b848dd7b1769dafffc6917b1ccdf55c1d8efe7909fbf743",
+      "byte_size": 6743918
+    },
+    {
+      "rel_path": "PP-LCNet_x1_0_textline_ori/inference.yml",
+      "sha256": "8d5120d0e1a30a9df7ed46aa9119da3796ed066777089d1c1d705f132d5e90f9",
+      "byte_size": 735
+    },
+    {
+      "rel_path": "PP-LCNet_x1_0_textline_ori/README.md",
+      "sha256": "c2de067422621e296f697b849b90b8f6cae090a8e0a27d8b04eeb8d68ffb8ce0",
+      "byte_size": 3554
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_det/.gitattributes",
+      "sha256": "16a369b9b94903ada962eff2255c71a84238e4d8e475b6ce64768b0c1bd4d811",
+      "byte_size": 2132
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_det/configuration.json",
+      "sha256": "2e1c5a9e1cdae7ee2a28ac27d4e25172029cfa661cbeb4418f6be9998ef02f79",
+      "byte_size": 71
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_det/inference.json",
+      "sha256": "0f1a7ec35da36173529c7a60238b7f7919e3831929c3f700ad90ad4896adecd5",
+      "byte_size": 312150
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_det/inference.pdiparams",
+      "sha256": "85218d2e3d98f5a21c58b4220627be923a97aee5db3cc71f39536ab31ac53960",
+      "byte_size": 61960476
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_det/inference.yml",
+      "sha256": "7298d5ead546584af2504d03355f881ac7a7bc0eb1e282d3e159277c1d0af871",
+      "byte_size": 886
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_det/README.md",
+      "sha256": "59f37b08a9a49aa6c1275e7b0363991353582f4dc7676539a5d2b05aab57e744",
+      "byte_size": 23247
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_rec/.gitattributes",
+      "sha256": "a3a43406012ee8c7b9b38dfab1b11610f33e8245cd864a9a9302d042616a859e",
+      "byte_size": 1575
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_rec/inference.json",
+      "sha256": "0b2e25e990bd072f1bf77d59d67d508bce6c4bd44af6624e0fb27d6da2cd00e8",
+      "byte_size": 221814
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_rec/inference.pdiparams",
+      "sha256": "1b01c79a914587933f615569e75de54f2e638ebb5d3f3b3c1b38c24ede8c7319",
+      "byte_size": 76465087
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_rec/inference.yml",
+      "sha256": "991b700facf5b50a7de193468207d5f4255b538dde0d312ae3b7c7a9b6873129",
+      "byte_size": 150580
+    },
+    {
+      "rel_path": "PP-OCRv6_medium_rec/README.md",
+      "sha256": "75ff9c4853ed171f36224127805062f9bcd1cfbbcacae3d577344866df74f6d3",
+      "byte_size": 23474
+    }
+  ]
+}

@@ -1,0 +1,4 @@
+.recognition-timing{display:grid;grid-template-columns:max-content minmax(0,1fr);gap:10px 14px;margin:18px 0;font-variant-numeric:tabular-nums;line-height:1.6}
+.recognition-timing dt{color:#65758a}.recognition-timing dd{margin:0;overflow-wrap:anywhere}.recognition-timing-note{margin:0 0 16px;color:#65758a;font-size:12px;line-height:1.7}
+.recognition-preview-tabs.ant-tabs>.ant-tabs-nav{margin-bottom:16px}.recognition-preview-tabs .ant-tabs-tab{padding:10px 4px}.recognition-preview-tabs .ant-tabs-content-holder{display:none}
+@media(max-width:600px){.recognition-timing{gap:8px 10px}.recognition-preview-tabs .ant-tabs-tab+.ant-tabs-tab{margin-left:24px}}

@@ -1,0 +1,23 @@
+{
+  "commit": "1a12724a6a6000a42527ffec213753e8e7c4d570",
+  "files": [
+    {
+      "rel_path": "frontend/package.json",
+      "sha256": "096d3de0cf18acab14dcb71737deed3580cce3e7960ea32542e9eebaec98081e"
+    },
+    {
+      "rel_path": "frontend/package-lock.json",
+      "sha256": "e62bf235564465efbcac70e39aeb57425eec51e57559d96a0eaa06e8061215dc"
+    },
+    {
+      "rel_path": "frontend/src/App.tsx",
+      "sha256": "d120be4365c0102989fc49d6a8b8e1efe5e8faa8855fbe620489adae71c27f12"
+    },
+    {
+      "rel_path": "frontend/src/components/workflow/WorkflowStageBar.tsx",
+      "sha256": "856083fd6053767464341dda72c37c02ac09968d513761f03e3eb551706ba160"
+    }
+  ],
+  "reuse": "Layout and navigation reference; implementation authored in Map-Vector",
+  "source_name": "Geological-Map-Digitizer"
+}

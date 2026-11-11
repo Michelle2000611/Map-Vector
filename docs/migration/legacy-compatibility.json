@@ -1,0 +1,47 @@
+{
+  "feature_count": 19846,
+  "manifest": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\legacy-compatibility\\vectors.compatibility.json",
+  "output": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\legacy-compatibility\\vectors.gpkg",
+  "output_sha256": "0f3f418072e66e868b37121d47c92ac27cb69f7ecaf542a21fd9739c9c44fd50",
+  "reopened_counts": {
+    "face": 19119,
+    "isolated_line": 0,
+    "line": 575,
+    "text": 152
+  },
+  "verification": {
+    "accepted": true,
+    "all_polygon": true,
+    "area_sum_minus_window": 0.0,
+    "coverage_is_valid": true,
+    "edit_log": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\legacy-compatibility\\vectors.edits.json",
+    "export_mode": "draft",
+    "face_columns_kept": true,
+    "faces": 19119,
+    "geometries_valid": true,
+    "input_sha256_unchanged": true,
+    "layers": [
+      "colour_faces",
+      "visual_lines",
+      "text_labels",
+      "legend_styles",
+      "layer_styles"
+    ],
+    "line_columns_kept": true,
+    "lines": 575,
+    "path": "D:\\software\\CodeRepository\\PythonProject\\Map-Vector\\runtime\\legacy-compatibility\\vectors.gpkg",
+    "path_sha256": "0f3f418072e66e868b37121d47c92ac27cb69f7ecaf542a21fd9739c9c44fd50",
+    "readback_matches_memory": true,
+    "roi": {
+      "roi": null
+    },
+    "scoped_objects": {
+      "dropped_outside": 0
+    },
+    "text_labels": 152,
+    "text_matches_memory": true,
+    "text_residue_lines": 0,
+    "union_area_minus_window": 0.0,
+    "unreviewed": 152
+  }
+}

@@ -1,0 +1,45 @@
+{
+  "comparison": "New implementation only; old interactive timings and larger input not available",
+  "feature_count": 19846,
+  "sample_size": 3,
+  "seconds": {
+    "command": {
+      "p50": 0.21377489995211363,
+      "p95_nearest_rank": 0.23836950003169477,
+      "samples": [
+        0.19329249998554587,
+        0.23836950003169477,
+        0.21377489995211363
+      ]
+    },
+    "gpkg_export": {
+      "p50": 10.763688100036234,
+      "p95_nearest_rank": 10.832638999912888,
+      "samples": [
+        10.763688100036234,
+        10.655673499917611,
+        10.832638999912888
+      ]
+    },
+    "load": {
+      "p50": 2.765236900188029,
+      "p95_nearest_rank": 2.9143457000609487,
+      "samples": [
+        2.6768279999960214,
+        2.765236900188029,
+        2.9143457000609487
+      ]
+    },
+    "snapshot": {
+      "p50": 3.8313605000730604,
+      "p95_nearest_rank": 3.856095999944955,
+      "samples": [
+        3.6815065999981016,
+        3.856095999944955,
+        3.8313605000730604
+      ]
+    }
+  },
+  "source_modified": false,
+  "source_project_id": "893a3094-0c91-46cd-851a-2512237fc2e5"
+}

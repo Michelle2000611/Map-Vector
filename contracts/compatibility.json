@@ -1,0 +1,11 @@
+{
+  "schema_revision": "1.0",
+  "supported_contract_revisions": ["1.0"],
+  "api_prefix": "/api",
+  "mapping_revision": "1.2",
+  "export_policy_id": "baseline_compatible",
+  "strict_review_available": false,
+  "existing_database_compatibility": "Additive columns and scope/JSON triggers. Fresh stores also enforce composite foreign keys. No production release precedes this contract.",
+  "restore_strategy": "Compensating operation; immutable audit history retained",
+  "python_environments": {"api_b2c_rapid": ".venv", "paddle": ".venv-ocr-paddle"}
+}

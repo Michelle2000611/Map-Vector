@@ -1,0 +1,10 @@
+.below-canvas>.bottom-review-panel{width:100%;min-width:0;max-width:100%}
+.below-canvas>.bottom-review-panel>.ant-card-head{min-height:48px;padding:10px 18px}
+.below-canvas>.bottom-review-panel>.ant-card-head .ant-card-head-title{padding-right:0}
+.below-canvas>.bottom-review-panel>.ant-card-body{padding:0!important}
+.bottom-review-content{min-width:0;max-width:100%;overflow:auto;padding:12px 18px;overscroll-behavior:contain}
+.bottom-review-content[hidden]{display:none}
+.bottom-review-resize{height:12px;display:flex;align-items:center;justify-content:center;cursor:ns-resize;touch-action:none;border-top:1px solid #edf0f4;background:#fafbfd}
+.bottom-review-resize>span{width:44px;height:3px;border-radius:2px;background:#c4ccd7}
+.bottom-review-resize:hover,.bottom-review-resize:focus-visible{background:#edf4ff;outline:2px solid #91caff;outline-offset:-2px}
+@media(max-width:760px){.bottom-review-content{padding:10px 12px}.below-canvas>.bottom-review-panel>.ant-card-head{padding:10px 12px}}

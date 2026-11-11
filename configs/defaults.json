@@ -1,0 +1,1 @@
+{"schema_revision":"1.0","host":"127.0.0.1","api_port":8840,"frontend_dev_port":5175,"workspace_rel_path":"workspaces/default","api_python_rel_path":".venv/Scripts/python.exe","paddle_python_rel_path":".venv-ocr-paddle/Scripts/python.exe","model_download_policy":"local_only","export_policy_id":"baseline_compatible"}

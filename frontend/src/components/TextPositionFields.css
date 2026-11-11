@@ -1,0 +1,6 @@
+.text-position-fields{width:100%;min-width:0}
+.text-position-grid{display:grid;grid-template-columns:repeat(4,minmax(100px,1fr));gap:12px;min-width:436px}
+.text-position-grid>.ant-input-group-wrapper{width:100%;min-width:0}
+.text-position-grid .ant-input-group-addon{min-width:30px;padding-inline:8px}
+.text-position-grid .ant-input{min-width:0;padding-inline:8px;font-variant-numeric:tabular-nums}
+.text-position-grid .ant-input[readonly]{color:#65758a;background:#f7f9fc;cursor:default}

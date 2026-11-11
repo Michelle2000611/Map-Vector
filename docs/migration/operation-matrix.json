@@ -1,0 +1,443 @@
+[
+  {
+    "legacy_operation": "pick",
+    "implementation": "selections",
+    "ui_entry": "Workbench 选择工具",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "box",
+    "implementation": "selections",
+    "ui_entry": "Workbench 选择工具",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "group",
+    "implementation": "selections",
+    "ui_entry": "Workbench 选择工具",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "grow",
+    "implementation": "selections",
+    "ui_entry": "Workbench 选择工具",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "select_gesture",
+    "implementation": "selections",
+    "ui_entry": "Workbench 选择工具",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "grow_sel",
+    "implementation": "selections",
+    "ui_entry": "Workbench 选择工具",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "shrink_sel",
+    "implementation": "selections",
+    "ui_entry": "Workbench 选择工具",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "recolour",
+    "implementation": "set_feature_color / set_line_width / set_line_role",
+    "ui_entry": "属性与操作",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "rewidth",
+    "implementation": "set_feature_color / set_line_width / set_line_role",
+    "ui_entry": "属性与操作",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "regroup",
+    "implementation": "group_features / ungroup_features",
+    "ui_entry": "逻辑归组 / 拆组",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "ungroup_lines",
+    "implementation": "group_features / ungroup_features",
+    "ui_entry": "逻辑归组 / 拆组",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "isolate_lines",
+    "implementation": "isolate_lines / restore_lines",
+    "ui_entry": "隔离 / 恢复隔离线",
+    "backend_evidence": "test_advanced_geometry.py; test_advanced_apply.py",
+    "browser_evidence": "interaction.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "set_role",
+    "implementation": "set_feature_color / set_line_width / set_line_role",
+    "ui_entry": "属性与操作",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "apply_legend",
+    "implementation": "set_style / bind_style",
+    "ui_entry": "图例样式与图层",
+    "backend_evidence": "test_appearance.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "set_style",
+    "implementation": "set_style / bind_style",
+    "ui_entry": "图例样式与图层",
+    "backend_evidence": "test_appearance.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "join_preview",
+    "implementation": "edit-previews / join_lines / delete_lines / split_line / create_line / line_to_face",
+    "ui_entry": "线工具与属性",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "join_lines",
+    "implementation": "edit-previews / join_lines / delete_lines / split_line / create_line / line_to_face",
+    "ui_entry": "线工具与属性",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "delete",
+    "implementation": "edit-previews / join_lines / delete_lines / split_line / create_line / line_to_face",
+    "ui_entry": "线工具与属性",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "split",
+    "implementation": "edit-previews / join_lines / delete_lines / split_line / create_line / line_to_face",
+    "ui_entry": "线工具与属性",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "draw",
+    "implementation": "edit-previews / join_lines / delete_lines / split_line / create_line / line_to_face",
+    "ui_entry": "线工具与属性",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "line_to_face",
+    "implementation": "edit-previews / join_lines / delete_lines / split_line / create_line / line_to_face",
+    "ui_entry": "线工具与属性",
+    "backend_evidence": "test_geometry_commands.py; test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "merge",
+    "implementation": "merge_adjacent_faces / merge_face_components / feature-lineage / edit-previews",
+    "ui_entry": "面工具 / 对象来源",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "merge_preview",
+    "implementation": "merge_adjacent_faces / merge_face_components / feature-lineage / edit-previews",
+    "ui_entry": "面工具 / 对象来源",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "merge_groups",
+    "implementation": "merge_adjacent_faces / merge_face_components / feature-lineage / edit-previews",
+    "ui_entry": "面工具 / 对象来源",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "merge_history",
+    "implementation": "merge_adjacent_faces / merge_face_components / feature-lineage / edit-previews",
+    "ui_entry": "面工具 / 对象来源",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "merge_suggest",
+    "implementation": "merge_adjacent_faces / merge_face_components / feature-lineage / edit-previews",
+    "ui_entry": "面工具 / 对象来源",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "group_faces",
+    "implementation": "group_features / ungroup_features",
+    "ui_entry": "逻辑归组 / 拆组",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "ungroup_faces",
+    "implementation": "group_features / ungroup_features",
+    "ui_entry": "逻辑归组 / 拆组",
+    "backend_evidence": "test_geometry_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "heal_preview",
+    "implementation": "edit-previews / heal_faces",
+    "ui_entry": "碎面修复刷 / 确认本次编辑",
+    "backend_evidence": "test_advanced_apply.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "heal_apply",
+    "implementation": "edit-previews / heal_faces",
+    "ui_entry": "碎面修复刷 / 确认本次编辑",
+    "backend_evidence": "test_advanced_apply.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "set_roi",
+    "implementation": "set_roi / roi-audits / roi-previews",
+    "ui_entry": "质量与范围 / ROI 工具",
+    "backend_evidence": "test_scope_export.py; test_geometry_commands.py",
+    "browser_evidence": "interaction.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "roi_report",
+    "implementation": "set_roi / roi-audits / roi-previews",
+    "ui_entry": "质量与范围 / ROI 工具",
+    "backend_evidence": "test_scope_export.py; test_geometry_commands.py",
+    "browser_evidence": "interaction.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "roi_clip_preview",
+    "implementation": "set_roi / roi-audits / roi-previews",
+    "ui_entry": "质量与范围 / ROI 工具",
+    "backend_evidence": "test_scope_export.py; test_geometry_commands.py",
+    "browser_evidence": "interaction.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "split_face_preview",
+    "implementation": "edit-previews / split_faces",
+    "ui_entry": "预览沿线切面 / 确认本次编辑",
+    "backend_evidence": "test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "split_face_apply",
+    "implementation": "edit-previews / split_faces",
+    "ui_entry": "预览沿线切面 / 确认本次编辑",
+    "backend_evidence": "test_advanced_geometry.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "text_preview",
+    "implementation": "runs OCR / edit-previews / cleanup_text_residue",
+    "ui_entry": "局部 OCR / 文字残影 / 确认本次编辑",
+    "backend_evidence": "test_ocr_jobs.py; test_advanced_apply.py; test_text_residue.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "text_apply",
+    "implementation": "runs OCR / edit-previews / cleanup_text_residue",
+    "ui_entry": "局部 OCR / 文字残影 / 确认本次编辑",
+    "backend_evidence": "test_ocr_jobs.py; test_advanced_apply.py; test_text_residue.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "text_residue",
+    "implementation": "runs OCR / edit-previews / cleanup_text_residue",
+    "ui_entry": "局部 OCR / 文字残影 / 确认本次编辑",
+    "backend_evidence": "test_ocr_jobs.py; test_advanced_apply.py; test_text_residue.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "text_edit",
+    "implementation": "update_text / selections / create_text / delete_text",
+    "ui_entry": "文字属性 / 点位补字 / 删除所选",
+    "backend_evidence": "test_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "text_pick",
+    "implementation": "update_text / selections / create_text / delete_text",
+    "ui_entry": "文字属性 / 点位补字 / 删除所选",
+    "backend_evidence": "test_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "text_add",
+    "implementation": "update_text / selections / create_text / delete_text",
+    "ui_entry": "文字属性 / 点位补字 / 删除所选",
+    "backend_evidence": "test_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "text_delete",
+    "implementation": "update_text / selections / create_text / delete_text",
+    "ui_entry": "文字属性 / 点位补字 / 删除所选",
+    "backend_evidence": "test_commands.py",
+    "browser_evidence": "advanced.spec.ts 实际页面操作（合成拓扑/文字样本）",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "restore_residue",
+    "implementation": "isolate_lines / restore_lines",
+    "ui_entry": "隔离 / 恢复隔离线",
+    "backend_evidence": "test_advanced_geometry.py; test_advanced_apply.py",
+    "browser_evidence": "interaction.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "review_classify",
+    "implementation": "classify_review / reviews / confirm_text / skip_text",
+    "ui_entry": "文字审核 / 按基线风险分流",
+    "backend_evidence": "test_review_routing.py; test_ocr.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "review_queue",
+    "implementation": "classify_review / reviews / confirm_text / skip_text",
+    "ui_entry": "文字审核 / 按基线风险分流",
+    "backend_evidence": "test_review_routing.py; test_ocr.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "review_decide",
+    "implementation": "classify_review / reviews / confirm_text / skip_text",
+    "ui_entry": "文字审核 / 按基线风险分流",
+    "backend_evidence": "test_review_routing.py; test_ocr.py",
+    "browser_evidence": "advanced.spec.ts remaining legacy commands 页面流程；局部OCR记录与范围对账",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "undo",
+    "implementation": "undo / redo / snapshots",
+    "ui_entry": "撤销 / 重做 / 保存工作快照",
+    "backend_evidence": "test_commands.py; test_snapshots.py",
+    "browser_evidence": "workflow.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "redo",
+    "implementation": "undo / redo / snapshots",
+    "ui_entry": "撤销 / 重做 / 保存工作快照",
+    "backend_evidence": "test_commands.py; test_snapshots.py",
+    "browser_evidence": "workflow.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  },
+  {
+    "legacy_operation": "save",
+    "implementation": "undo / redo / snapshots",
+    "ui_entry": "撤销 / 重做 / 保存工作快照",
+    "backend_evidence": "test_commands.py; test_snapshots.py",
+    "browser_evidence": "workflow.spec.ts",
+    "status": "implemented",
+    "real_issue_acceptance": "manual_pending"
+  }
+]

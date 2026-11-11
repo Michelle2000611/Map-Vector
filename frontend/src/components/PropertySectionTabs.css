@@ -1,0 +1,11 @@
+.property-section-tabs{min-width:0}.property-section-tabs>.ant-tabs-nav{margin:0 0 14px}.property-section-tabs .ant-tabs-tab{padding:9px 0}.property-section-tabs .ant-tabs-tab+.ant-tabs-tab{margin-left:20px}.property-section-tabs .ant-tabs-content-holder,.property-section-tabs .ant-tabs-tabpane{min-width:0}.property-section-tabs .object-property-source pre{max-height:240px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere}.property-section-tabs .property-danger{margin-top:14px}.property-section-tabs .property-batch-apply{margin-top:14px}
+.property-selection-metadata{display:flex;align-items:center;gap:8px;margin-bottom:10px}.property-selection-metadata .ant-tag{margin:0}
+/* Navigation and persistent bodies are separate to avoid recreating review state. */
+.property-section-tabs>.ant-tabs-nav{display:flex;overflow-x:auto;border-bottom:1px solid var(--property-tab-border,#f0f0f0)}
+.property-section-tabs>.ant-tabs-nav>.ant-tabs-nav-list{display:flex;flex:none;align-items:stretch}
+.property-section-tabs>.ant-tabs-nav .ant-tabs-tab{flex:none;border-bottom:2px solid transparent;margin-bottom:-1px}
+.property-section-tabs>.ant-tabs-nav .ant-tabs-tab-active{border-bottom-color:var(--property-tab-active,#1677ff)}
+.property-section-tabs>.ant-tabs-nav .ant-tabs-tab-btn{display:block;border:0;padding:0;background:transparent;color:inherit;font:inherit;white-space:nowrap;cursor:pointer}
+.property-section-tabs>.ant-tabs-nav .ant-tabs-tab-btn[aria-selected=true]{color:var(--property-tab-active,#1677ff)}
+.property-section-tabs>.ant-tabs-nav .ant-tabs-tab-btn:focus-visible{outline:2px solid var(--property-tab-active,#1677ff);outline-offset:3px;border-radius:2px}
+.property-section-tabs>.ant-tabs-content-holder>.ant-tabs-content>.ant-tabs-tabpane[hidden]{display:none}

@@ -1,0 +1,14 @@
+/* Horizontal tools above the equal-width comparison panels. */
+.workbench{grid-template-columns:minmax(0,1fr) 280px;grid-template-rows:auto minmax(0,1fr)}
+.tool-card{grid-column:1;grid-row:1;overflow:visible}
+.tool-card>.ant-card-body{padding:10px 12px}
+.toolbar-controls{display:flex;width:100%;column-gap:8px!important;row-gap:8px!important;align-items:center}
+.tool-card .ant-select{width:116px}
+.tool-card .ant-input-number{width:82px}
+.tool-card .ant-tag{margin-inline-end:0;white-space:nowrap}
+.tool-card small{white-space:nowrap;color:#67788f}
+.comparison{grid-column:1;grid-row:2}
+.property-card{grid-column:2;grid-row:1 / span 2}
+@media(max-width:1280px){.workbench{grid-template-columns:minmax(0,1fr) 240px}}
+@media(max-width:1199px){.workbench{grid-template-columns:minmax(0,1fr);height:clamp(440px,calc(100vh - 210px),860px)}.comparison{min-height:0}.ant-drawer .property-card{height:auto}}
+@media(max-width:760px){.workbench{grid-template-columns:minmax(0,1fr);height:clamp(480px,calc(100vh - 180px),860px)}.tool-card .ant-btn{white-space:nowrap;height:32px;min-height:32px}.toolbar-controls{flex-wrap:wrap}.tool-card .ant-select{width:110px}}
