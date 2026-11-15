@@ -9,8 +9,8 @@ from shapely.geometry import Point, shape
 
 from mapvector.domain.commands import CreateText, EditCommand, ReviewText, UpdateText, HistoryCommand, GeometryCommand,SetRoi,GroupFeatures,UngroupFeatures,AdoptOcrCandidate
 from mapvector.application.relations import apply_relations,restore_relation
-from mapvector.domain.commands import SetStyle,BindStyle,SetLayer,ClassifyReview,RestoreOcrLayout
-from mapvector.domain.commands import DeleteFaces,DeleteLines,DeleteText,SetFeatureProperties,RepairFace,ApplyLineCheck
+from mapvector.domain.commands import SetStyle,BindStyle,SetLayer,ClassifyReview,RestoreOcrLayout,DeleteStyle,RebindStyle,ClearStyleOverride
+from mapvector.domain.commands import DeleteFaces,DeleteLines,DeleteText,SetFeatureProperties,RepairFace,ApplyLineCheck,SplitSelectedFaces,ApplyFaceMerge
 from mapvector.application.appearance import apply_appearance
 from mapvector.domain.ports import DatabasePort
 from mapvector.application.ports import load_feature,restore_feature,update_index
@@ -136,7 +136,7 @@ class CommandService:
                 from mapvector.application.review import classify
                 history_changes=classify(connection,project_id,command,timestamp)
                 after.extend(value for old,value in history_changes)
-            elif isinstance(command,(SetStyle,BindStyle,SetLayer)):
+            elif isinstance(command,(SetStyle,BindStyle,SetLayer,DeleteStyle,RebindStyle,ClearStyleOverride)):
                 relation_changes,history_changes,changed_styles,changed_layers=apply_appearance(connection,project_id,command,command.base_revision+1,timestamp)
                 after.extend(value for old,value in history_changes)
             elif isinstance(command,AdoptOcrCandidate):
@@ -191,6 +191,34 @@ class CommandService:
                 for kind,identity,old,new in line_relations:
                     restore_relation(connection,kind,identity,new)
                 relation_changes.extend(line_relations)
+            elif isinstance(command,ApplyFaceMerge):
+                from mapvector.application.face_merges import plan_changes
+                history_changes,merge_relations,lineages,merge_evidence=plan_changes(connection,project_id,command,timestamp,self.database.path.parents[1])
+                review_summary={'face_merge':merge_evidence}
+                for old,new in history_changes:
+                    restore_feature(connection,new);update_index(connection,new['feature_id'])
+                    if new['lifecycle_status'] in ('deleted','superseded'):
+                        _remove_feature_relations(connection,new['feature_id'],relation_changes,changed_groups);removed.append(new['feature_id'])
+                    else:after.append(load_feature(connection,new['feature_id']))
+                for relation_kind,identity,old,new in merge_relations:
+                    restore_relation(connection,relation_kind,identity,new)
+                    if relation_kind=='group_member' and new and not any(item['group_id']==new['group_id'] for item in changed_groups):
+                        group=connection.execute('SELECT * FROM logical_group WHERE group_id=?',(new['group_id'],)).fetchone()
+                        if group:changed_groups.append(dict(group))
+                relation_changes.extend(merge_relations)
+            elif isinstance(command,SplitSelectedFaces):
+                from mapvector.application.face_splits import plan_changes
+                history_changes,split_relations,lineages,split_evidence=plan_changes(connection,project_id,command,timestamp)
+                review_summary={'face_split':split_evidence}
+                for old,new in history_changes:
+                    restore_feature(connection,new);update_index(connection,new['feature_id'])
+                    if new['lifecycle_status']=='superseded':
+                        _remove_feature_relations(connection,new['feature_id'],relation_changes,changed_groups);removed.append(new['feature_id'])
+                    else:after.append(load_feature(connection,new['feature_id']))
+                for relation_kind,identity,old,new in split_relations:
+                    restore_relation(connection,relation_kind,identity,new)
+                    if relation_kind=='group_member' and not any(item['group_id']==new['group_id'] for item in changed_groups):changed_groups.append(dict(connection.execute('SELECT * FROM logical_group WHERE group_id=?',(new['group_id'],)).fetchone()))
+                relation_changes.extend(split_relations)
             elif isinstance(command,RepairFace):
                 from mapvector.application.face_repairs import plan_changes
                 history_changes,repair_evidence=plan_changes(connection,project_id,command,timestamp,self.database.path.parents[1])
@@ -322,10 +350,10 @@ class CommandService:
                 history_changes,review_events,after,review_summary=decide(connection,project_id,command,timestamp,actor_id)
             revision = command.base_revision + 1
             from mapvector.application.history import synchronize_candidates
-            face_only=isinstance(command,(RepairFace,ApplyLineCheck)) or command.operation_type=='cleanup_text_residue' and getattr(command,'complete_region',False)
+            face_only=isinstance(command,(RepairFace,ApplyLineCheck,SplitSelectedFaces,ApplyFaceMerge)) or command.operation_type=='cleanup_text_residue' and getattr(command,'complete_region',False)
             if isinstance(command,HistoryCommand):
                 history_target=connection.execute('SELECT operation_type,result_summary FROM operation WHERE operation_id=? AND project_id=?',(command.target_operation_id,project_id)).fetchone()
-                face_only=history_target is not None and (history_target['operation_type'] in ('repair_face_geometry','apply_line_check') or history_target['operation_type']=='cleanup_text_residue' and json.loads(history_target['result_summary']).get('review_summary',{}).get('residue_cleanup',{}).get('complete'))
+                face_only=history_target is not None and (history_target['operation_type'] in ('repair_face_geometry','apply_line_check','split_selected_faces','apply_face_merge') or history_target['operation_type']=='cleanup_text_residue' and json.loads(history_target['result_summary']).get('review_summary',{}).get('residue_cleanup',{}).get('complete'))
             if not face_only:synchronize_candidates(connection,project_id)
             operation_id = str(uuid4())
             operation_type = command.operation_type
@@ -336,9 +364,9 @@ class CommandService:
             for group in result['changed_groups']:
                 group['feature_ids']=[row[0] for row in connection.execute('SELECT feature_id FROM group_member WHERE group_id=? ORDER BY feature_id',(group['group_id'],))]
             connection.execute('INSERT INTO operation VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (operation_id, project_id, operation_type, command.base_revision, revision, command.idempotency_key, digest, 'applied', actor_id, target_operation_id, json.dumps(result, ensure_ascii=False), timestamp))
-            if isinstance(command,ApplyLineCheck):
+            if isinstance(command,(ApplyLineCheck,SplitSelectedFaces,ApplyFaceMerge)):
                 for source_id,target_id,attributes in lineages:
-                    connection.execute('INSERT INTO feature_lineage VALUES (?,?,?,?,?,?,?)',(str(uuid4()),source_id,target_id,'merged_from',operation_id,json.dumps(attributes,ensure_ascii=False),None))
+                    connection.execute('INSERT INTO feature_lineage VALUES (?,?,?,?,?,?,?)',(str(uuid4()),source_id,target_id,'split_from' if isinstance(command,SplitSelectedFaces) else 'merged_from',operation_id,json.dumps(attributes,ensure_ascii=False),None))
             for review_event in review_events:
                 connection.execute('INSERT INTO review VALUES (?,?,?,?,?,?,?,?,?)', (*review_event, operation_id))
             if not isinstance(command, HistoryCommand):

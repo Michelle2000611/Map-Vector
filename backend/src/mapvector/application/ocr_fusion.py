@@ -3,11 +3,38 @@ import copy
 import json
 import unicodedata
 from shapely.geometry import Polygon
+from mapvector.geometry.text_ink import _char
 
 
 def normalized_text(value):
     # Canonical composition is safe; NFKC would collapse meaningful code glyphs.
     return unicodedata.normalize('NFC',str(value)).strip()
+
+
+# Comparison-only confusable groups: narrow, common OCR mix-ups. Never used to
+# rewrite stored text, only to decide whether two readings should be treated
+# as the same observation for conflict/duplicate detection. Fullwidth/halfwidth
+# digits and letters fold into their halfwidth form; 0/O and 1/l/I additionally
+# fold together on top of that, so every member of a line shares one canonical
+# glyph even though the groups overlap (digit '0' is in two of them).
+_FOLD_FULLWIDTH = {chr(0xff10 + i): str(i) for i in range(10)} | {chr(0xff21 + i): chr(0x41 + i) for i in range(26)} | {chr(0xff41 + i): chr(0x61 + i) for i in range(26)}
+_FOLD_GROUPS = {char: group[0] for group in ('0O', '1lI') for char in group}
+_CONFUSABLE_CANONICAL = {char: _FOLD_GROUPS.get(halfwidth, halfwidth) for char, halfwidth in _FOLD_FULLWIDTH.items()}
+_CONFUSABLE_CANONICAL.update(_FOLD_GROUPS)
+
+
+def comparison_key(value):
+    """Per-character (script, canonical_glyph) sequence for equivalence only.
+
+    Subscript/superscript segments never collapse into normal text, or into
+    each other, even when the underlying glyphs are confusable: a reading
+    that disagrees only on script position is a different observation.
+    """
+    return tuple((_char(char)[1], _CONFUSABLE_CANONICAL.get(_char(char)[0], _char(char)[0])) for char in normalized_text(value))
+
+
+def same_reading(left, right):
+    return comparison_key(left) == comparison_key(right)
 
 
 def overlap(left,right):
@@ -95,8 +122,8 @@ def existing_text_duplicate(connection,project_id,asset_id,candidate,text,quad):
         feature=load_feature(connection,row['feature_id'])
         readings={normalized_text(feature.get(key) or '') for key in ('text_value','original_text')}
         readings.add(normalized_text(row['raw_text'] or ''))
-        same_reading=normalized_text(text) in readings or normalized_text(candidate['raw_text']) in readings
-        conflict_code='OCR_DUPLICATE_TEXT' if same_reading else 'OCR_POSITION_CONFLICT'
+        reading_matches=normalized_text(text) in readings or normalized_text(candidate['raw_text']) in readings
+        conflict_code='OCR_DUPLICATE_TEXT' if reading_matches else 'OCR_POSITION_CONFLICT'
         if row['detected_quad_px'] and same_location({'detected_quad_px':quad},{'detected_quad_px':json.loads(row['detected_quad_px'])}):return row['feature_id'],conflict_code
         x,y=feature['geometry']['coordinates'];width=feature.get('layout_width_px');height=feature.get('layout_height_px')
         if not width or not height:

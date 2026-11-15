@@ -37,7 +37,7 @@ def apply_relations(connection,project_id,command,revision):
                 old=dict(row);changes.append(('group_member',row['group_id']+':'+feature_id,old,None))
             connection.execute('DELETE FROM group_member WHERE feature_id=?',(feature_id,))
         if isinstance(command,GroupFeatures):
-            if next(iter(kinds))=='face' and len(features)<2:
+            if len(features)<2:
                 raise CommandConflict('GROUP_SIZE_INVALID')
             group_id=str(uuid4());group={'group_id':group_id,'project_id':project_id,'asset_id':command.asset_id,'feature_type':next(iter(kinds)),'group_name':command.group_name,'revision':revision}
             connection.execute('INSERT INTO logical_group VALUES (?,?,?,?,?,?)',tuple(group.values()))

@@ -49,6 +49,8 @@ def migrate(connection):
     text_fields={row[1] for row in connection.execute('PRAGMA table_info(text_attribute)')}
     for name,declaration in {'layout_width_px':'REAL','layout_height_px':'REAL','baseline_offset_px':'REAL','layout_basis':"TEXT NOT NULL DEFAULT 'legacy_estimate'",'layout_runs':"TEXT NOT NULL DEFAULT '[]'"}.items():
         if name not in text_fields:connection.execute('ALTER TABLE text_attribute ADD COLUMN '+name+' '+declaration)
+    for table in ('face_attribute','line_attribute'):
+        if 'style_override' not in {row[1] for row in connection.execute('PRAGMA table_info('+table+')')}:connection.execute('ALTER TABLE '+table+' ADD COLUMN style_override TEXT')
     connection.execute('CREATE INDEX IF NOT EXISTS feature_scope ON feature(project_id,asset_id,lifecycle_status,feature_id)')
     connection.execute('CREATE INDEX IF NOT EXISTS run_scope ON run(project_id,asset_id,run_status)')
     connection.execute('CREATE UNIQUE INDEX IF NOT EXISTS group_feature_membership ON group_member(feature_id)')
@@ -101,6 +103,8 @@ def enforce_contract(connection):
         'asset':{'normalization_config':'object','pixel_to_map_affine':'array'},
         'run':{'config_snapshot':'object','plugin_manifest':'object','input_region_px':'array','local_to_asset_affine':'array'},
         'text_attribute':{'review_reason_codes':'array','display_bbox_px':'array'},
+        'face_attribute':{'style_override':'object'},
+        'line_attribute':{'style_override':'object'},
         'ocr_candidate':{'rule_suggestions':'array','detected_quad_px':'array'},
         'style':{'dash_pattern_px':'array'},
         'operation':{'result_summary':'object'},

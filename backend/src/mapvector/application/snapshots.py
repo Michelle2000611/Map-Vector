@@ -125,6 +125,8 @@ class SnapshotService:
                 for item in saved[table]:
                     if table=='text_attribute':
                         item={**{'layout_width_px':None,'layout_height_px':None,'baseline_offset_px':None,'layout_basis':'legacy_estimate','layout_runs':'[]'},**item}
+                    elif table in ('face_attribute','line_attribute'):
+                        item={'style_override':None,**item}
                     if table in ('feature','style','roi','logical_group'):
                         item['revision']=revision;item['updated_at']=now
                         if table!='feature':item.pop('updated_at',None)

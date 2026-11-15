@@ -27,12 +27,10 @@
  font-size:12px;
 }
 .app-feedback-loading-icon {
- width:18px;
- height:18px;
- border:2px solid #d6e4ff;
- border-top-color:#1677ff;
- border-radius:50%;
- animation:app-feedback-spin .8s linear infinite;
+ display:inline-flex;
+ align-items:center;
+ justify-content:center;
+ width:24px;
+ height:24px;
 }
-@keyframes app-feedback-spin {to {transform:rotate(360deg);}}
-@media (prefers-reduced-motion:reduce) {.app-feedback-loading-icon {animation:none;border-top-color:#1677ff;border-right-color:#1677ff;}}
+@media (prefers-reduced-motion:reduce) {.app-feedback-loading-icon .ant-spin-dot,.app-feedback-loading-icon .ant-spin-dot-item {animation:none!important;}}

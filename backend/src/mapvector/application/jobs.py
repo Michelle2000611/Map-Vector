@@ -386,9 +386,9 @@ class JobService:
                     bounds=geometry.bounds
                     if bounds[0]<-1e-6 or bounds[1]<-1e-6 or bounds[2]>asset['width_px']+1e-6 or bounds[3]>asset['height_px']+1e-6:raise CommandConflict('ASSET_RESULT_MISMATCH')
                     fid=str(uuid4());connection.execute('INSERT INTO feature VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)',(fid,project_id,run['asset_id'],run_id,kind,geometry.geom_type,to_wkb(geometry),*bounds,'active','algorithm',None,revision,now,now))
-                    if kind=='face':connection.execute('INSERT INTO face_attribute VALUES (?,?,?,?,?,?,?,?)',(fid,str(row['rgb']),str(row['label']),str(row['colour_class']),geometry.area,float(row['observed_px']),float(row['inferred_px']),'unchecked'))
+                    if kind=='face':connection.execute('INSERT INTO face_attribute VALUES (?,?,?,?,?,?,?,?,?)',(fid,str(row['rgb']),str(row['label']),str(row['colour_class']),geometry.area,float(row['observed_px']),float(row['inferred_px']),'unchecked',None))
                     else:
-                        connection.execute('INSERT INTO line_attribute VALUES (?,?,?,?,?,?,?,?,?)',(fid,str(row['rgb']),float(row['width_px']),'unknown','unknown',geometry.length,int(row['draw_order']),None,None))
+                        connection.execute('INSERT INTO line_attribute VALUES (?,?,?,?,?,?,?,?,?,?)',(fid,str(row['rgb']),float(row['width_px']),'unknown','unknown',geometry.length,int(row['draw_order']),None,None,None))
                         if row.get('logical_id') is not None:line_groups.setdefault(str(row['logical_id']),[]).append(fid)
                     update_index(connection,fid);after.append(load_feature(connection,fid))
             if run['pipeline_id'].startswith('legacy_b2c_'):
@@ -398,19 +398,21 @@ class JobService:
                 candidates=connection.execute('SELECT * FROM ocr_candidate WHERE project_id=? AND asset_id=? AND run_id=? AND text_feature_id IS NULL',(project_id,run['asset_id'],run_id)).fetchall()
                 candidates=[c for c in candidates if not any('OCR_ENGINE_DISAGREEMENT' in rule.get('reason_codes',[]) for rule in json.loads(c['rule_suggestions']))]
                 # Historical runs may predate fusion metadata. Check their
-                # actual readings again at the adoption boundary.
-                from mapvector.application.ocr_fusion import normalized_text
+                # actual readings again at the adoption boundary. Equivalence
+                # here is comparison-only (confusable glyphs, script-aware);
+                # the text actually stored below is always the raw reading.
+                from mapvector.application.ocr_fusion import same_reading
                 conflicts=set()
                 for index,left in enumerate(candidates):
                     for right in candidates[index+1:]:
-                        if normalized_text(left['raw_text'])!=normalized_text(right['raw_text']) and same_location({'detected_quad_px':json.loads(left['detected_quad_px'])},{'detected_quad_px':json.loads(right['detected_quad_px'])}):
+                        if not same_reading(left['raw_text'],right['raw_text']) and same_location({'detected_quad_px':json.loads(left['detected_quad_px'])},{'detected_quad_px':json.loads(right['detected_quad_px'])}):
                             conflicts.update((left['candidate_id'],right['candidate_id']))
                 for candidate in candidates:
                     if candidate['candidate_id'] in conflicts:continue
                     quad=json.loads(candidate['detected_quad_px'])
                     text=default_candidate_text(candidate)
                     if not text:continue
-                    if any(normalized_text(old_text)==normalized_text(text) and same_location({'detected_quad_px':quad},{'detected_quad_px':old_quad}) for old_text,old_quad in adopted_boxes):continue
+                    if any(same_reading(old_text,text) and same_location({'detected_quad_px':quad},{'detected_quad_px':old_quad}) for old_text,old_quad in adopted_boxes):continue
                     adopted_boxes.append((text,quad))
                     try:layout=ocr_layout(text,quad)
                     except (ValueError,TypeError):raise CommandConflict('OCR_EVIDENCE_MISSING')

@@ -122,6 +122,7 @@ class FaceResponse(FeatureResponse):
     observed_area_px2:float|None
     inferred_area_px2:float|None
     coverage_status:str
+    style_override:dict[str,str|float]|None=None
 
 
 class LineResponse(FeatureResponse):
@@ -135,6 +136,7 @@ class LineResponse(FeatureResponse):
     draw_order:int
     isolation_reason:str|None
     associated_text_feature_id:UUID|None
+    style_override:dict[str,str|float]|None=None
 
 
 class TextLayoutRun(BaseModel):

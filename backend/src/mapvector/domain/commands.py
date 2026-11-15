@@ -229,6 +229,23 @@ class BindStyle(CommandBase):
     feature_ids:list[str]=Field(min_length=1)
 
 
+class DeleteStyle(CommandBase):
+    operation_type:Literal['delete_style']
+    style_id:str
+
+
+class RebindStyle(CommandBase):
+    operation_type:Literal['rebind_style']
+    from_style_id:str
+    to_style_id:str
+    feature_type:Literal['face','line']
+
+
+class ClearStyleOverride(CommandBase):
+    operation_type:Literal['clear_style_override']
+    feature_ids:list[str]=Field(min_length=1)
+
+
 class SetLayer(CommandBase):
     operation_type:Literal['set_layer']
     layer_type:Literal['face','line','text','isolated_line']
@@ -270,6 +287,37 @@ class RepairFace(CommandBase):
         return self
 
 
+class ApplyFaceMerge(CommandBase):
+    operation_type:Literal['apply_face_merge']
+    feature_ids:list[UUIDString]=Field(min_length=2,max_length=1000)
+    preview_id:UUIDString
+    mode:Literal['single','multipart','gap_single']
+    verified_review_evidence_ids:list[str]=Field(default_factory=list,max_length=4000)
+    confirmed_gap_candidate_ids:list[str]=Field(default_factory=list,max_length=2000)
+    confirmed_ownership_transfer_feature_ids:list[UUIDString]=Field(default_factory=list,max_length=1000)
+
+    @model_validator(mode='after')
+    def unique_confirmations(self):
+        for name in ('verified_review_evidence_ids','confirmed_gap_candidate_ids','confirmed_ownership_transfer_feature_ids'):
+            values=getattr(self,name)
+            if len(values)!=len(set(values)):raise ValueError('Face merge confirmations must be unique')
+        if self.mode!='gap_single' and (self.confirmed_gap_candidate_ids or self.confirmed_ownership_transfer_feature_ids):
+            raise ValueError('Only gap merging accepts gap or ownership confirmations')
+        return self
+
+
+class SplitSelectedFaces(CommandBase):
+    operation_type:Literal['split_selected_faces']
+    feature_ids:list[UUIDString]=Field(min_length=1,max_length=1000)
+    preview_id:UUIDString
+    confirmed_small_piece_ids:list[str]=Field(default_factory=list)
+
+    @model_validator(mode='after')
+    def unique_small_parts(self):
+        if len(self.confirmed_small_piece_ids)!=len(set(self.confirmed_small_piece_ids)):raise ValueError('Small split pieces must be unique')
+        return self
+
+
 class ApplyLineCheck(CommandBase):
     operation_type:Literal['apply_line_check']
     feature_ids:list[UUIDString]=Field(default_factory=list,max_length=0)
@@ -285,5 +333,5 @@ class ApplyLineCheck(CommandBase):
         return self
 
 
-GeometryCommand = MergeFaces | CreateLine | SplitLine | JoinLines | FeatureColor | SetFeatureProperties | DeleteFaces | LineWidth | LineRole | DeleteLines | IsolateLines | ApplyPreview | LineToFace | RestoreLines | DeleteText | RepairFace | ApplyLineCheck
-EditCommand = Annotated[CreateText | UpdateText | ReviewText | HistoryCommand | GeometryCommand | SetRoi | GroupFeatures | UngroupFeatures | AdoptOcrCandidate | SetStyle | BindStyle | SetLayer | ClassifyReview | RestoreOcrLayout, Field(discriminator='operation_type')]
+GeometryCommand = MergeFaces | CreateLine | SplitLine | JoinLines | FeatureColor | SetFeatureProperties | DeleteFaces | LineWidth | LineRole | DeleteLines | IsolateLines | ApplyPreview | LineToFace | RestoreLines | DeleteText | RepairFace | ApplyLineCheck | SplitSelectedFaces | ApplyFaceMerge
+EditCommand = Annotated[CreateText | UpdateText | ReviewText | HistoryCommand | GeometryCommand | SetRoi | GroupFeatures | UngroupFeatures | AdoptOcrCandidate | SetStyle | BindStyle | SetLayer | ClassifyReview | RestoreOcrLayout | DeleteStyle | RebindStyle | ClearStyleOverride, Field(discriminator='operation_type')]

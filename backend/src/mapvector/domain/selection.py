@@ -6,7 +6,7 @@ from mapvector.domain.commands import UUIDString
 class SelectionRequest(BaseModel):
     model_config=ConfigDict(extra='forbid',allow_inf_nan=False)
     asset_id:str
-    selection_type:Literal['pick','box','group','same_color','gesture','grow','shrink','text_pick']
+    selection_type:Literal['pick','box','group','same_color','gesture','grow','shrink','text_pick','by_style']
     feature_type:Literal['face','line','text']='face'
     lifecycle_status:Literal['active','isolated']='active'
     feature_ids:list[str]=Field(default_factory=list)
@@ -21,6 +21,7 @@ class SelectionRequest(BaseModel):
     color_distance:float=Field(default=15,ge=0)
     steps:int=Field(default=1,ge=1,le=100)
     selection_mode:Literal['replace','add','subtract']='replace'
+    style_id:str|None=None
 
 
 class PreviewRequest(BaseModel):

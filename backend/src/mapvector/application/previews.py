@@ -78,6 +78,14 @@ def point_selection(connection,project_id,request):
 
 
 def select(connection,project_id,request,project_dir):
+    if request.selection_type=='by_style':
+        if not request.style_id:raise CommandConflict('VALIDATION_ERROR',{'field':'style_id'})
+        kind=request.feature_type;validate_selection_scope(connection,project_id,request,kind) if request.feature_ids else None
+        rows=connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type=? AND lifecycle_status=? AND style_id=?",(project_id,request.asset_id,kind,request.lifecycle_status,request.style_id)).fetchall()
+        result=set(row['feature_id'] for row in rows);current=set(request.feature_ids)
+        if request.selection_mode=='add':result|=current
+        elif request.selection_mode=='subtract':result=current-result
+        return sorted(result)
     if request.selection_type in ('pick','text_pick'):return point_selection(connection,project_id,request)
     if request.selection_type in ('box','gesture'):
         from shapely.geometry import box as make_box,Point,LineString,Polygon
@@ -195,13 +203,40 @@ def prepare_preview(connection,project_id,request,project_dir):
     try:
         if request.preview_type=='merge_faces':report=doc.merge_preview(ids)
         elif request.preview_type=='join_lines':report=doc.join_preview(ids)
-        elif request.preview_type=='heal_faces':report=doc.heal_preview(doc.gesture('brush',request.points,request.radius_px),request.max_area_px2)
+        elif request.preview_type=='heal_faces':
+            report=doc.heal_preview(doc.gesture('brush',request.points,request.radius_px),request.max_area_px2)
+            if ids:
+                target=ids[0]
+                report={**report,'candidates':[item for item in report['candidates'] if item.get('target')==target]}
+                report['counts']={k:sum(1 for r in report['candidates'] if r['decision']==k) for k in ('merge','keep','uncertain')}
         elif request.preview_type=='split_faces':
             if len(ids)!=1:raise CommandConflict('SELECTION_SCOPE_INVALID')
             report=doc.split_face_preview(ids[0])
         elif request.preview_type=='merge_suggest':
             if not ids:raise CommandConflict('SELECTION_SCOPE_INVALID')
             report=doc.merge_suggest(ids)
+            # Discovery also includes immediate close faces across a narrow gap.
+            # They stay unselected suggestions; execution still uses exact previews.
+            from statistics import median
+            from shapely import STRtree, union_all
+            from shapely.geometry import shape
+            faces=[feature for feature in features if feature['feature_type']=='face']
+            face_geometries=[shape(feature['geometry']) for feature in faces]
+            selected_geometries=[shape(feature['geometry']) for feature in faces if feature['feature_id'] in request.feature_ids]
+            selected_union=union_all(selected_geometries)
+            widths=[feature['stroke_width_px'] for feature in features if feature['feature_type']=='line' and feature['lifecycle_status']=='active' and shape(feature['geometry']).intersects(selected_union)]
+            distance=min(100.,2*median(widths)) if widths else 2.
+            tree=STRtree(face_geometries)
+            nearby=set(int(index) for geometry in selected_geometries for index in tree.query(geometry,predicate='dwithin',distance=distance))
+            existing={item['eid'] for item in report['candidates']}
+            seed_labels={feature.get('algorithm_label') for feature in faces if feature['feature_id'] in request.feature_ids}
+            for index in sorted(nearby,key=lambda index:faces[index]['feature_id']):
+                feature=faces[index];eid=reverse[feature['feature_id']][1]
+                if eid in existing:continue
+                if len(report['candidates'])>=1000:raise CommandConflict('FACE_MERGE_CANDIDATE_LIMIT',{'limit':1000})
+                risks=['nearby_gap'] if selected_union.distance(face_geometries[index])>0 else ['adjacent_unverified']
+                if feature.get('algorithm_label') not in seed_labels:risks.append('mixed_label')
+                report['candidates'].append({'eid':eid,'rgb':feature.get('fill_color'),'label':feature.get('algorithm_label'),'area':face_geometries[index].area,'risks':risks,'suggested':False})
         elif request.preview_type=='line_to_face':
             from shapely.geometry import shape,mapping
             from shapely import union_all
@@ -228,6 +263,8 @@ def prepare_preview(connection,project_id,request,project_dir):
             group['feature_ids']=[identities[('face',index)] for index in group['faces']];affected.update(group['feature_ids'])
             labels=sorted({f['algorithm_label'] for f in features if f['feature_id'] in group['feature_ids'] and f.get('algorithm_label') is not None})
             group['algorithm_labels']=labels;group['mixed_algorithm_labels']=len(labels)>1
+            group['bridge_feature_ids']=[identities[('face',index)] for index in group.get('bridge_faces',[]) if ('face',index) in identities];affected.update(group['bridge_feature_ids'])
+            group['corner_contact_feature_ids']=[identities[('face',index)] for index in group.get('corner_contact_faces',[]) if ('face',index) in identities]
     elif request.preview_type=='heal_faces':
         for item in normalized.get('candidates',[]):
             item['feature_id']=identities.get(('face',item['id']))

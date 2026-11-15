@@ -1,0 +1,12 @@
+.style-library-panel>.style-library-rebind{padding:0;border-top:0;background:#fff}
+.style-replacement-body{display:flex;flex-direction:column;gap:12px;min-width:0}
+.style-replacement-fields{display:flex;flex-wrap:wrap;gap:10px 12px;min-width:0}
+.style-replacement-fields>.property-labeled-field{width:280px;max-width:100%;flex:0 1 280px}
+.style-replacement-fields .ant-select{width:100%}
+.style-replacement-actions{display:flex;align-items:center;flex-wrap:wrap;gap:12px}
+.style-replacement-actions>span{font-size:12px;color:#65758a}
+.style-library-panel .style-replacement-submit.ant-btn{width:104px;height:32px;padding:4px 8px;flex:none}
+.style-replacement-table{min-width:0;max-width:100%}
+.style-replacement-table .ant-btn{width:auto;height:32px;min-width:48px}
+.style-replacement-table .style-replacement-located>td{background:#e6f4ff}
+.style-replacement-table .style-replacement-located>td:first-child{box-shadow:inset 3px 0 #1677ff}

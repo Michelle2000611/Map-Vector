@@ -23,10 +23,15 @@ def plan_feature_edit(connection, project_id, command, timestamp):
         if isinstance(command, (DeleteFaces, DeleteLines, DeleteText)):
             new['lifecycle_status'] = 'deleted'
         else:
+            edited = {}
             if 'color' in command.model_fields_set:
-                new['fill_color' if kind == 'face' else 'stroke_color'] = command.color
+                edited['fill_color' if kind == 'face' else 'stroke_color'] = command.color
             for field in ('stroke_width_px', 'line_role'):
                 if field in command.model_fields_set:
-                    new[field] = getattr(command, field)
+                    edited[field] = getattr(command, field)
+            new.update(edited)
+            styled = {key: value for key, value in edited.items() if key in ('fill_color', 'stroke_color', 'stroke_width_px')}
+            if old.get('style_id') and styled:
+                new['style_override'] = {**(old.get('style_override') or {}), **styled}
         changes.append((old, new))
     return changes

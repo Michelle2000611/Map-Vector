@@ -67,20 +67,14 @@ export function RecognitionStep({project,asset,hasEditingContent,task,events,bus
      <dt>该类耗时：</dt><dd data-timing="stage">{timing&&timing.stages.length>1?timing.stages.map(stage=>stage.name+' '+formatRecognitionDuration(stage.elapsedMs)).join('；'):formatRecognitionDuration(timing?.stages[0]?.elapsedMs??null)}</dd>
      <dt>整体耗时：</dt><dd data-timing="overall">{formatRecognitionDuration(timing?.overallElapsedMs??null)}</dd>
     </dl>
-    {timing?.stages.some(stage=>stage.name==='面线识别')&&<p className="recognition-timing-note">面和线由同一阶段识别，共用该阶段耗时。</p>}
-    {timing&&timing.stages.length>1&&<p className="recognition-timing-note">各文字引擎按实际阶段分别计时；整体耗时为任务经过时间。</p>}
     <Space size={[16,12]} wrap>
      {active&&<Button disabled={busy||task.run_status==='cancelling'} onClick={()=>void work(cancel)}>取消任务</Button>}
      {['failed','cancelled','interrupted'].includes(task.run_status)&&<Button disabled={busy} onClick={()=>void work(retry)}>重新识别</Button>}
     </Space>
-    {completed&&vector&&!adopted&&<div className="recognition-save">
-     <label className="recognition-field"><span>识别结果保存方式</span><Select aria-label="结果保存方式" value={adoption} disabled={busy} onChange={setAdoption} options={resultChoices.map(({value,label})=>({value,label}))}/></label>
-     {hasEditingContent&&<Alert type="info" showIcon message="本项目已有保存的编辑内容。要使用本次识别结果，请明确选择替换或另建项目；也可直接进入下一步编辑已保存的版本。"/>}<p className="recognition-save-help">{resultChoices.find(choice=>choice.value===adoption)?.help}</p>
-     <Button type="primary" disabled={busy||(hasEditingContent&&adoption==='keep_current')} onClick={()=>void work(()=>adopt(adoption))}>保存识别结果</Button>
-    </div>}
+
     {task.run_status==='failed'&&<Alert type="error" showIcon message="识别失败，可查看诊断日志后重试。"/>}
     {task.run_status==='completed_with_warnings'&&<Alert type="warning" showIcon message="识别已完成，部分文字引擎未完成；已保留成功结果，请查看运行详情。"/>}
-    <Collapse ghost size="small" items={[{key:'logs',label:'运行详情',children:<><Space size={[16,12]} wrap><a target="_blank" rel="noreferrer" href={'/api'+prefix+'/runs/'+task.run_id+'/logs/stdout'}>运行日志</a><a target="_blank" rel="noreferrer" href={'/api'+prefix+'/runs/'+task.run_id+'/logs/stderr'}>诊断日志</a></Space><p>原图校验值：{task.input_raster_sha256}</p>{task.error_detail&&<pre>{JSON.stringify(task.error_detail,null,2)}</pre>}{timingEvents.map(e=><p key={e.event_id}>{stageNames[e.stage_name??'']??'任务'} · {e.event_type}</p>)}</>}]}/>
+    <Collapse ghost size="small" items={[{key:'logs',label:'运行详情',children:<><Space size={[16,12]} wrap><a target="_blank" rel="noreferrer" href={'/api'+prefix+'/runs/'+task.run_id+'/logs/stdout'}>运行日志</a><a target="_blank" rel="noreferrer" href={'/api'+prefix+'/runs/'+task.run_id+'/logs/stderr'}>诊断日志</a></Space>{timing?.engineStages.map((engine,index)=><p key={index}>{engine.name} · {formatRecognitionDuration(engine.elapsedMs)}</p>)}<p>原图校验值：{task.input_raster_sha256}</p>{task.error_detail&&<pre>{JSON.stringify(task.error_detail,null,2)}</pre>}{timingEvents.map(e=><p key={e.event_id}>{stageNames[e.stage_name??'']??'任务'} · {e.event_type}</p>)}</>}]}/>
    </div>}
   </Card>
   {completed&&<Card title="识别结果预览" className="recognition-preview-card" extra={<span>只读预览</span>}>
@@ -93,6 +87,13 @@ export function RecognitionStep({project,asset,hasEditingContent,task,events,bus
     </div>
    </div>}
    {(previewLayer==='text'||previewLayer==='all')&&task?.pipeline_id!=='legacy_b2c'&&<Collapse ghost items={[{key:'text',label:'文字候选（'+candidates.length+'）',children:candidates.length?<div className="recognition-candidates">{candidates.map(c=><span key={c.candidate_id}>{c.raw_text} {hasConflict(c)&&<Tag color="warning">待核对</Tag>}</span>)}</div>:<span>未检测到文字候选。</span>}]}/>}
+  </Card>}
+  {completed&&vector&&!adopted&&<Card title="保存识别结果" className="recognition-save-card">
+   <div className="recognition-save">
+     <label className="recognition-field"><span>识别结果保存方式</span><Select aria-label="结果保存方式" value={adoption} disabled={busy} onChange={setAdoption} options={resultChoices.map(({value,label})=>({value,label}))}/></label>
+     {hasEditingContent&&<Alert type="info" showIcon message="本项目已有保存的编辑内容。要使用本次识别结果，请明确选择替换或另建项目；也可直接进入下一步编辑已保存的版本。"/>}<p className="recognition-save-help">{resultChoices.find(choice=>choice.value===adoption)?.help}</p>
+     <Button type="primary" disabled={busy||(hasEditingContent&&adoption==='keep_current')} onClick={()=>void work(()=>adopt(adoption))}>保存识别结果</Button>
+   </div>
   </Card>}
  </section>;
 }

@@ -1,0 +1,6 @@
+.inspection-status{display:inline-flex;align-items:center;gap:12px;min-width:0;max-width:100%}
+.inspection-status-text{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:#595959;font-size:12px}
+.inspection-status-dot{display:inline-block;width:6px;height:6px;flex:none;border-radius:50%;background:#8c8c8c}
+.inspection-status[data-state="checking"] .inspection-status-dot{background:#1677ff}
+.inspection-status[data-state="done"] .inspection-status-dot{background:#52c41a}
+.inspection-status>.ant-btn{flex:none}

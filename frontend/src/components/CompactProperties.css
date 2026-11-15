@@ -8,7 +8,7 @@
 .property-card .text-position-fields{width:min(calc(var(--property-input-width)*4 + 36px),calc(100cqw - 30px));max-width:none;overflow-x:auto}
 .property-card .text-position-grid{grid-template-columns:repeat(4,minmax(100px,1fr));gap:12px}
 .property-card .property-field-label{padding-inline:8px}
-.property-card .property-actions .ant-btn,.property-card .property-button-grid>.ant-btn,.property-card .object-property-content .ant-btn,.workspace-inspector-footer .ant-btn,.ant-drawer-footer .property-delete-action.ant-btn{width:104px;max-width:100%;height:32px;min-height:32px;padding:4px 8px;white-space:nowrap;line-height:1.5;font-size:13px}
+.property-card .property-actions .ant-btn,.property-card .property-button-grid>.ant-btn,.property-card .object-property-content .ant-btn,.workspace-inspector-footer .ant-btn,.ant-drawer-footer .property-delete-action.ant-btn{width:auto;min-width:48px;max-width:100%;height:32px;min-height:32px;padding:4px 12px;white-space:nowrap;line-height:1.5;font-size:13px}
 .property-card .property-button-grid{display:flex;flex-wrap:wrap;gap:8px;max-width:100%;width:100%}
 .property-card .property-button-grid>.property-full-width{grid-column:auto}
 .property-card .property-actions{display:flex;flex-direction:row;flex-wrap:wrap;gap:8px;align-items:flex-start}
@@ -29,6 +29,34 @@
 
 .property-operation-group{display:inline-flex;align-items:center;flex-wrap:nowrap;gap:8px;flex:0 0 auto;max-width:100%}
 .property-card .object-property-content .property-operation-group>.ant-btn{flex:none}
-.property-card .object-property-content .property-button-wide.ant-btn{width:128px}
-.property-card .object-property-content .property-batch-apply>.ant-btn,.property-delete-action.ant-btn{width:auto;min-width:104px;padding-inline:12px}
-.workspace-inspector-footer .property-delete-action.ant-btn,.ant-drawer-footer .property-delete-action.ant-btn{width:auto;min-width:104px;padding-inline:12px}
+.property-card .object-property-content .face-merge-row-actions>.ant-btn{padding-inline:12px}
+.property-card .ant-btn.ant-btn-icon-only{width:32px;min-width:32px;padding-inline:0}
+.property-card .object-property-content .property-button-wide.ant-btn{width:auto;min-width:48px}
+.property-card .object-property-content .property-batch-apply>.ant-btn,.property-delete-action.ant-btn{width:auto;min-width:48px;padding-inline:12px}
+.property-style-actions{grid-column:1 / -1;min-width:0;width:min(calc(var(--property-input-width)*2 + 12px),100%)}
+.property-style-body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.property-style-body>.property-labeled-field{width:100%;min-width:0}
+.property-style-buttons{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.property-style-buttons>.ant-tag{margin:0}
+.property-card .object-property-content .property-style-buttons>.ant-btn,.property-style-buttons>.ant-btn{width:auto;min-width:48px;padding-inline:12px}
+.property-card .property-feature-preview{width:calc(100cqw - 28px);max-width:none;align-items:center;grid-column:1 / -1}
+.property-feature-preview svg,.residue-preview-canvas{display:block;box-sizing:border-box;width:200px;max-width:100%;height:120px;background:#fff;border:1px solid #000;border-radius:0}
+.property-face-preview svg{box-sizing:border-box;background:#fff;border:1px solid #000}
+.property-face-preview-controls{display:flex;align-items:center;justify-content:space-between;gap:8px;width:200px;max-width:100%;flex-wrap:wrap}
+.property-face-preview-controls .ant-checkbox-wrapper{font-size:12px;margin:0}
+.property-line-preview-controls{justify-content:flex-end}
+.property-preview-note{font-size:12px;color:#8c8c8c}
+.style-option{display:inline-flex;align-items:center;gap:6px;min-width:0}
+.style-swatch{display:inline-block;flex:none;width:16px;height:12px;border:1px solid #d9d9d9;border-radius:2px}
+.style-swatch-line{height:0;border:none;border-top:3px solid}
+.style-save-form{display:flex;flex-direction:column;gap:10px}
+.workspace-inspector-footer .property-delete-action.ant-btn,.ant-drawer-footer .property-delete-action.ant-btn{width:auto;min-width:48px;padding-inline:12px}
+
+.property-style-body>.property-labeled-field{width:280px;max-width:100%}
+
+.property-brush-heading{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px}.property-brush-heading .ant-tag{margin:0;font-weight:400}
+
+.property-group-heading{grid-column:1;margin:4px 0 0;font-size:12px;font-weight:600;color:#65758a}
+.property-group-heading-full{grid-column:1 / -1}
+.property-group-heading:first-child{margin-top:0}
+.property-group-note{grid-column:1 / -1;margin:0;font-size:12px;color:#8c8c8c}

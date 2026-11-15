@@ -807,4 +807,4 @@ Geological-Map-Digitizer源码采用clamp(560px,74vh,860px)作为画布参考高
 
 导入支持World与CRS文件成对提供，像元中心坐标转换为像元边缘仿射并保存证据哈希；内外配准冲突不自动覆盖。多页GeoTIFF第二页独立仿射已由用例验证。GIS交付包包含固定成果、原图与配准旁文件、排版线型/政策元数据和ArcGIS Pro验收脚本。
 
-本机未检测到ArcGIS Pro或ArcPy，ArcGIS实机验收保持not_run。文件回读与可运行脚本不能代替实机坐标、标签、参考比例尺、旋转及虚线齿形视觉验收。实现证据和进一步验证边界以docs/migration/20261108-remediation-acceptance.md为准。
+本机未检测到ArcGIS Pro或ArcPy，ArcGIS实机验收保持not_run。文件回读与可运行脚本不能代替实机坐标、标签、参考比例尺、旋转及虚线齿形视觉验收。

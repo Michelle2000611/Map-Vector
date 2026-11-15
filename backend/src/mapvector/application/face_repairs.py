@@ -2,10 +2,19 @@
 import copy
 import hashlib
 import json
+import math
+import warnings
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
 
+import numpy as np
+import rasterio
+from affine import Affine
+from PIL import ImageColor
 from pydantic import BaseModel, ConfigDict, Field
+from rasterio.errors import NotGeoreferencedWarning
+from rasterio.features import rasterize
+from rasterio.windows import Window
 from shapely import coverage_is_valid, union_all
 from shapely.geometry import box, mapping, shape
 
@@ -16,7 +25,7 @@ from mapvector.geometry.face_repairs import diagnose, narrow_metrics
 from mapvector.geometry.raster_mask import valid_region
 
 
-ALGORITHM_REVISION='pixel_face_repair_review_v2'
+ALGORITHM_REVISION='vector_face_repair_review_v4'
 
 
 class FaceRepairRequest(BaseModel):
@@ -38,8 +47,9 @@ def _maximum_stroke(connection,project_id,asset_id):
     return float(connection.execute("SELECT COALESCE(MAX(l.stroke_width_px),0) FROM feature f JOIN line_attribute l USING(feature_id) WHERE f.project_id=? AND f.asset_id=? AND f.lifecycle_status='active'",(project_id,asset_id)).fetchone()[0])
 
 
-def _digest(features,region,maximum_stroke):
-    payload={'features':features,'valid_region':mapping(region),'maximum_stroke_px':maximum_stroke}
+def _digest(features,region,maximum_stroke,raster_inputs=None,parameters=None):
+    payload={'features':features,'valid_region':mapping(region),'maximum_stroke_px':maximum_stroke,'raster_inputs':raster_inputs or [],
+             'algorithm_revision':ALGORITHM_REVISION,'parameters':parameters}
     return hashlib.sha256(json.dumps(payload,sort_keys=True,ensure_ascii=False,separators=(',',':')).encode()).hexdigest()
 
 
@@ -73,30 +83,161 @@ def _hole_count(geometry):
     return sum(len(part.interiors) for part in parts)
 
 
-def create_preview(connection,project_id,request,directory):
-    project=connection.execute('SELECT working_revision,current_asset_id FROM project WHERE project_id=?',(project_id,)).fetchone()
-    if project is None:raise KeyError(project_id)
-    if project['current_asset_id']!=request.asset_id:raise CommandConflict('ASSET_RESULT_MISMATCH')
-    target=load_feature(connection,request.feature_id)
-    if (target['project_id'],target['asset_id'],target['feature_type'],target['lifecycle_status'])!=(project_id,request.asset_id,'face','active'):raise CommandConflict('SELECTION_SCOPE_INVALID')
-    asset=dict(connection.execute('SELECT * FROM asset WHERE asset_id=? AND project_id=?',(request.asset_id,project_id)).fetchone())
+def _part_count(geometry):
+    return len(geometry.geoms) if geometry.geom_type=='MultiPolygon' else 1
+
+
+def _read_raster_window(path,bounds):
+    """Read only a bounded original-pixel window; never resample the evidence."""
+    x0,y0,x1,y1=bounds
+    try:
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore',NotGeoreferencedWarning)
+            with rasterio.open(path) as raster:
+                values=raster.read(window=Window(x0,y0,x1-x0,y1-y0))
+                roles=tuple(value.name for value in raster.colorinterp)
+        if values.shape[1:]!=(y1-y0,x1-x0) or not values.size:return None
+        valid=np.ones(values.shape[1:],dtype=bool)
+        if 'alpha' in roles:valid&=values[roles.index('alpha')]>0
+        if all(channel in roles for channel in ('red','green','blue')):
+            rgb=np.moveaxis(values[[roles.index(channel) for channel in ('red','green','blue')]],0,-1)
+        else:rgb=np.repeat(values[0,:,:,None],3,axis=2)
+        signature=hashlib.sha256(str((values.shape,str(values.dtype),roles)).encode()+values.tobytes()).hexdigest()
+        return rgb,valid,signature
+    except (OSError,rasterio.errors.RasterioIOError,ValueError):return None
+
+
+def _color_rgb(value):
+    try:return np.asarray(ImageColor.getrgb(value)[:3],dtype=float)
+    except (ValueError,TypeError):return None
+
+
+def _local_raster_evidence(path,asset,candidate,source,source_color,options,width_px):
+    """Color/stroke evidence informs review and ranking, never ownership itself."""
+    x0,y0,x1,y1=candidate.bounds;pad=max(3,int(math.ceil(width_px*2)))
+    bounds=[max(0,math.floor(x0)-pad),max(0,math.floor(y0)-pad),min(asset['width_px'],math.ceil(x1)+pad),min(asset['height_px'],math.ceil(y1)+pad)]
+    w,h=bounds[2]-bounds[0],bounds[3]-bounds[1]
+    evidence={'status':'ambiguous','sample_count':0,'bounds_px':bounds,'reason_codes':[]}
+    if w<=0 or h<=0 or w>512 or h>512:
+        evidence.update(status='unavailable',reason_codes=['RASTER_EVIDENCE_WINDOW_LIMIT'])
+        return evidence
+    read=_read_raster_window(path,bounds)
+    if read is None:
+        evidence.update(status='unavailable',sha256='unavailable',reason_codes=['RASTER_EVIDENCE_UNAVAILABLE'])
+        return evidence
+    rgb,valid,signature=read;evidence['sha256']=signature
+    transform=Affine.translation(bounds[0],bounds[1])
+    def samples(geometry):
+        mask=rasterize([(geometry,1)],out_shape=(h,w),transform=transform,dtype='uint8').astype(bool)&valid
+        return rgb[mask].astype(float)
+    values=samples(candidate)
+    evidence['sample_count']=len(values)
+    if len(values)<4:
+        evidence['reason_codes']=['RASTER_INSUFFICIENT_SAMPLES'];return evidence
+    median=np.median(values,axis=0)
+    evidence['median_rgb']=[float(value) for value in median]
+    dark_fraction=float(np.mean((values.max(axis=1)<100)&((values.max(axis=1)-values.min(axis=1))<60)))
+    evidence['dark_fraction']=dark_fraction
+    source_rgb=_color_rgb(source_color)
+    source_samples=samples(source.difference(candidate))
+    source_median=np.median(source_samples,axis=0) if len(source_samples)>=4 else None
+    credible_source=source_rgb is not None and source_median is not None and np.linalg.norm(source_median-source_rgb)<=35
+    evidence['source_context_supported']=bool(credible_source)
+    if source_rgb is not None:evidence['source_color_distance']=float(np.linalg.norm(median-source_rgb))
+    for option in options:
+        color=_color_rgb(option['color'])
+        if color is not None:option['color_distance']=float(np.linalg.norm(median-color))
+    supported=[option for option in options if option.get('color_distance',math.inf)<=35]
+    if dark_fraction>=.6:
+        evidence.update(status='stroke_supported',reason_codes=['RASTER_DARK_STROKE'])
+    elif supported and evidence.get('source_color_distance',0)>50:
+        evidence.update(status='receiver_color_supported',reason_codes=['RASTER_MATCHES_RECEIVER_COLOR'])
+    elif credible_source and float(np.linalg.norm(median-source_median))>60:
+        evidence.update(status='distinct_region',reason_codes=['RASTER_COLOR_CONTRADICTS_SOURCE'])
+    else:evidence['reason_codes']=['RASTER_EVIDENCE_AMBIGUOUS']
+    return evidence
+
+
+def _enrich_evidence(item,candidate,geometry,target,asset,directory,width_px,features=()):
+    options=item['receiver_options']
+    raster=_local_raster_evidence(directory/asset['raster_rel_path'],asset,candidate,geometry,target['fill_color'],options,width_px)
+    reasons=item['review_reason_codes']
+    if item.get('discovery_method')=='vector_opening':reasons.append('VECTOR_APPENDAGE_SEMANTICS_UNCONFIRMED')
+    distinct_hole=(raster['status']=='distinct_region' or raster['status']=='stroke_supported'
+                   and raster.get('source_context_supported') and raster.get('source_color_distance',0)>60)
+    if item['kind'] in ('void','occupied_hole') and distinct_hole:
+        raster['status']='distinct_hole_region';reasons.append('RASTER_DISTINCT_HOLE_REGION')
+    if item['kind']=='occupied_hole' and item.get('mergeable') and len(item.get('merging_feature_ids',[]))>1:
+        # A whole-hole median can hide one real island among same-color owners.
+        owner_ids=set(item['merging_feature_ids']);owner_evidence=[]
+        for owner in features:
+            if owner['feature_id'] not in owner_ids:continue
+            local=_local_raster_evidence(directory/asset['raster_rel_path'],asset,shape(owner['geometry']),geometry,target['fill_color'],[],width_px)
+            owner_evidence.append({'feature_id':owner['feature_id'],**local})
+            distinct_owner=(local['status']=='distinct_region' or local['status']=='stroke_supported'
+                            and local.get('source_context_supported') and local.get('source_color_distance',0)>60)
+            if distinct_owner:
+                reasons.append('RASTER_DISTINCT_HOLE_OWNER')
+                raster['status']='distinct_hole_region'
+        item['owner_raster_evidence']=owner_evidence
+    item['review_reason_codes']=sorted(set(reasons));item['review_required']=bool(reasons)
+    item['raster_evidence']=raster
+    for option in options:
+        edge_score=option['shared_edge_px']/max(candidate.length,1e-8)
+        color_score=max(0.,1-option['color_distance']/math.sqrt(3*255**2)) if 'color_distance' in option else 0.
+        option['recommendation_score']=float(.6*edge_score+.4*color_score)
+        option['recommendation_reason_codes']=['SHARED_BOUNDARY']+(['RASTER_COLOR_DISTANCE'] if 'color_distance' in option else [])
+    ranked=sorted(options,key=lambda option:(-option['recommendation_score'],option['feature_id']))
+    item['recommended_receiver_id']=ranked[0]['feature_id'] if ranked and (len(ranked)==1 or ranked[0]['recommendation_score']-ranked[1]['recommendation_score']>.05) else None
+    confirmable={'PROTECTED_LINE_OR_TEXT','OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW'}
+    blocked=item.get('blocked_reason')
+    # Whole owners already validated to exactly fill this internal hole need a
+    # merge operation, not an additional human review unless actual risk exists.
+    ownership_instruction=(item['kind']=='occupied_hole' and item.get('mergeable')
+                           and blocked=='OCCUPIED_HOLE_REQUIRES_MERGE')
+    item['risk_level']='blocked' if blocked and blocked not in confirmable else 'review' if item['review_required'] or blocked and not ownership_instruction else 'ready'
+    item['evidence']={'reason_codes':sorted(set(item['review_reason_codes']+raster['reason_codes'])),
+                      'geometry_method':item.get('discovery_method','complete_region'),'semantic_ownership_inferred':False}
+    transfer=item['kind'] in ('spur','occupied_hole','boundary_gap')
+    item['delta_geometry']={'removed':item['geometry'] if item['kind']=='spur' else None,'added':item['geometry'] if item['kind']!='spur' else None,'transferred':item['geometry'] if transfer else None}
+    item['metrics']={'source_area_before_px2':float(geometry.area),'source_area_after_px2':float(geometry.area+(-candidate.area if item['kind']=='spur' else candidate.area)),
+                     'changed_area_px2':float(candidate.area),'coverage_delta_px2':0. if transfer else float(candidate.area),
+                     **{name:item[name] for name in ('width_px','length_px','attachment_width_px','attachment_count') if name in item}}
+
+
+def _raster_inputs(candidates):
+    evidence=[record for item in candidates for record in [item.get('raster_evidence',{}),*item.get('owner_raster_evidence',[])]]
+    records={tuple(record['bounds_px']):record['sha256'] for record in evidence if 'sha256' in record}
+    return [{'bounds_px':list(bounds),'sha256':records[bounds]} for bounds in sorted(records)]
+
+
+def _current_raster_inputs(path,records):
+    current=[]
+    for record in records:
+        read=_read_raster_window(path,record['bounds_px'])
+        current.append({'bounds_px':record['bounds_px'],'sha256':read[2] if read else 'unavailable'})
+    return current
+
+
+def _diagnose_target(connection,project_id,asset_id,asset,directory,target,width_px,min_length_px,max_area_px2):
+    """Per-face candidate generation shared by the single-face preview and the asset-wide scan."""
     geometry=shape(target['geometry'])
     if not geometry.is_valid or geometry.is_empty:raise CommandConflict('GEOMETRY_VALIDATION_FAILED')
-    maximum_stroke=_maximum_stroke(connection,project_id,request.asset_id)
+    maximum_stroke=_maximum_stroke(connection,project_id,asset_id)
     margin=float(maximum_stroke)/2+1
-    bounds=list(geometry.buffer(margin).bounds);features=_scope(connection,project_id,request.asset_id,bounds)
+    bounds=list(geometry.buffer(margin).bounds);features=_scope(connection,project_id,asset_id,bounds)
     faces=[f for f in features if f['feature_type']=='face' and f['lifecycle_status']=='active']
     # Include the target: another component of the same multipart face may be
     # an existing island inside this component's ring and must stay occupied.
     ownership=[(f['feature_id'],shape(f['geometry'])) for f in faces]
-    region=_region(asset,directory);candidates=diagnose(geometry,ownership,request.width_px,request.min_length_px,request.max_area_px2)
+    region=_region(asset,directory);candidates=diagnose(geometry,ownership,width_px,min_length_px,max_area_px2)
     for item in candidates:
         candidate=shape(item['geometry'])
         lines,texts=_references(candidate,features)
         reasons=['BOUNDARY_GAP'] if item['kind']=='boundary_gap' else []
         if item['kind']=='spur' and not lines and not texts:reasons.extend(['STROKE_LIKE_GEOMETRY','MISSING_INDEPENDENT_REFERENCE'])
         if item['kind'] in ('void','occupied_hole'):
-            metrics=narrow_metrics(candidate,request.width_px,request.min_length_px,request.max_area_px2)
+            metrics=narrow_metrics(candidate,width_px,min_length_px,max_area_px2)
             if metrics:
                 item.update(metrics)
                 reasons.append('STROKE_LIKE_GEOMETRY')
@@ -106,17 +247,18 @@ def create_preview(connection,project_id,request,directory):
             if texts:reasons.append('INTERSECTS_TEXT_DISPLAY')
         item.update(mergeable=False,merging_feature_ids=[],review_required=bool(reasons),review_reason_codes=reasons,reference_line_ids=lines,reference_text_ids=texts)
         if not region.covers(candidate):item['blocked_reason']='OUTSIDE_VALID_RASTER'
-        elif item['kind'] in ('occupied_hole','boundary_gap') and candidate.area<=request.max_area_px2:
-            owners=_merge_owners(candidate,request.feature_id,dict(ownership))
+        elif item['kind'] in ('occupied_hole','boundary_gap') and candidate.area<=max_area_px2:
+            owners=_merge_owners(candidate,target['feature_id'],dict(ownership))
             grown=geometry.union(candidate)
             safe_boundary=item['kind']!='boundary_gap' or (grown.geom_type==geometry.geom_type and grown.is_valid and _hole_count(grown)==_hole_count(geometry))
             if owners and safe_boundary:item.update(mergeable=True,merging_feature_ids=owners,blocked_reason='BOUNDARY_GAP_REQUIRES_REVIEW' if item['kind']=='boundary_gap' else 'OCCUPIED_HOLE_REQUIRES_MERGE')
         if item['kind']=='spur':
             for feature in faces:
-                if feature['feature_id']==request.feature_id:continue
+                if feature['feature_id']==target['feature_id']:continue
                 neighbor=shape(feature['geometry']);edge=candidate.boundary.intersection(neighbor.boundary).length
                 grown=neighbor.union(candidate)
-                if edge>1e-7 and candidate.intersection(neighbor).area<=1e-7 and grown.geom_type=='Polygon' and grown.is_valid:
+                if (edge>1e-7 and candidate.intersection(neighbor).area<=1e-7 and grown.geom_type in ('Polygon','MultiPolygon')
+                        and grown.is_valid and _part_count(grown)==_part_count(neighbor) and _hole_count(grown)==_hole_count(neighbor)):
                     item['receiver_options'].append({'feature_id':feature['feature_id'],'color':feature['fill_color'],'shared_edge_px':edge})
             if not item['receiver_options']:item.setdefault('blocked_reason','NO_VALID_EDGE_RECEIVER')
             protected=[]
@@ -125,15 +267,60 @@ def create_preview(connection,project_id,request,directory):
                     if shape(feature['geometry']).buffer(feature['stroke_width_px']/2).intersects(candidate):protected.append(feature['feature_id'])
                 elif feature['feature_type']=='text' and feature.get('display_bbox_px') and box(*feature['display_bbox_px']).intersects(candidate):protected.append(feature['feature_id'])
             if protected:item.setdefault('blocked_reason','PROTECTED_LINE_OR_TEXT');item['protected_feature_ids']=protected
-        identity=hashlib.sha256((request.feature_id+item['kind']+candidate.normalize().wkb_hex).encode()).hexdigest()[:32]
+        identity=hashlib.sha256((target['feature_id']+item['kind']+candidate.normalize().wkb_hex).encode()).hexdigest()[:32]
         item['candidate_id']=identity
         item['receiver_options'].sort(key=lambda option:(-option['shared_edge_px'],option['feature_id']))
-    candidates=list({item['candidate_id']:item for item in candidates}.values())
-    digest=_digest(features,region,maximum_stroke);preview_id=str(uuid4());expires=(datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat()
-    response={'preview_id':preview_id,'base_revision':project['working_revision'],'feature_id':request.feature_id,'expires_at':expires,'input_sha256':digest,'candidates':candidates,'summary':{name+'_count':sum(item['kind']==name for item in candidates) for name in ('spur','void','occupied_hole','boundary_gap')}}
-    stored={**response,'scope_bounds_px':bounds,'algorithm_revision':ALGORITHM_REVISION}
+        _enrich_evidence(item,candidate,geometry,target,asset,directory,width_px,features)
+    return list({item['candidate_id']:item for item in candidates}.values()),features,region,maximum_stroke,bounds
+
+
+def create_preview(connection,project_id,request,directory):
+    project=connection.execute('SELECT working_revision,current_asset_id FROM project WHERE project_id=?',(project_id,)).fetchone()
+    if project is None:raise KeyError(project_id)
+    if project['current_asset_id']!=request.asset_id:raise CommandConflict('ASSET_RESULT_MISMATCH')
+    target=load_feature(connection,request.feature_id)
+    if (target['project_id'],target['asset_id'],target['feature_type'],target['lifecycle_status'])!=(project_id,request.asset_id,'face','active'):raise CommandConflict('SELECTION_SCOPE_INVALID')
+    asset=dict(connection.execute('SELECT * FROM asset WHERE asset_id=? AND project_id=?',(request.asset_id,project_id)).fetchone())
+    candidates,features,region,maximum_stroke,bounds=_diagnose_target(connection,project_id,request.asset_id,asset,directory,target,request.width_px,request.min_length_px,request.max_area_px2)
+    raster_inputs=_raster_inputs(candidates)
+    parameters={name:getattr(request,name) for name in ('width_px','min_length_px','max_area_px2')}
+    digest=_digest(features,region,maximum_stroke,raster_inputs,parameters);preview_id=str(uuid4());expires=(datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat()
+    response={'preview_id':preview_id,'project_id':project_id,'asset_id':request.asset_id,'algorithm_revision':ALGORITHM_REVISION,'parameters':parameters,
+              'base_revision':project['working_revision'],'feature_id':request.feature_id,'expires_at':expires,'input_sha256':digest,'candidates':candidates,'summary':{name+'_count':sum(item['kind']==name for item in candidates) for name in ('spur','void','occupied_hole','boundary_gap')}}
+    stored={**response,'scope_bounds_px':bounds,'algorithm_revision':ALGORITHM_REVISION,'raster_inputs':raster_inputs}
     connection.execute('INSERT INTO edit_preview VALUES (?,?,?,?,?,?,?,?)',(preview_id,project_id,request.asset_id,project['working_revision'],expires,request.model_dump_json(),json.dumps(stored,ensure_ascii=False),digest))
     return response
+
+
+MAX_SCAN_FACES=2000
+
+
+def scan_asset(connection,project_id,asset_id,directory,width_px=2,min_length_px=12,max_area_px2=150):
+    """Read-only, asset-wide pass: which faces have a repair candidate worth a look.
+
+    Does not persist an edit_preview; a face the operator picks from this list
+    still goes through the normal single-face face-repair-previews flow before
+    anything is applied. Bounded so an unusually large asset degrades to a
+    truncated, clearly-marked result instead of an unbounded scan.
+    """
+    project=connection.execute('SELECT working_revision,current_asset_id FROM project WHERE project_id=?',(project_id,)).fetchone()
+    if project is None:raise KeyError(project_id)
+    if project['current_asset_id']!=asset_id:raise CommandConflict('ASSET_RESULT_MISMATCH')
+    asset=connection.execute('SELECT * FROM asset WHERE asset_id=? AND project_id=?',(asset_id,project_id)).fetchone()
+    if asset is None:raise KeyError(asset_id)
+    asset=dict(asset)
+    rows=connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type='face' AND lifecycle_status='active' ORDER BY feature_id LIMIT ?",(project_id,asset_id,MAX_SCAN_FACES+1)).fetchall()
+    face_ids=[row[0] for row in rows];truncated=len(face_ids)>MAX_SCAN_FACES;face_ids=face_ids[:MAX_SCAN_FACES]
+    results=[]
+    for feature_id in face_ids:
+        target=load_feature(connection,feature_id)
+        if target['lifecycle_status']!='active':continue
+        try:
+            candidates,_features,_region,_stroke,_bounds=_diagnose_target(connection,project_id,asset_id,asset,directory,target,width_px,min_length_px,max_area_px2)
+        except CommandConflict:continue
+        flagged=[item for item in candidates if item.get('review_required') or item.get('mergeable')]
+        if flagged:results.append({'feature_id':feature_id,'candidate_count':len(flagged),'kinds':sorted({item['kind'] for item in flagged})})
+    return {'base_revision':project['working_revision'],'scanned_face_count':len(face_ids),'flagged_faces':results,'truncated':truncated}
 
 
 def plan_changes(connection,project_id,command,timestamp,directory):
@@ -143,7 +330,8 @@ def plan_changes(connection,project_id,command,timestamp,directory):
     if report.get('algorithm_revision')!=ALGORITHM_REVISION or command.feature_ids!=[report.get('feature_id')]:raise CommandConflict('PREVIEW_TYPE_MISMATCH')
     asset=dict(connection.execute('SELECT * FROM asset WHERE asset_id=? AND project_id=?',(command.asset_id,project_id)).fetchone())
     features=_scope(connection,project_id,command.asset_id,report['scope_bounds_px']);region=_region(asset,directory)
-    if _digest(features,region,_maximum_stroke(connection,project_id,command.asset_id))!=row['input_sha256']:raise CommandConflict('PREVIEW_STALE')
+    raster_inputs=_current_raster_inputs(directory/asset['raster_rel_path'],report.get('raster_inputs',[]))
+    if _digest(features,region,_maximum_stroke(connection,project_id,command.asset_id),raster_inputs,report.get('parameters'))!=row['input_sha256']:raise CommandConflict('PREVIEW_STALE')
     candidates={item['candidate_id']:item for item in report['candidates']};original={f['feature_id']:f for f in features}
     if any(identity not in candidates for identity in command.candidate_ids):raise CommandConflict('REPAIR_CANDIDATE_INVALID')
     selected=[candidates[identity] for identity in command.candidate_ids]

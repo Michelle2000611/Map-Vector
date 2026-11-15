@@ -2,12 +2,22 @@ from uuid import UUID
 
 from fastapi import Request
 
-from mapvector.application.face_repairs import FaceRepairRequest, create_preview, repair_history
+from mapvector.application.face_repairs import FaceRepairRequest, create_preview, repair_history, scan_asset
 from mapvector.domain.errors import CommandConflict
 from mapvector.infrastructure.repositories.database import ProjectDatabase
 
 
 def register(app, project_directory, envelope, error):
+    @app.get('/api/projects/{project_id}/face-repair-scan')
+    def face_repair_scan(project_id:UUID,asset_id:UUID,request:Request):
+        directory=project_directory(str(project_id))
+        try:
+            with ProjectDatabase(directory/'state/project.sqlite').read() as connection:
+                result=scan_asset(connection,str(project_id),str(asset_id),directory)
+            return envelope(request,result)
+        except CommandConflict as exc:
+            return error(request,409 if exc.code in ('REVISION_CONFLICT','ASSET_RESULT_MISMATCH') else 422,exc.code,'面检查未完成',exc.detail)
+
     @app.get('/api/projects/{project_id}/face-repair-history')
     def face_repair_history(project_id:UUID,asset_id:UUID,feature_id:UUID,request:Request):
         directory=project_directory(str(project_id))

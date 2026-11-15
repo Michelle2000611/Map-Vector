@@ -1,15 +1,15 @@
 import {useEffect,useRef,useState} from 'react';
-import {Alert,Button,Checkbox,Tag} from 'antd';
+import {Alert,Button,Checkbox,Space,Tag} from 'antd';
 import {request} from '../services/client';
 import type {Preview} from '../services/models';
 
 export type ResidueReviewGroup={group_id:string;feature_ids:string[];bounds_px:number[];reason_codes:string[];status:'pending'|'kept';can_confirm:boolean;evidence_sha256:string};
 export type ResidueReviewDisplay=NonNullable<Preview['text_residue_display']>&{review_groups?:ResidueReviewGroup[]};
 type Props={preview:Preview;projectId:string;assetId:string;busy:boolean;checked:string[];verified:string[];onChecked:(ids:string[])=>void;onVerified:(ids:string[])=>void;
- onLocate:(bounds:number[],ids:string[])=>void;onBrush:()=>void;onCleanup:()=>void;guard:()=>Promise<boolean>;onDecided:()=>Promise<void>};
+ onLocate:(bounds:number[],ids:string[])=>void;onCleanup:()=>void;guard:()=>Promise<boolean>;onDecided:()=>Promise<void>};
 const messages:Record<string,string>={GEOLOGICAL_BOUNDARY:'地质分界线',EXPLICIT_SPLIT_LINE:'地质分界线',MANUAL_LINE:'手工线',SEMANTIC_LINE_PATTERN:'虚线或齿状线',OTHER_TEXT_INTERSECTION:'涉及相邻文字',OTHER_TEXT_OVERLAP:'涉及相邻文字',CROSSES_REVIEW_BOUNDS:'跨出检查范围',CROSSES_REVIEW_REGION:'跨出检查范围',CROSSES_TEXT_REGION:'跨出文字范围',UNCERTAIN_TEXT_LINE:'笔画依据不足',LOW_STROKE_CONFIDENCE:'笔画依据不足',NOT_STRONG_STROKE_EVIDENCE:'笔画依据不足',CROSSING_LINE:'跨框线',CODE_LIKE_TEXT:'地质代号附近线',TEXT_SYMBOL_PROTECTION:'地质符号附近线'};
 
-export function ResidueLineReview({preview,projectId,assetId,busy,checked,verified,onChecked,onVerified,onLocate,onBrush,onCleanup,guard,onDecided}:Props){
+export function ResidueLineReview({preview,projectId,assetId,busy,checked,verified,onChecked,onVerified,onLocate,onCleanup,guard,onDecided}:Props){
  const display=preview.text_residue_display as ResidueReviewDisplay|undefined,groups=display?.review_groups??[];
  const [error,setError]=useState(''),[pending,setPending]=useState(false),generation=useRef(0);
  const scope=JSON.stringify([projectId,assetId,preview.preview_id,preview.base_revision]);
@@ -28,13 +28,14 @@ export function ResidueLineReview({preview,projectId,assetId,busy,checked,verifi
   finally{if(generation.current===ticket)setPending(false);}
  }
  if(!display)return null;
+ const cleanupFaces=new Set(display.cleanup_face_feature_ids),cleanupLines=new Set([...display.cleanup_line_feature_ids,...verified.filter(id=>allowed.has(id))]);
  return <section className="residue-line-review" aria-label="残影线段核对">
   <div className="residue-review-actions">
-   <Button disabled={disabled} onClick={onCleanup}>清理所选残影</Button>
-   <Button className="property-button-wide" disabled={disabled||!safeChosen.length} onClick={()=>void verify()}>所选确认为残影</Button>
-   <Button disabled={disabled||!checked.length} onClick={()=>void decide('keep')}>所选保留</Button>
-   <Button disabled={disabled||!checked.length} onClick={()=>void decide('reopen')}>重新核对</Button>
-   <Button disabled={disabled||!groups.length} onClick={()=>void guard().then(ok=>{if(ok)onBrush();})}>刷选待核对线</Button>
+   <div className="residue-review-decision-group">
+    <Button className="property-button-wide" disabled={disabled||!safeChosen.length} onClick={()=>void verify()}>所选确认为残影</Button>
+    <Space.Compact><Button disabled={disabled||!checked.length} onClick={()=>void decide('keep')}>所选保留</Button><Button disabled={disabled||!checked.length} onClick={()=>void decide('reopen')}>重新核对</Button></Space.Compact>
+   </div>
+   <div className="residue-cleanup-action"><span className="residue-cleanup-count" aria-label="清理范围" aria-live="polite">碎面 {cleanupFaces.size} 个 · 线段 {cleanupLines.size} 条</span><Button danger disabled={disabled} onClick={onCleanup}>清理残影</Button></div>
   </div>
   {error&&<Alert type="error" message={error}/>}
   {groups.length>0&&<>
@@ -44,7 +45,7 @@ export function ResidueLineReview({preview,projectId,assetId,busy,checked,verifi
     return <tr key={group.group_id} data-residue-review-group={group.group_id}>
      <td><Checkbox aria-label={'选择复核组 '+group.group_id} disabled={disabled} checked={count===group.feature_ids.length} indeterminate={count>0&&count<group.feature_ids.length} onChange={event=>void changeSelection(event.target.checked?[...checked,...group.feature_ids]:checked.filter(id=>!group.feature_ids.includes(id)))}/></td>
      <td>{group.feature_ids.length} 条</td><td>{group.reason_codes.map(code=>messages[code.toUpperCase()]??'需对照原图').join('；')}</td>
-     <td><Tag color={!group.can_confirm?'default':acknowledged?'blue':undefined}>{group.status==='kept'?'已保留':!group.can_confirm?'受保护':acknowledged?'已确认':'待核对'}</Tag></td>
+     <td><Tag color={group.status==='kept'?'success':!group.can_confirm?'default':acknowledged?'blue':'warning'}>{group.status==='kept'?'已保留':!group.can_confirm?'受保护':acknowledged?'已确认':'待核对'}</Tag></td>
      <td><Button size="small" disabled={disabled} onClick={()=>void guard().then(ok=>{if(ok)onLocate(group.bounds_px,group.feature_ids);})}>定位</Button></td>
     </tr>;
    })}</tbody></table></div>

@@ -20,11 +20,13 @@ export function TextPositionFields({feature,x,y,onXChange,onYChange,xDraft,yDraf
  const width=box?.length===4?box[2]-box[0]:NaN,height=box?.length===4?box[3]-box[1]:NaN;
  const valid=box?.length===4&&box.every(Number.isFinite)&&Number.isFinite(width)&&Number.isFinite(height)&&width>=0&&height>=0;
  return <section className="text-position-fields" aria-label="文字位置与边界框">
+  <h4 className="property-group-heading">位置与边界框</h4>
   <div className="text-position-grid">
    <PropertyNumber label="X" ariaLabel="文字X位置" value={x} onChange={onXChange} {...xDraft} disabled={disabled}/>
    <PropertyNumber label="Y" ariaLabel="文字Y位置" value={y} onChange={onYChange} {...yDraft} disabled={disabled}/>
    <Input addonBefore="W" aria-label="文字边界框宽度" value={valid?formatPropertyNumber(width):'—'} readOnly/>
    <Input addonBefore="H" aria-label="文字边界框高度" value={valid?formatPropertyNumber(height):'—'} readOnly/>
   </div>
+  <p className="property-group-note">W、H 由内容与排版自动计算，不能直接修改。</p>
  </section>;
 }

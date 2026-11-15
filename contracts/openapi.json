@@ -106,6 +106,89 @@
         "title": "AdoptRun",
         "type": "object"
       },
+      "ApplyFaceMerge": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "confirmed_gap_candidate_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2000,
+            "title": "Confirmed Gap Candidate Ids",
+            "type": "array"
+          },
+          "confirmed_ownership_transfer_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Confirmed Ownership Transfer Feature Ids",
+            "type": "array"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 2,
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "mode": {
+            "enum": [
+              "single",
+              "multipart",
+              "gap_single"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "operation_type": {
+            "const": "apply_face_merge",
+            "title": "Operation Type",
+            "type": "string"
+          },
+          "preview_id": {
+            "title": "Preview Id",
+            "type": "string"
+          },
+          "verified_review_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 4000,
+            "title": "Verified Review Evidence Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "idempotency_key",
+          "feature_ids",
+          "operation_type",
+          "preview_id",
+          "mode"
+        ],
+        "title": "ApplyFaceMerge",
+        "type": "object"
+      },
       "ApplyLineCheck": {
         "additionalProperties": false,
         "properties": {
@@ -700,6 +783,49 @@
         "title": "ClassifyReview",
         "type": "object"
       },
+      "ClearStyleOverride": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "operation_type": {
+            "const": "clear_style_override",
+            "title": "Operation Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "idempotency_key",
+          "feature_ids",
+          "operation_type"
+        ],
+        "title": "ClearStyleOverride",
+        "type": "object"
+      },
       "CreateAsset": {
         "additionalProperties": false,
         "properties": {
@@ -1093,6 +1219,52 @@
         "title": "DeleteLines",
         "type": "object"
       },
+      "DeleteStyle": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "operation_type": {
+            "const": "delete_style",
+            "title": "Operation Type",
+            "type": "string"
+          },
+          "style_id": {
+            "title": "Style Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "idempotency_key",
+          "operation_type",
+          "style_id"
+        ],
+        "title": "DeleteStyle",
+        "type": "object"
+      },
       "DeleteText": {
         "additionalProperties": false,
         "properties": {
@@ -1305,6 +1477,28 @@
           "request_id"
         ],
         "title": "Envelope[Export]",
+        "type": "object"
+      },
+      "Envelope_FaceMergePreviewResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FaceMergePreviewResponse"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_revision": {
+            "default": "1.0",
+            "title": "Schema Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[FaceMergePreviewResponse]",
         "type": "object"
       },
       "Envelope_LineCheckDecisionResult_": {
@@ -1948,6 +2142,803 @@
         "title": "Export",
         "type": "object"
       },
+      "FaceMergeAffectedFeature": {
+        "properties": {
+          "after_geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Geometry"
+          },
+          "after_geometry_by_mode": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/PolygonGeometry"
+                    },
+                    {
+                      "$ref": "#/components/schemas/MultiPolygonGeometry"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "propertyNames": {
+                  "enum": [
+                    "single",
+                    "multipart",
+                    "gap_single"
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Geometry By Mode"
+          },
+          "after_lifecycle_status": {
+            "anyOf": [
+              {
+                "enum": [
+                  "active",
+                  "superseded"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "After Lifecycle Status"
+          },
+          "before_geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              }
+            ],
+            "title": "Before Geometry"
+          },
+          "feature_id": {
+            "title": "Feature Id",
+            "type": "string"
+          },
+          "modes": {
+            "items": {
+              "enum": [
+                "single",
+                "multipart",
+                "gap_single"
+              ],
+              "type": "string"
+            },
+            "title": "Modes",
+            "type": "array"
+          },
+          "role": {
+            "enum": [
+              "attribute_source",
+              "merge_source",
+              "ownership_transfer"
+            ],
+            "title": "Role",
+            "type": "string"
+          },
+          "transferred_geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transferred Geometry"
+          }
+        },
+        "required": [
+          "feature_id",
+          "role",
+          "modes",
+          "before_geometry"
+        ],
+        "title": "FaceMergeAffectedFeature",
+        "type": "object"
+      },
+      "FaceMergeCapabilities": {
+        "properties": {
+          "gap_single": {
+            "$ref": "#/components/schemas/FaceMergeCapabilityResponse"
+          },
+          "multipart": {
+            "$ref": "#/components/schemas/FaceMergeCapabilityResponse"
+          },
+          "single": {
+            "$ref": "#/components/schemas/FaceMergeCapabilityResponse"
+          }
+        },
+        "required": [
+          "single",
+          "multipart",
+          "gap_single"
+        ],
+        "title": "FaceMergeCapabilities",
+        "type": "object"
+      },
+      "FaceMergeCapabilityResponse": {
+        "properties": {
+          "added_empty_geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Added Empty Geometry"
+          },
+          "blocked_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocked Reasons",
+            "type": "array"
+          },
+          "eligible": {
+            "title": "Eligible",
+            "type": "boolean"
+          },
+          "hole_count": {
+            "title": "Hole Count",
+            "type": "integer"
+          },
+          "output_component_count": {
+            "title": "Output Component Count",
+            "type": "integer"
+          },
+          "output_geometry_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "Polygon",
+                  "MultiPolygon"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Output Geometry Type"
+          },
+          "preserved_hole_geometries": {
+            "items": {
+              "$ref": "#/components/schemas/PolygonGeometry"
+            },
+            "title": "Preserved Hole Geometries",
+            "type": "array"
+          },
+          "result_geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Result Geometry"
+          },
+          "review_evidence": {
+            "items": {
+              "$ref": "#/components/schemas/FaceMergeReviewEvidence"
+            },
+            "title": "Review Evidence",
+            "type": "array"
+          },
+          "review_evidence_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Evidence Ids",
+            "type": "array"
+          },
+          "review_reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Reason Codes",
+            "type": "array"
+          },
+          "review_required": {
+            "title": "Review Required",
+            "type": "boolean"
+          },
+          "transferred_geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Transferred Geometry"
+          }
+        },
+        "required": [
+          "eligible",
+          "blocked_reasons",
+          "review_required",
+          "review_reason_codes",
+          "review_evidence_ids",
+          "review_evidence",
+          "result_geometry",
+          "output_geometry_type",
+          "output_component_count",
+          "hole_count",
+          "preserved_hole_geometries",
+          "added_empty_geometry",
+          "transferred_geometry"
+        ],
+        "title": "FaceMergeCapabilityResponse",
+        "type": "object"
+      },
+      "FaceMergeGapCandidateResponse": {
+        "properties": {
+          "area_px2": {
+            "title": "Area Px2",
+            "type": "number"
+          },
+          "blocked_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocked Reasons",
+            "type": "array"
+          },
+          "candidate_id": {
+            "title": "Candidate Id",
+            "type": "string"
+          },
+          "component_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Component Ids",
+            "type": "array"
+          },
+          "contact_length_px": {
+            "title": "Contact Length Px",
+            "type": "number"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "local_length_px": {
+            "title": "Local Length Px",
+            "type": "number"
+          },
+          "metrics": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Metrics",
+            "type": "object"
+          },
+          "occupying_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Occupying Feature Ids",
+            "type": "array"
+          },
+          "owner_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Owner Feature Ids",
+            "type": "array"
+          },
+          "ownership_transfers": {
+            "items": {
+              "$ref": "#/components/schemas/FaceMergeOwnershipTransfer"
+            },
+            "title": "Ownership Transfers",
+            "type": "array"
+          },
+          "raster_evidence": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Raster Evidence",
+            "type": "object"
+          },
+          "recommended": {
+            "title": "Recommended",
+            "type": "boolean"
+          },
+          "review_reason_codes": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Review Reason Codes",
+            "type": "array"
+          },
+          "review_required": {
+            "title": "Review Required",
+            "type": "boolean"
+          },
+          "risk_level": {
+            "enum": [
+              "blocked",
+              "review"
+            ],
+            "title": "Risk Level",
+            "type": "string"
+          },
+          "transferred_area_px2": {
+            "title": "Transferred Area Px2",
+            "type": "number"
+          },
+          "width_px": {
+            "title": "Width Px",
+            "type": "number"
+          }
+        },
+        "required": [
+          "candidate_id",
+          "geometry",
+          "feature_ids",
+          "component_ids",
+          "width_px",
+          "area_px2",
+          "local_length_px",
+          "contact_length_px",
+          "occupying_feature_ids",
+          "owner_feature_ids",
+          "ownership_transfers",
+          "transferred_area_px2",
+          "blocked_reasons",
+          "review_reason_codes",
+          "raster_evidence",
+          "review_required",
+          "risk_level",
+          "recommended",
+          "metrics"
+        ],
+        "title": "FaceMergeGapCandidateResponse",
+        "type": "object"
+      },
+      "FaceMergeOwnershipTransfer": {
+        "properties": {
+          "area_px2": {
+            "title": "Area Px2",
+            "type": "number"
+          },
+          "blocked_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Blocked Reasons",
+            "type": "array"
+          },
+          "feature_id": {
+            "title": "Feature Id",
+            "type": "string"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "raster_evidence": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "title": "Raster Evidence",
+            "type": "object"
+          },
+          "remaining_geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PolygonGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiPolygonGeometry"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Remaining Geometry"
+          }
+        },
+        "required": [
+          "feature_id",
+          "geometry",
+          "remaining_geometry",
+          "area_px2",
+          "blocked_reasons",
+          "raster_evidence"
+        ],
+        "title": "FaceMergeOwnershipTransfer",
+        "type": "object"
+      },
+      "FaceMergeParameterSnapshot": {
+        "properties": {
+          "context_feature_limit": {
+            "title": "Context Feature Limit",
+            "type": "integer"
+          },
+          "max_added_area_px2": {
+            "title": "Max Added Area Px2",
+            "type": "number"
+          },
+          "max_candidates": {
+            "title": "Max Candidates",
+            "type": "integer"
+          },
+          "max_gap_px": {
+            "title": "Max Gap Px",
+            "type": "number"
+          },
+          "raster_max_windows": {
+            "title": "Raster Max Windows",
+            "type": "integer"
+          },
+          "raster_window_size_px": {
+            "title": "Raster Window Size Px",
+            "type": "integer"
+          },
+          "scale_source": {
+            "enum": [
+              "explicit",
+              "local_line_median",
+              "fallback"
+            ],
+            "title": "Scale Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "max_gap_px",
+          "max_added_area_px2",
+          "scale_source",
+          "max_candidates",
+          "raster_window_size_px",
+          "raster_max_windows",
+          "context_feature_limit"
+        ],
+        "title": "FaceMergeParameterSnapshot",
+        "type": "object"
+      },
+      "FaceMergeParameters": {
+        "additionalProperties": false,
+        "properties": {
+          "max_added_area_px2": {
+            "default": 150.0,
+            "exclusiveMinimum": 0.0,
+            "maximum": 10000.0,
+            "title": "Max Added Area Px2",
+            "type": "number"
+          },
+          "max_gap_px": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 100.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Gap Px"
+          }
+        },
+        "title": "FaceMergeParameters",
+        "type": "object"
+      },
+      "FaceMergePreviewResponse": {
+        "properties": {
+          "affected_features": {
+            "items": {
+              "$ref": "#/components/schemas/FaceMergeAffectedFeature"
+            },
+            "title": "Affected Features",
+            "type": "array"
+          },
+          "algorithm_revision": {
+            "title": "Algorithm Revision",
+            "type": "string"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "attribute_source_feature_id": {
+            "title": "Attribute Source Feature Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "boundary_raster_evidence": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Boundary Raster Evidence",
+            "type": "array"
+          },
+          "capabilities": {
+            "$ref": "#/components/schemas/FaceMergeCapabilities"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "gap_candidates": {
+            "items": {
+              "$ref": "#/components/schemas/FaceMergeGapCandidateResponse"
+            },
+            "title": "Gap Candidates",
+            "type": "array"
+          },
+          "hole_count_before": {
+            "title": "Hole Count Before",
+            "type": "integer"
+          },
+          "input_component_count": {
+            "title": "Input Component Count",
+            "type": "integer"
+          },
+          "input_sha256": {
+            "title": "Input Sha256",
+            "type": "string"
+          },
+          "ownership_transfer_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Ownership Transfer Feature Ids",
+            "type": "array"
+          },
+          "parameter_snapshot": {
+            "$ref": "#/components/schemas/FaceMergeParameterSnapshot"
+          },
+          "preview_id": {
+            "title": "Preview Id",
+            "type": "string"
+          },
+          "project_id": {
+            "title": "Project Id",
+            "type": "string"
+          },
+          "result_sha256": {
+            "title": "Result Sha256",
+            "type": "string"
+          },
+          "selected_gap_candidate_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Selected Gap Candidate Ids",
+            "type": "array"
+          },
+          "source_raster_evidence": {
+            "items": {
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "type": "object"
+            },
+            "title": "Source Raster Evidence",
+            "type": "array"
+          },
+          "truncated": {
+            "title": "Truncated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "preview_id",
+          "project_id",
+          "asset_id",
+          "base_revision",
+          "expires_at",
+          "algorithm_revision",
+          "parameter_snapshot",
+          "input_sha256",
+          "result_sha256",
+          "feature_ids",
+          "attribute_source_feature_id",
+          "capabilities",
+          "input_component_count",
+          "hole_count_before",
+          "gap_candidates",
+          "selected_gap_candidate_ids",
+          "ownership_transfer_feature_ids",
+          "affected_features",
+          "source_raster_evidence",
+          "boundary_raster_evidence",
+          "truncated"
+        ],
+        "title": "FaceMergePreviewResponse",
+        "type": "object"
+      },
+      "FaceMergeRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "allow_mixed_algorithm_labels": {
+            "default": false,
+            "title": "Allow Mixed Algorithm Labels",
+            "type": "boolean"
+          },
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "attribute_source_feature_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Attribute Source Feature Id"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 2,
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "ownership_transfer_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "title": "Ownership Transfer Feature Ids",
+            "type": "array"
+          },
+          "parameters": {
+            "$ref": "#/components/schemas/FaceMergeParameters"
+          },
+          "selected_gap_candidate_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2000,
+            "title": "Selected Gap Candidate Ids",
+            "type": "array"
+          },
+          "source_preview_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Preview Id"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "feature_ids"
+        ],
+        "title": "FaceMergeRequest",
+        "type": "object"
+      },
+      "FaceMergeReviewEvidence": {
+        "properties": {
+          "evidence_id": {
+            "title": "Evidence Id",
+            "type": "string"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "gap_candidate_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Gap Candidate Ids",
+            "type": "array"
+          },
+          "reason_code": {
+            "title": "Reason Code",
+            "type": "string"
+          }
+        },
+        "required": [
+          "evidence_id",
+          "reason_code",
+          "feature_ids",
+          "gap_candidate_ids"
+        ],
+        "title": "FaceMergeReviewEvidence",
+        "type": "object"
+      },
       "FaceRepairRequest": {
         "additionalProperties": false,
         "properties": {
@@ -2170,6 +3161,27 @@
             ],
             "title": "Style Id"
           },
+          "style_override": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Override"
+          },
           "updated_at": {
             "title": "Updated At",
             "type": "string"
@@ -2202,6 +3214,88 @@
           "coverage_status"
         ],
         "title": "FaceResponse",
+        "type": "object"
+      },
+      "FaceSplitRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "cutter_points_px": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "maxItems": 4000,
+                "minItems": 2,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cutter Points Px"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "line_feature_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Line Feature Id"
+          },
+          "min_piece_area_px2": {
+            "default": 1,
+            "maximum": 10000.0,
+            "minimum": 0.0,
+            "title": "Min Piece Area Px2",
+            "type": "number"
+          },
+          "snap_tolerance_px": {
+            "default": 0.5,
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Snap Tolerance Px",
+            "type": "number"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "feature_ids"
+        ],
+        "title": "FaceSplitRequest",
         "type": "object"
       },
       "FeatureColor": {
@@ -2603,6 +3697,7 @@
         "title": "JoinLines",
         "type": "object"
       },
+      "JsonValue": {},
       "Layer": {
         "additionalProperties": true,
         "properties": {
@@ -2691,6 +3786,25 @@
             "title": "Candidate Id",
             "type": "string"
           },
+          "connection_mode": {
+            "default": "automatic",
+            "enum": [
+              "automatic",
+              "manual"
+            ],
+            "title": "Connection Mode",
+            "type": "string"
+          },
+          "connector_kind": {
+            "default": "straight",
+            "enum": [
+              "straight",
+              "smooth",
+              "manual"
+            ],
+            "title": "Connector Kind",
+            "type": "string"
+          },
           "connectors": {
             "items": {
               "items": {
@@ -2710,6 +3824,10 @@
             },
             "title": "Connectors",
             "type": "array"
+          },
+          "evidence": {
+            "title": "Evidence",
+            "type": "object"
           },
           "feature_ids": {
             "items": {
@@ -2890,6 +4008,25 @@
             "title": "Candidate Id",
             "type": "string"
           },
+          "connection_mode": {
+            "default": "automatic",
+            "enum": [
+              "automatic",
+              "manual"
+            ],
+            "title": "Connection Mode",
+            "type": "string"
+          },
+          "connector_kind": {
+            "default": "straight",
+            "enum": [
+              "straight",
+              "smooth",
+              "manual"
+            ],
+            "title": "Connector Kind",
+            "type": "string"
+          },
           "connectors": {
             "items": {
               "items": {
@@ -2913,6 +4050,10 @@
           "created_at": {
             "title": "Created At",
             "type": "string"
+          },
+          "evidence": {
+            "title": "Evidence",
+            "type": "object"
           },
           "feature_ids": {
             "items": {
@@ -3025,8 +4166,21 @@
             "title": "Input Sha256",
             "type": "string"
           },
+          "mode": {
+            "default": "automatic",
+            "enum": [
+              "automatic",
+              "manual"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
           "preview_id": {
             "title": "Preview Id",
+            "type": "string"
+          },
+          "request_sha256": {
+            "title": "Request Sha256",
             "type": "string"
           },
           "summary": {
@@ -3051,6 +4205,7 @@
           "algorithm_revision",
           "expires_at",
           "input_sha256",
+          "request_sha256",
           "candidates",
           "history",
           "summary"
@@ -3078,6 +4233,40 @@
             "title": "Base Revision",
             "type": "integer"
           },
+          "manual_connector_px": {
+            "anyOf": [
+              {
+                "items": {
+                  "maxItems": 2,
+                  "minItems": 2,
+                  "prefixItems": [
+                    {
+                      "type": "number"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ],
+                  "type": "array"
+                },
+                "maxItems": 1000,
+                "minItems": 2,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Manual Connector Px"
+          },
+          "manual_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2,
+            "title": "Manual Feature Ids",
+            "type": "array"
+          },
           "max_gap_px": {
             "default": 8,
             "maximum": 50.0,
@@ -3091,6 +4280,15 @@
             "minimum": 1.0,
             "title": "Max Short Length Px",
             "type": "number"
+          },
+          "mode": {
+            "default": "automatic",
+            "enum": [
+              "automatic",
+              "manual"
+            ],
+            "title": "Mode",
+            "type": "string"
           }
         },
         "required": [
@@ -3296,6 +4494,27 @@
               }
             ],
             "title": "Style Id"
+          },
+          "style_override": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Override"
           },
           "updated_at": {
             "title": "Updated At",
@@ -4375,6 +5594,66 @@
         "title": "ProjectResponse",
         "type": "object"
       },
+      "RebindStyle": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "feature_type": {
+            "enum": [
+              "face",
+              "line"
+            ],
+            "title": "Feature Type",
+            "type": "string"
+          },
+          "from_style_id": {
+            "title": "From Style Id",
+            "type": "string"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "operation_type": {
+            "const": "rebind_style",
+            "title": "Operation Type",
+            "type": "string"
+          },
+          "to_style_id": {
+            "title": "To Style Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "idempotency_key",
+          "operation_type",
+          "from_style_id",
+          "to_style_id",
+          "feature_type"
+        ],
+        "title": "RebindStyle",
+        "type": "object"
+      },
       "RepairFace": {
         "additionalProperties": false,
         "properties": {
@@ -5092,7 +6371,8 @@
               "gesture",
               "grow",
               "shrink",
-              "text_pick"
+              "text_pick",
+              "by_style"
             ],
             "title": "Selection Type",
             "type": "string"
@@ -5103,6 +6383,17 @@
             "minimum": 1.0,
             "title": "Steps",
             "type": "integer"
+          },
+          "style_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Id"
           },
           "x": {
             "default": 0,
@@ -5707,6 +6998,62 @@
           "y"
         ],
         "title": "SplitLine",
+        "type": "object"
+      },
+      "SplitSelectedFaces": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "confirmed_small_piece_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Confirmed Small Piece Ids",
+            "type": "array"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 1000,
+            "minItems": 1,
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "operation_type": {
+            "const": "split_selected_faces",
+            "title": "Operation Type",
+            "type": "string"
+          },
+          "preview_id": {
+            "title": "Preview Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "idempotency_key",
+          "feature_ids",
+          "operation_type",
+          "preview_id"
+        ],
+        "title": "SplitSelectedFaces",
         "type": "object"
       },
       "StartRun": {
@@ -8427,15 +9774,18 @@
                 "discriminator": {
                   "mapping": {
                     "adopt_ocr_candidate": "#/components/schemas/AdoptOcrCandidate",
+                    "apply_face_merge": "#/components/schemas/ApplyFaceMerge",
                     "apply_line_check": "#/components/schemas/ApplyLineCheck",
                     "bind_style": "#/components/schemas/BindStyle",
                     "classify_review": "#/components/schemas/ClassifyReview",
                     "cleanup_text_residue": "#/components/schemas/ApplyPreview",
+                    "clear_style_override": "#/components/schemas/ClearStyleOverride",
                     "confirm_text": "#/components/schemas/ReviewText",
                     "create_line": "#/components/schemas/CreateLine",
                     "create_text": "#/components/schemas/CreateText",
                     "delete_faces": "#/components/schemas/DeleteFaces",
                     "delete_lines": "#/components/schemas/DeleteLines",
+                    "delete_style": "#/components/schemas/DeleteStyle",
                     "delete_text": "#/components/schemas/DeleteText",
                     "group_features": "#/components/schemas/GroupFeatures",
                     "heal_faces": "#/components/schemas/ApplyPreview",
@@ -8444,6 +9794,7 @@
                     "line_to_face": "#/components/schemas/LineToFace",
                     "merge_adjacent_faces": "#/components/schemas/MergeFaces",
                     "merge_face_components": "#/components/schemas/MergeFaces",
+                    "rebind_style": "#/components/schemas/RebindStyle",
                     "redo": "#/components/schemas/HistoryCommand",
                     "repair_face_geometry": "#/components/schemas/RepairFace",
                     "restore_lines": "#/components/schemas/RestoreLines",
@@ -8458,6 +9809,7 @@
                     "skip_text": "#/components/schemas/ReviewText",
                     "split_faces": "#/components/schemas/ApplyPreview",
                     "split_line": "#/components/schemas/SplitLine",
+                    "split_selected_faces": "#/components/schemas/SplitSelectedFaces",
                     "undo": "#/components/schemas/HistoryCommand",
                     "ungroup_features": "#/components/schemas/UngroupFeatures",
                     "update_text": "#/components/schemas/UpdateText"
@@ -8529,6 +9881,12 @@
                     "$ref": "#/components/schemas/ApplyLineCheck"
                   },
                   {
+                    "$ref": "#/components/schemas/SplitSelectedFaces"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ApplyFaceMerge"
+                  },
+                  {
                     "$ref": "#/components/schemas/SetRoi"
                   },
                   {
@@ -8554,6 +9912,15 @@
                   },
                   {
                     "$ref": "#/components/schemas/RestoreOcrLayout"
+                  },
+                  {
+                    "$ref": "#/components/schemas/DeleteStyle"
+                  },
+                  {
+                    "$ref": "#/components/schemas/RebindStyle"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ClearStyleOverride"
                   }
                 ],
                 "title": "Command"
@@ -9599,6 +10966,126 @@
         "summary": "Download Export"
       }
     },
+    "/api/projects/{project_id}/face-merge-previews": {
+      "post": {
+        "operationId": "preview_api_projects__project_id__face_merge_previews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FaceMergeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FaceMergePreviewResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Preview"
+      }
+    },
     "/api/projects/{project_id}/face-repair-history": {
       "get": {
         "operationId": "face_repair_history_api_projects__project_id__face_repair_history_get",
@@ -9843,6 +11330,360 @@
           }
         },
         "summary": "Face Repair Preview"
+      }
+    },
+    "/api/projects/{project_id}/face-repair-scan": {
+      "get": {
+        "operationId": "face_repair_scan_api_projects__project_id__face_repair_scan_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Face Repair Scan"
+      }
+    },
+    "/api/projects/{project_id}/face-split-previews": {
+      "post": {
+        "operationId": "preview_api_projects__project_id__face_split_previews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FaceSplitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Preview"
+      }
+    },
+    "/api/projects/{project_id}/feature-history": {
+      "get": {
+        "operationId": "feature_history_api_projects__project_id__feature_history_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "feature_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Feature Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Feature History"
       }
     },
     "/api/projects/{project_id}/feature-lineage": {
@@ -13470,6 +15311,124 @@
           }
         },
         "summary": "List Styles"
+      }
+    },
+    "/api/projects/{project_id}/styles/{style_id}/usage": {
+      "get": {
+        "operationId": "style_usage_api_projects__project_id__styles__style_id__usage_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "style_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Style Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Style Usage"
       }
     },
     "/api/projects/{project_id}/text-layer-assessments": {

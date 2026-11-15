@@ -1,0 +1,7 @@
+.quality-panel{display:flex;flex-direction:column;gap:16px;color:#24344b;font-size:13px}
+.quality-section{display:flex;flex-direction:column;gap:8px;padding:12px 14px;border:1px solid #edf0f4;border-radius:6px;background:#fff}
+.quality-section h4{margin:0;font-size:13px;font-weight:600;color:#46556a}
+.quality-table{width:100%;border-collapse:collapse;text-align:left}
+.quality-table th{padding:8px 10px;background:#f5f7fa;color:#526278;font-size:12px;font-weight:600;white-space:nowrap}
+.quality-table td{padding:8px 10px;border-bottom:1px solid #edf0f4;vertical-align:middle}
+.quality-descriptions{max-width:640px}

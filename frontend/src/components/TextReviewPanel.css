@@ -1,6 +1,7 @@
 .text-review-stage { position: relative; min-width: 0; }
 .text-review-stage > .ant-card-head .ant-card-head-title { padding-right: 0; }
 .text-review-panel { min-width: 0; max-width: 100%; }
+.text-review-panel .ant-btn:not(.ant-btn-icon-only) { width:auto;min-width:48px;height:32px;min-height:32px;padding-inline:12px;white-space:nowrap; }
 .text-review-panel .text-review-toolbar { position: static; display: flex; gap: 8px; align-items: center; justify-content: flex-end; flex-wrap: wrap; }
 .text-review-panel .text-review-filters { min-width: 0; }
 .text-review-panel .text-review-filters .ant-tabs-nav { margin-bottom: 12px; }

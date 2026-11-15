@@ -1,0 +1,13 @@
+/* Matches Geological-Map-Digitizer's recognition-canvas feature pulse. */
+.locate-pulse-shape{animation:mapvector-locate-pulse 3200ms ease-in-out 1 both;filter:drop-shadow(0 0 6px rgba(105,177,255,.4));transform-box:fill-box;transform-origin:center;pointer-events:none}
+.locate-pulse-shape.is-region-pulse{animation-name:mapvector-locate-local-pulse}
+@keyframes mapvector-locate-local-pulse{0%{opacity:.18}18%{opacity:1}36%{opacity:.34}55%{opacity:1}78%{opacity:.62}100%{opacity:0}}
+@keyframes mapvector-locate-pulse{
+ 0%{opacity:.18;transform:scale(1)}
+ 18%{opacity:1;transform:scale(1.022)}
+ 36%{opacity:.34;transform:scale(1.006)}
+ 55%{opacity:1;transform:scale(1.022)}
+ 78%{opacity:.62;transform:scale(1.01)}
+ 100%{opacity:0;transform:scale(1)}
+}
+@media(prefers-reduced-motion:reduce){.locate-pulse-shape,.locate-pulse-shape.is-region-pulse{animation:none;opacity:.85;transform:none;filter:none}}

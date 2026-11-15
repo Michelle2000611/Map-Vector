@@ -80,7 +80,7 @@ def apply_history(connection,project_id,command,timestamp):
             continue
         else:restore_relation(connection,kind,identity,None)
     complete_residue=target['operation_type']=='cleanup_text_residue' and json.loads(target['result_summary']).get('review_summary',{}).get('residue_cleanup',{}).get('complete')
-    if target['operation_type'] not in ('repair_face_geometry','apply_line_check') and not complete_residue:synchronize_candidates(connection,project_id)
+    if target['operation_type'] not in ('repair_face_geometry','apply_line_check','split_selected_faces','apply_face_merge') and not complete_residue:synchronize_candidates(connection,project_id)
     connection.execute('UPDATE operation SET operation_status=? WHERE operation_id=?',('undone' if undo else 'applied',target['operation_id']))
     feature_changes=[];relation_changes=[];upserts=[];removed=[];groups=[];styles=[];layers=[];roi=None
     for kind,identity,old,state in plans:

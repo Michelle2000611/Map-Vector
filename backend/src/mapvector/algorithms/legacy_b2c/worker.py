@@ -11,7 +11,20 @@ from . import sv_lf as LF
 from . import sv_d71 as D
 from . import sv_oracle as O
 from . import vector_writer as O2
+from . import sv_common as Cm
+from . import thin_band_protection as TB
 from .full_build import line_objects
+
+
+def _labels_with_thin_band_protection(image, q=LF.Q):
+    """Adapter kept outside the frozen sv_lf/sv_d71 modules: same quantization and colour-class
+    merge as LF.labels, but colour_classes_protecting_thin_bands keeps a small-area, elongated
+    colour (a thin strip such as a river band) from being swallowed into an adjacent large face
+    purely because their quantized colours are close in CIE76 dE terms. See
+    thin_band_protection.py for the rationale."""
+    lab, pal = Cm.quantize(image, 32)
+    _, lut, _ = TB.colour_classes_protecting_thin_bands(lab, pal, q['merge_dE'])
+    return lut[lab], O.class_palette(lab, lut, pal)
 
 
 def main(arguments=None):
@@ -20,7 +33,7 @@ def main(arguments=None):
     image=np.asarray(Image.open(source).convert('RGB'))
     shape=image.shape[:2]
     log={'multipart_split':[]}
-    labels,palette=LF.labels(image)
+    labels,palette=_labels_with_thin_band_protection(image)
     raw,lines=line_objects(image,log)
     footprint=LF.footprint(lines,shape,LF.Q['halo'])
     face_image=D.fill(labels,footprint)

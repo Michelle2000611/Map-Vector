@@ -12,7 +12,7 @@ export function geometryPath(g:Geometry):string{
  paths.set(g,value);return value;
 }
 
-const TextGlyph=memo(function TextGlyph({feature:f,opacity,selected}:{feature:TextFeature;opacity:number;selected:boolean}){
+export const TextGlyph=memo(function TextGlyph({feature:f,opacity,selected}:{feature:TextFeature;opacity:number;selected:boolean}){
  const placed=['ocr_quad_v2','ocr_ink_v3','ocr_vertical_v1','ocr_vertical_ink_v2'].includes(f.layout_basis??'')&&f.layout_width_px!=null&&f.baseline_offset_px!=null;
  const runs=f.layout_runs??[];const structured=runs.length>0;
  return <g data-feature-type="text" data-feature-id={f.feature_id} opacity={opacity} pointerEvents="none"><text x={f.geometry.coordinates[0]} y={f.geometry.coordinates[1]+(placed?f.baseline_offset_px!:0)} fontFamily={f.font_family} fontSize={f.font_size_px} textLength={placed&&!structured?f.layout_width_px!:undefined} lengthAdjust={placed&&!structured?'spacingAndGlyphs':undefined} dominantBaseline={placed?'alphabetic':'central'} textAnchor={structured?'start':'middle'} fill={selected?'#1677ff':f.text_color} transform={'rotate('+(-(f.rotation_deg??0))+','+f.geometry.coordinates.join(',')+')'}>{structured?runs.map((run,index)=><tspan key={index} data-script={run.script} x={f.geometry.coordinates[0]+run.x_offset_px} y={f.geometry.coordinates[1]+run.baseline_offset_px} fontSize={run.font_size_px} textLength={run.width_px} lengthAdjust="spacingAndGlyphs">{run.text}</tspan>):f.text_value}</text>{selected&&f.display_bbox_px&&<rect x={f.display_bbox_px[0]} y={f.display_bbox_px[1]} width={f.display_bbox_px[2]-f.display_bbox_px[0]} height={f.display_bbox_px[3]-f.display_bbox_px[1]} fill="none" stroke="#1677ff" strokeWidth={1} vectorEffect="non-scaling-stroke"/>}</g>;
@@ -21,7 +21,11 @@ const TextGlyph=memo(function TextGlyph({feature:f,opacity,selected}:{feature:Te
 const FeatureGlyph=memo(function FeatureGlyph({feature:f,style,opacity,selected,background}:{feature:Feature;style:Style|undefined;opacity:number;selected:boolean;background:string}){
  if(f.feature_type==='text')return <TextGlyph feature={f} opacity={opacity} selected={selected}/>;
  if(f.feature_type==='line')return <LineGlyph feature={f} style={style} selected={selected} opacity={opacity}/>;
- return <path data-feature-type="face" pointerEvents="none" d={geometryPath(f.geometry)} fill={background.startsWith('residual')?'none':f.feature_type==='face'?f.fill_color:'none'} fillOpacity={background==='blank'?1:.55} fillRule="evenodd" opacity={opacity} stroke={selected?'#1677ff':background.startsWith('residual')?'#6b7b8c':'none'} strokeWidth={1} vectorEffect="non-scaling-stroke"/>;
+ const residual=background.startsWith('residual');
+ const borderColor=(f.style_override?.stroke_color as string|undefined)??style?.stroke_color??undefined;
+ const borderWidth=(f.style_override?.stroke_width_px as number|undefined)??style?.stroke_width_px??0;
+ const border=!selected&&!residual&&borderColor&&borderWidth>0;
+ return <path data-feature-type="face" pointerEvents="none" d={geometryPath(f.geometry)} fill={residual?'none':f.fill_color} fillOpacity={background==='blank'?1:.55} fillRule="evenodd" opacity={opacity} stroke={selected?'#1677ff':residual?'#6b7b8c':border?borderColor:'none'} strokeWidth={border?borderWidth:1} vectorEffect={border?undefined:'non-scaling-stroke'}/>;
 });
 
 export const FeatureScene=memo(function FeatureScene({features,styles,layers,background}:{features:Feature[];styles:Style[];layers:{layer_type:string;opacity:number}[];background:string}){

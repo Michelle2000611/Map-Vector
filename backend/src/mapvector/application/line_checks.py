@@ -1,19 +1,22 @@
 """Materialized read snapshots, short preview writes, and line-only change plans."""
 import copy
+import hashlib
 import json
 from datetime import datetime, timedelta, timezone
-from typing import Literal
+from pathlib import Path
+from typing import Any, Literal
 from uuid import uuid4
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
-from shapely import from_wkb
+from PIL import Image
+from shapely import STRtree, from_wkb
 from shapely.geometry import LineString, mapping
 
 from mapvector.application.ports import load_feature
 from mapvector.application.review import text_decision
 from mapvector.domain.commands import UUIDString
 from mapvector.domain.errors import CommandConflict
-from mapvector.geometry.line_checks import ALGORITHM_REVISION, diagnose, digest
+from mapvector.geometry.line_checks import ALGORITHM_REVISION, MAX_RASTER_IMAGE_PIXELS, diagnose, digest
 
 
 class LineCheckRequest(BaseModel):
@@ -23,6 +26,18 @@ class LineCheckRequest(BaseModel):
     max_gap_px: float = Field(default=8, ge=0, le=50)
     angle_tolerance_deg: float = Field(default=15, ge=1, le=45)
     max_short_length_px: float = Field(default=12, ge=1, le=100)
+    mode: Literal['automatic', 'manual'] = 'automatic'
+    manual_feature_ids: list[UUIDString] = Field(default_factory=list, max_length=2)
+    manual_connector_px: list[tuple[float, float]] | None = Field(default=None, min_length=2, max_length=1000)
+
+    @model_validator(mode='after')
+    def manual_scope(self):
+        if self.mode == 'manual':
+            if len(self.manual_feature_ids) != 2 or len(set(self.manual_feature_ids)) != 2:
+                raise ValueError('Manual continuation requires exactly two unique line identities')
+        elif self.manual_feature_ids or self.manual_connector_px is not None:
+            raise ValueError('Manual continuation parameters require manual mode')
+        return self
 
 
 class LineCheckDecision(BaseModel):
@@ -52,6 +67,9 @@ class LineCheckCandidate(BaseModel):
     status: Literal['pending', 'kept']
     review_required: bool
     allowed_action: Literal['join', 'isolate', 'group']
+    connection_mode: Literal['automatic', 'manual'] = 'automatic'
+    connector_kind: Literal['straight', 'smooth', 'manual'] = 'straight'
+    evidence: dict[str, Any] = Field(default_factory=dict)
 
 
 class LineCheckHistory(LineCheckCandidate):
@@ -68,6 +86,8 @@ class LineCheckReport(BaseModel):
     algorithm_revision: str
     expires_at: str
     input_sha256: str
+    mode: Literal['automatic', 'manual'] = 'automatic'
+    request_sha256: str
     candidates: list[LineCheckCandidate]
     history: list[LineCheckHistory]
     summary: dict[str, int | bool]
@@ -83,14 +103,14 @@ def _scope(connection, project_id, asset_id, revision):
     if current is None: raise KeyError(project_id)
     if current['working_revision'] != revision: raise CommandConflict('REVISION_CONFLICT', {'working_revision':current['working_revision']})
     if current['current_asset_id'] != asset_id: raise CommandConflict('ASSET_RESULT_MISMATCH')
-    asset = connection.execute('SELECT asset_id,project_id,width_px,height_px,raster_sha256 FROM asset WHERE asset_id=? AND project_id=?',(asset_id,project_id)).fetchone()
+    asset = connection.execute('SELECT asset_id,project_id,width_px,height_px,raster_sha256,raster_rel_path FROM asset WHERE asset_id=? AND project_id=?',(asset_id,project_id)).fetchone()
     if asset is None: raise CommandConflict('ASSET_RESULT_MISMATCH')
     return dict(asset)
 
 
 def snapshot(connection, project_id, asset_id, revision):
     asset = _scope(connection,project_id,asset_id,revision)
-    # Bulk load lines. No faces and no image data are loaded for line diagnostics.
+    # Materialize references only; image decoding and candidate work happen after closing the read.
     lines = []
     for row in connection.execute("SELECT f.*,l.* FROM feature f JOIN line_attribute l USING(feature_id) WHERE f.project_id=? AND f.asset_id=? AND f.lifecycle_status='active' ORDER BY f.feature_id",(project_id,asset_id)):
         line=dict(row); geometry=from_wkb(line.pop('geometry_wkb')); line['geometry']=json.loads(json.dumps(mapping(geometry))); lines.append(line)
@@ -110,7 +130,43 @@ def snapshot(connection, project_id, asset_id, revision):
     styles={row['style_id']:dict(row) for row in connection.execute("SELECT * FROM style WHERE project_id=? AND feature_type='line' ORDER BY style_id",(project_id,))}
     layer=connection.execute("SELECT default_style_id FROM layer_setting WHERE project_id=? AND asset_id=? AND layer_type='line'",(project_id,asset_id)).fetchone()
     bindings={row['feature_id']:row['style_id'] for row in connection.execute('SELECT fs.* FROM feature_style fs JOIN feature f USING(feature_id) WHERE f.project_id=? AND f.asset_id=? AND f.feature_type=?',(project_id,asset_id,'line'))}
-    return {'asset':asset,'lines':lines,'texts':texts,'groups':groups,'styles':styles,'style_bindings':bindings,'default_style_id':layer['default_style_id'] if layer else None}
+    source, path = _raster_source(connection, asset)
+    return {'asset':asset,'lines':lines,'texts':texts,'groups':groups,'styles':styles,'style_bindings':bindings,
+            'default_style_id':layer['default_style_id'] if layer else None, 'raster_source':source, '_raster_path':path}
+
+
+def _raster_source(connection, asset):
+    """Hash the actual local original so an externally changed image invalidates previews."""
+    database = next((row[2] for row in connection.execute('PRAGMA database_list') if row[1] == 'main'), '')
+    if not database:
+        return {'status':'unavailable'}, None
+    directory = Path(database).resolve().parents[1]
+    path = (directory / asset['raster_rel_path']).resolve()
+    if not path.is_relative_to(directory):
+        return {'status':'unavailable'}, None
+    try:
+        checksum = hashlib.sha256()
+        with path.open('rb') as source:
+            for chunk in iter(lambda:source.read(1024 * 1024), b''):
+                checksum.update(chunk)
+        actual = checksum.hexdigest()
+    except OSError:
+        return {'status':'unavailable'}, str(path)
+    return {'status':'available' if actual == asset['raster_sha256'] else 'mismatch', 'sha256':actual}, str(path)
+
+
+def _raster_image(materialized):
+    if materialized.get('raster_source', {}).get('status') != 'available':
+        return None
+    try:
+        image = Image.open(materialized['_raster_path'])
+        asset = materialized['asset']
+        if image.size != (asset['width_px'], asset['height_px']) or image.size[0] * image.size[1] > MAX_RASTER_IMAGE_PIXELS:
+            image.close()
+            return None
+        return image
+    except (OSError, ValueError, Image.DecompressionBombError):
+        return None
 
 
 def _public(candidate):
@@ -146,10 +202,17 @@ def create_preview(database,project_id,request):
         connection.execute('BEGIN')
         materialized=snapshot(connection,project_id,request.asset_id,request.base_revision)
         previous=history(connection,project_id,request.asset_id)
-    result=diagnose(materialized,request)
+    if request.mode == 'manual' and not set(request.manual_feature_ids).issubset(line['feature_id'] for line in materialized['lines']):
+        raise CommandConflict('SELECTION_SCOPE_INVALID')
+    image = _raster_image(materialized)
+    try:
+        result=diagnose(materialized,request,image)
+    finally:
+        if image is not None:image.close()
     expires=(datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat()
     stored={'preview_id':str(uuid4()),'asset_id':request.asset_id,'base_revision':request.base_revision,
             'algorithm_revision':ALGORITHM_REVISION,'expires_at':expires,'input_sha256':digest(materialized),
+            'mode':request.mode,'request_sha256':digest(request.model_dump(mode='json')),
             'candidates':result['candidates'],'history':previous,'summary':result['summary']}
     with database.transaction() as connection:
         _scope(connection,project_id,request.asset_id,request.base_revision)
@@ -166,8 +229,21 @@ def _validated_report(connection,project_id,request):
     report=json.loads(row['result_json'])
     if report.get('algorithm_revision')!=ALGORITHM_REVISION or report.get('asset_id')!=request.asset_id:raise CommandConflict('PREVIEW_TYPE_MISMATCH')
     if digest(snapshot(connection,project_id,request.asset_id,request.base_revision))!=row['input_sha256']:raise CommandConflict('PREVIEW_STALE')
+    preview_request = LineCheckRequest.model_validate_json(row['request_json'])
+    if report.get('request_sha256') != digest(preview_request.model_dump(mode='json')) or report.get('mode') != preview_request.mode:
+        raise CommandConflict('PREVIEW_TYPE_MISMATCH')
     by_id={item['candidate_id']:item for item in report['candidates']}
     if any(identity not in by_id for identity in request.candidate_ids):raise CommandConflict('LINE_CHECK_CANDIDATE_INVALID')
+    for identity in request.candidate_ids:
+        candidate = by_id[identity]
+        if candidate.get('connection_mode', 'automatic') == 'manual':
+            authorization = candidate.get('_plan', {}).get('manual_authorization', {})
+            expected = {'mode':'manual','feature_ids':sorted(preview_request.manual_feature_ids),
+                        'connector_sha256':digest(candidate['connectors'])}
+            if (preview_request.mode != 'manual' or candidate['kind'] != 'join_gap'
+                    or sorted(candidate['feature_ids']) != expected['feature_ids'] or authorization != expected):
+                raise CommandConflict('PREVIEW_TYPE_MISMATCH')
+        elif preview_request.mode != 'automatic':raise CommandConflict('PREVIEW_TYPE_MISMATCH')
     return report,[by_id[identity] for identity in request.candidate_ids]
 
 
@@ -179,6 +255,26 @@ def decide(database,project_id,request):
             connection.execute('INSERT INTO line_check_decision VALUES (?,?,?,?,?,?,?) ON CONFLICT(project_id,asset_id,candidate_id) DO UPDATE SET evidence_sha256=excluded.evidence_sha256,decision=excluded.decision,updated_at=excluded.updated_at,preview_id=excluded.preview_id',
                 (project_id,request.asset_id,candidate['candidate_id'],candidate['_evidence_sha256'],request.decision,timestamp,request.preview_id))
     return {'candidate_ids':request.candidate_ids,'decision':request.decision}
+
+
+def _validate_connector_batch(selected, originals):
+    """Protect the final combined topology before planning any mutation."""
+    bridges = []
+    for candidate in selected:
+        half_width = max(originals[identity]['stroke_width_px'] for identity in candidate['feature_ids']) / 2
+        for connector in candidate['connectors']:
+            bridges.append((candidate['candidate_id'], LineString(connector), half_width))
+    if len(bridges) < 2:return
+    tree = STRtree([bridge[1] for bridge in bridges])
+    largest = max(bridge[2] for bridge in bridges)
+    for index, (identity, geometry, half_width) in enumerate(bridges):
+        for other in tree.query(geometry.buffer(half_width + largest + 1e-9)):
+            other = int(other)
+            if other <= index or bridges[other][0] == identity:continue
+            other_identity, other_geometry, other_half_width = bridges[other]
+            if geometry.distance(other_geometry) <= half_width + other_half_width + 1e-9:
+                raise CommandConflict('LINE_CHECK_CANDIDATE_BLOCKED',
+                    {'candidate_ids':[identity,other_identity], 'reason_codes':['CROSSES_SELECTED_CONNECTOR']})
 
 
 def plan_changes(connection,project_id,command,timestamp):
@@ -203,6 +299,13 @@ def plan_changes(connection,project_id,command,timestamp):
     originals={identity:load_feature(connection,identity) for identity in seen}
     for feature in originals.values():
         if (feature['project_id'],feature['asset_id'],feature['feature_type'],feature['lifecycle_status'])!=(project_id,command.asset_id,'line','active'):raise CommandConflict('SELECTION_SCOPE_INVALID')
+    for candidate in selected:
+        # Explicit manual continuation authorizes joining these two members only;
+        # isolation and automatic processing retain the original hard protections.
+        if candidate.get('connection_mode', 'automatic') == 'manual' and command.action == 'join':continue
+        if any(originals[identity]['source_type'] == 'manual' or originals[identity]['line_role'] == 'split' for identity in candidate['feature_ids']):
+            raise CommandConflict('LINE_CHECK_CANDIDATE_BLOCKED')
+    if command.action == 'join':_validate_connector_batch(selected, originals)
     changes=[];relations=[];groups=[];lineages=[]
     revision=command.base_revision+1
     for candidate in selected:
@@ -233,6 +336,7 @@ def plan_changes(connection,project_id,command,timestamp):
             old=originals[keep];bounds=geometry.bounds
             new={**copy.deepcopy(old),'geometry':json.loads(json.dumps(mapping(geometry))),'geometry_type':'LineString','bbox_min_x_px':bounds[0],'bbox_min_y_px':bounds[1],
                  'bbox_max_x_px':bounds[2],'bbox_max_y_px':bounds[3],'length_px':geometry.length,'revision':revision,'updated_at':timestamp}
+            if any(originals[identity]['source_type'] == 'manual' for identity in identities):new['source_type'] = 'manual'
             changes.append((old,new))
             for identity in (identity for identity in order if identity!=keep):
                 old=originals[identity];changes.append((old,{**copy.deepcopy(old),'lifecycle_status':'superseded','revision':revision,'updated_at':timestamp}))

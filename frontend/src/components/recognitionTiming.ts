@@ -1,8 +1,9 @@
 import type {JobEvent,Run} from '../services/models';
 
 export const recognitionStageNames:Record<string,string>={vectorize:'面线识别',ocr:'文字识别',ocr_rapid:'RapidOCR 识别',ocr_paddle:'PaddleOCR 识别'};
+const category=(id:string)=>id==='vectorize'?'面、线':id==='ocr'||id.startsWith('ocr_')?'文字':'未知阶段';
 const activeStatuses=new Set(['queued','starting','running','cancelling']);
-type TimingRun=Pick<Run,'run_id'|'run_status'|'started_at'|'finished_at'|'elapsed_ms'|'stage_name'>;
+type TimingRun=Pick<Run,'run_id'|'run_status'|'started_at'|'finished_at'|'elapsed_ms'|'stage_name'>&{pipeline_id?:string};
 type StageClock={id:string;startedAt:number|null;endedAt:number|null;measuredMs:number|null;ended:boolean;sequence:number};
 function timestamp(value:unknown):number|null{if(typeof value!=='string')return null;const parsed=Date.parse(value);return Number.isFinite(parsed)?parsed:null;}
 function duration(value:unknown):number|null{return typeof value==='number'&&Number.isFinite(value)&&value>=0?value:null;}
@@ -29,9 +30,25 @@ export function recognitionTiming(run:TimingRun,events:JobEvent[],now:number){
  }
  const all=[...clocks.values()],running=all.filter(clock=>!clock.ended);
  const selected=active&&run.stage_name&&!clocks.has(run.stage_name)?[{id:run.stage_name,startedAt:null,endedAt:null,measuredMs:null,ended:false,sequence:0}]:running.length?running:all.length?[all.reduce((latest,clock)=>clock.sequence>latest.sequence?clock:latest)]:[];
- const stages=selected.map(clock=>({name:recognitionStageNames[clock.id]??'未知阶段',elapsedMs:clock.measuredMs??difference(clock.ended?clock.endedAt:active?now:endedAt,clock.startedAt)}));
- const currentLabel=stages.map(stage=>stage.name).join(' + ')||(run.stage_name?recognitionStageNames[run.stage_name]??'未知阶段':'—');
- return {currentLabel,stages,overallElapsedMs:overallElapsedMs??null};
+ const clockElapsed=(clock:StageClock)=>clock.measuredMs??difference(clock.ended?clock.endedAt:active?now:endedAt,clock.startedAt);
+ const engineStages=all.filter(clock=>category(clock.id)==='文字').map(clock=>({name:clock.id==='ocr'?(run.pipeline_id?.endsWith('_paddle')?'PaddleOCR 识别':run.pipeline_id?.endsWith('_rapid')?'RapidOCR 识别':'文字识别'):recognitionStageNames[clock.id]??'文字识别',elapsedMs:clockElapsed(clock)}));
+ const stages=[...new Set(selected.map(clock=>category(clock.id)))].map(name=>{
+  const current=selected.filter(clock=>category(clock.id)===name);
+  const members=all.filter(clock=>category(clock.id)===name);
+  // A category cannot be timed when the selected engine's start is missing.
+  if(current.some(clock=>clock.startedAt===null))return {name,elapsedMs:null};
+  const jointHandoff=name==='文字'&&run.pipeline_id?.endsWith('_combined')&&members.length===1&&members[0].ended;
+  if(name==='文字'&&current.every(clock=>clock.ended)&&(active||jointHandoff&&['cancelled','interrupted','failed'].includes(run.run_status))){
+   return {name,elapsedMs:members.some(clock=>clock.startedAt===null)?null:difference(active?now:endedAt,Math.min(...members.map(clock=>clock.startedAt!)))};
+  }
+  if(members.length<=1)return {name,elapsedMs:clockElapsed(current[0])};
+  if(members.some(clock=>clock.startedAt===null||clock.ended&&clock.endedAt===null))return {name,elapsedMs:null};
+  const start=Math.min(...members.map(clock=>clock.startedAt!));
+  const finish=members.some(clock=>!clock.ended)?active?now:endedAt:Math.max(...members.map(clock=>clock.endedAt!));
+  return {name,elapsedMs:difference(finish,start)};
+ });
+ const currentLabel=stages.map(stage=>stage.name).join(' + ')||(run.stage_name?category(run.stage_name):'—');
+ return {currentLabel,stages,engineStages,overallElapsedMs:overallElapsedMs??null};
 }
 
 export function formatRecognitionDuration(value:number|null){return duration(value)===null?'—':(value!/1000).toFixed(1)+' 秒';}

@@ -4,6 +4,18 @@ from mapvector.application.ports import ProjectDatabase,sha256_file
 from mapvector.domain.errors import CommandConflict
 from mapvector.configuration.settings import Settings
 
+STYLE_KEYS={'face':('fill_color','stroke_color','stroke_width_px'),'line':('stroke_color','stroke_width_px','line_pattern','dash_pattern_px','tooth_spacing_px','tooth_height_px','tooth_side')}
+
+
+def effective_style(feature,styles):
+    legend=next((style for style in styles if style['style_id']==feature['style_id']),{})
+    override=feature.get('style_override') or {}
+    value={'feature_id':feature['feature_id'],'style_id':feature['style_id'],'style_override':bool(override)}
+    for key in STYLE_KEYS[feature['feature_type']]:
+        value[key]=override.get(key,legend.get(key,feature.get(key)))
+    if isinstance(value.get('dash_pattern_px'),str):value['dash_pattern_px']=json.loads(value['dash_pattern_px'])
+    return value
+
 
 def delivery_package(directory,project_id,export_id):
     from mapvector.application.commands import CommandService
@@ -28,7 +40,7 @@ def delivery_package(directory,project_id,export_id):
     features=scoped_features(features,export['scope_mode'],dict(roi) if roi else None)
     def layer(f):return ('text_confirmed' if text_released(f,policy['policy_id']) else 'text_unconfirmed') if f['feature_type']=='text' else 'isolated_line' if f['lifecycle_status']=='isolated' else f['feature_type']
     selected=[f for f in features if layer(f) in layers]
-    manifest={'schema_revision':'1.0','project_id':project_id,'snapshot_id':snapshot['snapshot_id'],'working_revision':snapshot['working_revision'],'asset_id':asset['asset_id'],'coordinate_space':asset['coordinate_mode'],'crs_wkt':asset['crs_wkt'],'pixel_to_map_affine':json.loads(asset['pixel_to_map_affine']) if asset['pixel_to_map_affine'] else None,'raster_sha256':asset['raster_sha256'],'export_file':output.name,'export_sha256':export['output_sha256'],'format':export['export_format'],'policy':policy,'layers':layers,'styles':styles,'text_features':[f for f in selected if f['feature_type']=='text'],'line_styles':[{'feature_id':f['feature_id'],'style_id':f['style_id'],'stroke_color':f['stroke_color'],'stroke_width_px':f['stroke_width_px']} for f in selected if f['feature_type']=='line'],'units':{'geometry':'source_pixel' if asset['coordinate_mode']=='pixel' else 'CRS_units (GeoJSON is WGS84 degrees)','font_size_px':'source_pixel','stroke_width_px':'source_pixel','rotation_deg':'degrees_counterclockwise_in_source_image','layout_runs':'source_pixel_offsets'},'arcgis_validation':{'status':'not_run','reason':'Run the included script in a licensed ArcGIS Pro Python environment; GDAL readback is not ArcGIS visual acceptance'}}
+    manifest={'schema_revision':'1.0','project_id':project_id,'snapshot_id':snapshot['snapshot_id'],'working_revision':snapshot['working_revision'],'asset_id':asset['asset_id'],'coordinate_space':asset['coordinate_mode'],'crs_wkt':asset['crs_wkt'],'pixel_to_map_affine':json.loads(asset['pixel_to_map_affine']) if asset['pixel_to_map_affine'] else None,'raster_sha256':asset['raster_sha256'],'export_file':output.name,'export_sha256':export['output_sha256'],'format':export['export_format'],'policy':policy,'layers':layers,'styles':styles,'text_features':[f for f in selected if f['feature_type']=='text'],'line_styles':[effective_style(f,styles) for f in selected if f['feature_type']=='line'],'face_styles':[effective_style(f,styles) for f in selected if f['feature_type']=='face'],'units':{'geometry':'source_pixel' if asset['coordinate_mode']=='pixel' else 'CRS_units (GeoJSON is WGS84 degrees)','font_size_px':'source_pixel','stroke_width_px':'source_pixel','rotation_deg':'degrees_counterclockwise_in_source_image','layout_runs':'source_pixel_offsets'},'arcgis_validation':{'status':'not_run','reason':'Run the included script in a licensed ArcGIS Pro Python environment; GDAL readback is not ArcGIS visual acceptance'}}
     manifest['feature_ids_by_layer']={name:[f['feature_id'] for f in selected if layer(f)==name] for name in {layer(f) for f in selected}}
     readme='''Map-Vector GIS 交付包
 推荐使用 GPKG 保存完整字段。Shapefile 长字段截断请同时读取 property_manifest.json 和 field_mapping.json。

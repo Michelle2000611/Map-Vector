@@ -34,10 +34,10 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
  const prefix='/projects/'+project.project_id,scope=JSON.stringify([project.project_id,asset.asset_id,session]),ticket=JSON.stringify([scope,project.working_revision]);
  const panel=useRef<HTMLDivElement>(null),visible=useReviewPanelVisible(panel);
  const [loadedTicket,setLoadedTicket]=useState<string|null>(null),[showOriginal,setShowOriginal]=useState(false),[showScore,setShowScore]=useState(false);
- const autoInspection=useRef<string|null>(null);
+ const [checkAttempted,setCheckAttempted]=useState(false),[checking,setChecking]=useState(false);
  const currentScope=useRef(scope),currentTicket=useRef(ticket),currentRevision=useRef(project.working_revision),queueRequest=useRef(0),inspectionRequest=useRef(0),mounted=useRef(false);currentScope.current=scope;currentTicket.current=ticket;currentRevision.current=project.working_revision;
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;queueRequest.current+=1;};},[]);
- useEffect(()=>{setFilter('required');setPage(1);setThreshold(90);setMoreOpen(false);setRows([]);setCandidates([]);setLoadedTicket(null);setOnlySuspects(false);setSelected([]);},[scope]);
+ useEffect(()=>{setFilter('required');setPage(1);setThreshold(90);setMoreOpen(false);setRows([]);setCandidates([]);setLoadedTicket(null);setOnlySuspects(false);setSelected([]);setCheckAttempted(false);setChecking(false);},[scope]);
  async function load(){
   if(!mounted.current||currentScope.current!==scope)return;
   const requestedTicket=currentTicket.current,requestedRevision=currentRevision.current,serial=++queueRequest.current;
@@ -48,11 +48,11 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
   setRows(queue.items);setCandidates(ocr.items);setLoadedTicket(requestedTicket);
  }
  useEffect(()=>{let active=true;setError('');void load().catch(e=>{if(active&&e.name!=='AbortError')setError(String(e));});return()=>{active=false;queueRequest.current+=1;};},[ticket]);
- useEffect(()=>{setInspection(null);setInspectionError('');inspectionRequest.current+=1;},[ticket]);
+ useEffect(()=>{setInspection(null);setInspectionError('');setChecking(false);setSelected([]);setMoreOpen(false);inspectionRequest.current+=1;},[ticket]);
  async function runCommand(input:CommandInput){await work(async()=>{const result=await command(input);if(result&&mounted.current&&currentScope.current===scope)await load();});}
  async function inspectReport(){
   const requestedTicket=currentTicket.current,requestedRevision=currentRevision.current,serial=++inspectionRequest.current;
-  setInspection(null);setInspectionError('');
+  setInspection(null);setInspectionError('');setSelected([]);setChecking(true);
   try{
    const result=await request<Report>(prefix+'/text-layer-assessments?asset_id='+asset.asset_id);
    if(!mounted.current||currentTicket.current!==requestedTicket||serial!==inspectionRequest.current)return;
@@ -60,9 +60,9 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
    if(!result.items.length&&(rows.length||result.summary.text_count)){setInspectionError('检查结果缺少文字数据，请重新检查全图残影。');return;}
    setInspection({ticket:requestedTicket,report:result});
   }catch(e){if(mounted.current&&currentTicket.current===requestedTicket&&serial===inspectionRequest.current)setInspectionError('残影检查失败：'+String(e));}
+  finally{if(mounted.current&&currentTicket.current===requestedTicket&&serial===inspectionRequest.current)setChecking(false);}
  }
- async function inspect(){await work(inspectReport);}
- useEffect(()=>{if(visible&&autoInspection.current!==ticket){autoInspection.current=ticket;void inspectReport();}},[visible,ticket]);
+ async function inspect(){if(busy||checking)return;const expectedScope=scope;setCheckAttempted(true);await work(async()=>{if(mounted.current&&currentScope.current===expectedScope)await inspectReport();});}
  function changeFilter(next:Filter){setFilter(next);setPage(1);setSelected([]);}
  function deleteSelected(){
   const ids=[...selected],requestedScope=scope,requestedTicket=ticket;
@@ -80,32 +80,37 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
   })});
  }
  const report=inspection?.ticket===ticket&&inspection.report.working_revision===project.working_revision?inspection.report:null;
+ const resultsReady=!!report&&loadedTicket===ticket;
  const assessments=new Map(report?.items.map(item=>[item.text_feature_id,item]));
  const counts:Record<Filter,number>={required:rows.filter(needsReview).length,skipped:rows.filter(f=>f.review_status==='skipped').length,confirmed:rows.filter(f=>f.review_status==='confirmed').length,all:rows.length};
  const visibleRows=rows.filter(f=>matchesTextReviewFilter(f,filter)&&(!report||!onlySuspects||assessments.get(f.feature_id)?.cleanup_status==='review_required'));
  const visiblePageKey=JSON.stringify(visibleRows.slice((page-1)*8,page*8).map(row=>row.feature_id));
  useEffect(()=>{const available=new Set<string>(JSON.parse(visiblePageKey));setSelected(current=>current.filter(id=>available.has(id)));},[visiblePageKey]);
  useEffect(()=>{setPage(current=>Math.min(current,Math.max(1,Math.ceil(visibleRows.length/8))));},[visibleRows.length]);
- const highlightedId=useTextReviewReveal({request:revealRequest,ticket,rows,loadedTicket,visible,panel,filter,setFilter,setOnlySuspects,setPage});
+ const revealedId=useTextReviewReveal({request:revealRequest,ticket,rows,loadedTicket,visible:visible&&resultsReady,panel,filter,setFilter,setOnlySuspects,setPage});
+ const [located,setLocated]=useState<{ticket:string;id:string;revealTicket?:number}|null>(null);
+ const highlightedId=located?.ticket===ticket&&located.revealTicket===revealRequest?.ticket?located.id:revealedId;
  const unused=candidates.filter(c=>!c.text_feature_id);
  const columns:TableColumnsType<TextFeature>=[
-  {title:'文字',dataIndex:'text_value',width:240,fixed:'left',render:(value:string,f:TextFeature)=><div className="text-review-text-cell"><span className="text-review-value">{value||'（空文字）'}</span><div className="text-review-scripts">{(f.layout_runs??[]).filter(r=>r.script!=='normal'||r.review_required).map((r,i)=><Tag className={r.review_required?'text-review-script-warning':undefined} key={i} color={r.review_required?'orange':'blue'}>{r.script==='subscript'?'下标':r.script==='superscript'?'上标':'排版'} {r.text}{r.review_required?' · 待核对':''}</Tag>)}</div>{(f.review_reason_codes.some(r=>!r.startsWith('soft:'))||f.review_status==='manual_edited')&&<small className="text-review-reasons">{f.review_reason_codes.filter(r=>!r.startsWith('soft:')).map(r=>reasons[r]??r).join('；')||'修改后的文字需人工确认'}</small>}</div>},
+  {title:'文字',dataIndex:'text_value',width:240,fixed:'left',render:(value:string,f:TextFeature)=><div className="text-review-text-cell"><span className="text-review-value">{value||'（空文字）'}</span><div className="text-review-scripts">{(f.layout_runs??[]).filter(r=>r.script!=='normal'||r.review_required).map((r,i)=><Tag className={r.review_required?'text-review-script-warning':undefined} key={i} color={r.review_required?'orange':'blue'}>{r.script==='subscript'?'下标':r.script==='superscript'?'上标':'排版'} {r.text}{r.review_required?' · 待核对':''}</Tag>)}</div></div>},
   ...(showOriginal?[{title:'原始候选',dataIndex:'original_text',width:160,render:(value:string)=><span className="text-review-value">{value||'—'}</span>}]:[]),
   ...(showScore?[{title:'识别分数',width:100,render:(_:unknown,f:TextFeature)=>score(f.ocr_score)}]:[]),
   {title:'核对状态',width:170,render:(_,f)=>labels[f.review_status]??f.review_status},
   {title:'残影',width:180,render:(_,f)=>residueEvidence(assessments.get(f.feature_id))},
-  {title:'操作',width:onConfirmNext?210:80,fixed:'right',render:(_,f)=><div className="text-review-row-actions"><Button disabled={busy} onClick={()=>focus(f.feature_id)}>查看</Button>{onConfirmNext&&f.review_status!=='confirmed'&&<Button disabled={busy} onClick={()=>onConfirmNext(f.feature_id)}>确认并下一条</Button>}</div>}
+  {title:'原因',width:210,render:(_,f)=><div className="inspection-reasons">{[...new Set([...f.review_reason_codes.filter(code=>!code.startsWith('soft:')),...(assessments.get(f.feature_id)?.reasons??[])])].map(code=><span key={code}>{reasons[code]??code}</span>)}{f.review_status==='manual_edited'&&!f.review_reason_codes.length&&<span>修改后的文字需人工确认</span>}</div>},
+  {title:'涉及对象',width:160,render:(_,f)=>{const assessment=assessments.get(f.feature_id);return <div className="inspection-objects"><span title={f.feature_id}>文字 {f.feature_id.slice(0,8)}</span>{assessment?.suspected_face_ids.map(id=><span key={id} title={id}>面 {id.slice(0,8)}</span>)}{assessment?.suspected_line_ids.map(id=><span key={id} title={id}>线 {id.slice(0,8)}</span>)}{assessment?.protected_line_ids.map(id=><span key={id} title={id}>待核对线 {id.slice(0,8)}</span>)}</div>;}},
+  {title:'操作',width:onConfirmNext?210:80,fixed:'right',render:(_,f)=><div className="text-review-row-actions"><Button disabled={busy} onClick={()=>{setLocated({ticket,id:f.feature_id,revealTicket:revealRequest?.ticket});focus(f.feature_id);}}>查看</Button>{onConfirmNext&&f.review_status!=='confirmed'&&<Button disabled={busy} onClick={()=>onConfirmNext(f.feature_id)}>确认并下一条</Button>}</div>}
  ];
  return <div ref={panel} className="text-review-panel">
   <div className="text-review-toolbar" aria-label="文字核对工具">
-   <Button disabled={busy} onClick={()=>void inspect()}>检查全图残影</Button>
-   <Popover trigger="click" placement="bottomRight" content={<div className="text-review-column-options" role="group" aria-label="显示列"><Checkbox checked={showOriginal} onChange={event=>setShowOriginal(event.target.checked)}>原始候选</Checkbox><Checkbox checked={showScore} onChange={event=>setShowScore(event.target.checked)}>识别分数</Checkbox></div>}><Button>显示列</Button></Popover>
+   <Button disabled={busy||checking} onClick={()=>void inspect()}>{checkAttempted?'重新检查':'开始检查'}</Button>
+   {resultsReady&&<><Popover trigger="click" placement="bottomRight" content={<div className="text-review-column-options" role="group" aria-label="显示列"><Checkbox checked={showOriginal} onChange={event=>setShowOriginal(event.target.checked)}>原始候选</Checkbox><Checkbox checked={showScore} onChange={event=>setShowScore(event.target.checked)}>识别分数</Checkbox></div>}><Button>显示列</Button></Popover>
    <Button aria-expanded={moreOpen} aria-controls="text-review-more" onClick={()=>setMoreOpen(value=>!value)}>更多</Button>
-   <Button disabled={busy} onClick={()=>void work(load)}>刷新</Button>
+   <Button disabled={busy} onClick={()=>void work(load)}>刷新</Button></>}
   </div>
   {error&&<Alert type="error" message={error}/>}
-  <Tabs className="text-review-filters" aria-label="按核对状态筛选" type="line" size="small" activeKey={filter} onChange={key=>changeFilter(key as Filter)} items={filters.map(item=>({key:item.value,label:item.label+' '+counts[item.value]}))}/>
   {inspectionError&&<Alert type="error" message={inspectionError}/>}
+  {resultsReady&&<><Tabs className="text-review-filters" aria-label="按核对状态筛选" type="line" size="small" activeKey={filter} onChange={key=>changeFilter(key as Filter)} items={filters.map(item=>({key:item.value,label:item.label+' '+counts[item.value]}))}/>
   {report&&<div className="text-review-inspection-summary" aria-label="全图残影检查结果"><span>检查 {report.summary.text_count} 条 · 疑似 {report.summary.cleanup_review_required} 处</span><Checkbox checked={onlySuspects} onChange={e=>{setOnlySuspects(e.target.checked);setPage(1);setSelected([]);}}>仅看疑似残影</Checkbox></div>}
   {selected.length>0&&<div className="text-review-selection" aria-label="所选文字操作"><span>已选 {selected.length} 项</span><Button danger disabled={busy} onClick={deleteSelected}>删除所选文字</Button><Button disabled={busy} onClick={()=>setSelected([])}>清空选择</Button><small>仅选择当前页；翻页或切换筛选会清空选择。</small></div>}
   <div id="text-review-more" className="text-review-more" hidden={!moreOpen}>
@@ -113,6 +118,7 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
    <p className="review-note">模型分数不是正确率；自动通过的文字仍未人工确认。</p>
    <details className="ocr-candidate-details"><summary>未采用的识别结果（{unused.length}）</summary><Table rowKey="candidate_id" size="small" dataSource={unused} pagination={{pageSize:8}} scroll={{x:650}} columns={[{title:'原文',dataIndex:'raw_text'},{title:'识别分数',render:(_,c:Candidate)=>score(c.score)},{title:'引擎 / 模型',render:(_:unknown,c:Candidate)=>(c.engine_id||'—')+' / '+(c.model_id||'—')},{title:'建议',render:(_:unknown,c:Candidate)=>c.rule_suggestions.map(r=>typeof r==='object'&&r!==null&&'reason_codes' in r&&Array.isArray(r.reason_codes)?r.reason_codes.join('；'):'').filter(Boolean).join('；')||'需对照原图'},{title:'操作',render:(_,c:Candidate)=><Button disabled={busy} onClick={()=>void runCommand({operation_type:'adopt_ocr_candidate',candidate_id:c.candidate_id})}>保存为文字</Button>}]}/></details>
   </div>
-  <Table className="text-review-table" rowKey="feature_id" size="small" tableLayout="fixed" dataSource={visibleRows} rowClassName={row=>row.feature_id===highlightedId?'text-review-revealed':''} onRow={row=>({'aria-selected':row.feature_id===highlightedId})} rowSelection={{selectedRowKeys:selected,onChange:keys=>setSelected(keys.map(String)),columnWidth:40,fixed:true,getCheckboxProps:()=>({disabled:busy})}} pagination={{pageSize:8,current:page,onChange:next=>{setPage(next);setSelected([]);},showSizeChanger:false}} scroll={{x:(onConfirmNext?840:710)+(showOriginal?160:0)+(showScore?100:0)}} columns={columns}/>
+  <Table className="text-review-table" rowKey="feature_id" size="small" tableLayout="fixed" dataSource={visibleRows} rowClassName={row=>row.feature_id===highlightedId?'text-review-revealed':''} onRow={row=>({'aria-selected':row.feature_id===highlightedId})} rowSelection={{selectedRowKeys:selected,onChange:keys=>setSelected(keys.map(String)),columnWidth:40,fixed:true,getCheckboxProps:()=>({disabled:busy})}} pagination={{pageSize:8,current:page,onChange:next=>{setPage(next);setSelected([]);},showSizeChanger:false}} scroll={{x:(onConfirmNext?1210:1080)+(showOriginal?160:0)+(showScore?100:0)}} columns={columns}/>
+  </>}
  </div>;
 }

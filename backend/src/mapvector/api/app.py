@@ -368,6 +368,13 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             item=dict(row);item['dash_pattern_px']=json.loads(item['dash_pattern_px']);items.append(item)
         return envelope(request,{'items':items,'next_cursor':None})
 
+    @app.get('/api/projects/{project_id}/styles/{style_id}/usage')
+    def style_usage(project_id:UUID,style_id:UUID,request:Request):
+        with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
+            if connection.execute('SELECT 1 FROM style WHERE style_id=? AND project_id=?',(str(style_id),str(project_id))).fetchone() is None:raise KeyError(str(style_id))
+            count=connection.execute("SELECT COUNT(*) FROM feature WHERE project_id=? AND style_id=? AND lifecycle_status IN ('active','isolated')",(str(project_id),str(style_id))).fetchone()[0]
+        return envelope(request,{'style_id':str(style_id),'feature_count':count})
+
     @app.get('/api/projects/{project_id}/layers',response_model=Envelope[Page[Layer]])
     def list_layers(project_id:UUID,asset_id:UUID,request:Request):
         with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
@@ -525,6 +532,15 @@ def create_app(settings: Settings | None = None) -> FastAPI:
                 row['result_summary']=json.loads(row['result_summary'])
         return envelope(request,{'items':rows,'next_cursor':None})
 
+    @app.get('/api/projects/{project_id}/feature-history')
+    def feature_history(project_id:UUID,request:Request,feature_id:UUID):
+        with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
+            rows=[dict(row) for row in connection.execute(
+                "SELECT o.operation_id,o.operation_type,o.operation_status,o.result_revision,o.created_at FROM operation_change c JOIN operation o ON o.operation_id=c.operation_id WHERE c.entity_type='feature' AND c.entity_id=? AND o.project_id=? ORDER BY o.result_revision DESC LIMIT 200",
+                (str(feature_id),str(project_id))
+            )]
+        return envelope(request,{'items':rows,'next_cursor':None})
+
     @app.get('/api/projects/{project_id}/feature-lineage')
     def lineage(project_id:UUID,request:Request,feature_id:UUID|None=None):
         with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
@@ -589,6 +605,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_line_checks(app,project_directory,envelope)
     from mapvector.api.text_residue_review import register as register_text_residue_review
     register_text_residue_review(app,project_directory,envelope)
+    from mapvector.api.face_splits import register as register_face_splits
+    register_face_splits(app,project_directory,envelope,error)
+    from mapvector.api.face_merges import register as register_face_merges
+    register_face_merges(app,project_directory,envelope,error)
     static=settings.project_root/'frontend/dist'
     if (static/'assets').is_dir() and (static/'index.html').is_file():
         from fastapi.staticfiles import StaticFiles

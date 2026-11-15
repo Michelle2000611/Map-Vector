@@ -883,6 +883,17 @@ class SelectionMixin:
         def f(): self.F.loc[m, "face_group"] = ""
         self._do("ungroup faces", f, objects=int(m.sum()), ungroup=1)
 
+    def _selection_bridges(self, eid, selected, limit=8):
+        """for a selected face with no shared edge to the rest of the selection: unselected faces that share an edge
+        with it and with another selected face (one face in between, e.g. a stroke band), and selected faces it only
+        meets at a point. Wider gaps (two or more faces in between) are not reported."""
+        geoms = dict(zip(self.F["_eid"], self.F.geometry)); g = geoms[eid]
+        tree = shapely.STRtree(np.asarray(self.F.geometry.values, object)); eids = np.asarray(self.F["_eid"])
+        others = selected - {eid}
+        corner = sorted(int(eids[j]) for j in tree.query(g, predicate="intersects") if int(eids[j]) in others)
+        bridges = [f for f in self._edge_neighbours(eid) if f not in selected and others & set(self._edge_neighbours(f))]
+        return sorted(bridges)[:limit], corner
+
     def _components(self, ids):
         ids = sorted(set(int(i) for i in ids)); idset = set(ids); comp, seen = [], set()
         for e in ids:
@@ -917,6 +928,12 @@ class SelectionMixin:
         ink = self._line_mask() if lab is not None else None
         for c in comps:
             u = shapely.union_all([self.F.loc[self.F["_eid"] == e, "geometry"].iloc[0] for e in c]); rec = {"faces": c, "area": float(u.area), "single_polygon": u.geom_type == "Polygon"}
+            if len(c) == 1:
+                # The selection was split into edge-connected groups, so this face shares no edge with
+                # any other selected face. Say which faces sit between it and the rest of the selection,
+                # and whether it only meets another selected face at a corner (zero-length contact).
+                bridges, corner = self._selection_bridges(c[0], set(ids))
+                rec["bridge_faces"] = bridges; rec["corner_contact_faces"] = corner
             if lab is not None:
                 m = np.isin(fid, c) & ~ink
                 if m.any():

@@ -1,0 +1,6 @@
+.face-split-tools{display:flex;flex-direction:column;gap:12px;min-width:0}
+.face-split-tools>.ant-btn{align-self:flex-start}.face-split-tools>.ant-select{width:280px;max-width:100%}
+.face-split-path{display:flex;flex-direction:column;gap:10px}.face-split-path>.ant-btn{align-self:flex-start}
+.face-split-path textarea{max-width:420px}.face-split-settings{display:flex;gap:10px 12px;flex-wrap:wrap}
+.property-card .face-split-settings>.ant-input-number-group-wrapper{width:220px;max-width:100%}.face-split-settings .ant-input-number{width:100%}.face-split-settings .ant-input-number-group-addon{background:#f7f9fc;color:#65758a;font-size:12px;padding-inline:8px}.face-split-summary{font-size:12px;color:#65758a}.face-split-row-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.face-split-table{min-width:0;max-width:100%}

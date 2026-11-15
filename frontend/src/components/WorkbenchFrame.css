@@ -22,7 +22,7 @@
 .single-mode:not(.compact-mode) .bottom-review-content{flex:1 1 auto;min-height:0;padding:10px 14px}
 .single-mode:not(.compact-mode) .review-sidebar-auto .bottom-review-content{height:auto}
 .single-mode:not(.compact-mode) .bottom-review-resize{flex:none}
-.single-mode:not(.compact-mode) .face-repair-table{min-width:920px}
+.single-mode:not(.compact-mode) .face-repair-table:not(.face-repair-select-table):not(.heal-uncertain-table){min-width:920px}
 .single-mode:not(.compact-mode) .face-repair-toolbar-actions{margin-left:0;justify-content:flex-start}
 .single-mode:not(.compact-mode) .text-review-panel{grid-template-columns:minmax(0,1fr)}
 .single-mode:not(.compact-mode) .text-review-panel>.text-review-toolbar{grid-column:1;grid-row:2;justify-content:flex-start}
@@ -50,3 +50,12 @@
 .property-drawer .property-card>.ant-card-head{display:none}
 .property-drawer .property-card>.ant-card-body{flex:1;min-height:0;display:flex;flex-direction:column}
 .property-drawer .object-property-content{flex:1;min-height:0;overflow:hidden}
+/* Canvas, object properties and global tools share one header geometry. */
+.workbench-frame .canvas-card>.ant-card-head,
+.workbench-frame .workspace-inspector-heading,
+.workbench-frame .global-tool-header,
+.workbench-frame .property-card>.ant-card-head{min-height:56px;padding:10px 12px;box-sizing:border-box;align-items:center}
+.workbench-frame .workspace-inspector-heading h3{line-height:1.5714285714}
+.workbench-frame .workspace-inspector>.global-tool-panel{border:0;border-radius:0;width:100%}
+.workbench-frame.comparison-mode .workspace-property-slot{grid-row:2}
+.workbench-frame.comparison-mode .workspace-inspector>.global-tool-panel{grid-row:2}
