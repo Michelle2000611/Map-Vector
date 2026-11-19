@@ -1,5 +1,6 @@
 import {useEffect,useRef,useState} from 'react';
 import {TextReviewPanel} from './TextReviewPanel';
+import type {TextResidueReview} from './GlobalResidueTools';
 import type {TextReviewRevealRequest} from './textReviewReveal';
 import {Workbench} from './Workbench';
 import {useWorkspace} from '../stores/workspace';
@@ -20,7 +21,7 @@ export function EditingWorkspace({mode,onMode,onFocus,...props}:Props){
   const nextMode:EditingMode=currentLayer==='text'?'review':'geometry';
   if(nextMode!==modeSync.current.mode)modeSync.current.onMode(nextMode);
  },[context,layer]);
- const queue=loadedContext===context?(reviewCommand:Command,revealRequest?:TextReviewRevealRequest,onConfirmNext?:(id:string)=>void)=><TextReviewPanel key={context} project={props.project} asset={props.asset} busy={props.busy} work={props.work} command={reviewCommand} focus={onFocus} revealRequest={revealRequest} onConfirmNext={onConfirmNext}/>:undefined;
+ const queue=loadedContext===context?(reviewCommand:Command,revealRequest?:TextReviewRevealRequest,onReviewResidue?:(id:string)=>void,residueReview?:TextResidueReview)=><TextReviewPanel key={context} project={props.project} asset={props.asset} busy={props.busy} work={props.work} command={reviewCommand} focus={onFocus} revealRequest={revealRequest} onReviewResidue={onReviewResidue} residueReview={residueReview}/>:undefined;
  return <section className="editing-workspace" aria-label="编辑与审核工作区">
  <Workbench {...props} initialTextLayer={mode==='review'} belowCanvas={queue} belowCanvasVisible={layer==='text'}/>
  </section>;

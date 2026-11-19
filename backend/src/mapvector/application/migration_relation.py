@@ -37,7 +37,7 @@ def import_relations(connection,source,directory,project_id,asset_id,import_id,g
             sid=relation_id(import_id,'style',legacy_key);style_map[legacy_key]=sid
             dash=attrs.get('dash') or '';dash=[float(value) for value in dash.split(',') if value] if isinstance(dash,str) else dash
             pattern='dashed' if attrs.get('line_type')=='dash' else attrs.get('line_type')
-            connection.execute('INSERT INTO style VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',(sid,project_id,kind,str(attrs.get('name') or legacy_key),attrs.get('rgb') if kind=='face' else None,attrs.get('rgb') if kind=='line' else None,attrs.get('width') if kind=='line' else None,pattern if kind=='line' else None,json.dumps(dash or []),attrs.get('tooth_spacing') if kind=='line' else None,attrs.get('tooth_size') if kind=='line' else None,attrs.get('tooth_side') if kind=='line' else None,0))
+            connection.execute('INSERT INTO style (style_id,project_id,feature_type,style_name,fill_color,stroke_color,stroke_width_px,line_pattern,dash_pattern_px,tooth_spacing_px,tooth_height_px,tooth_side,revision) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)',(sid,project_id,kind,str(attrs.get('name') or legacy_key),attrs.get('rgb') if kind=='face' else None,attrs.get('rgb') if kind=='line' else None,attrs.get('width') if kind=='line' else None,pattern if kind=='line' else None,json.dumps(dash or []),attrs.get('tooth_spacing') if kind=='line' else None,attrs.get('tooth_size') if kind=='line' else None,attrs.get('tooth_side') if kind=='line' else None,0))
         for item in maps.values():
             sid=style_map.get(str(item['legacy_attributes'].get('legend_id')))
             if sid:connection.execute('UPDATE feature SET style_id=? WHERE feature_id=?',(sid,item['feature_id']))
@@ -46,7 +46,7 @@ def import_relations(connection,source,directory,project_id,asset_id,import_id,g
         if len(frame):
             from shapely import union_all
             region=union_all(list(frame.geometry));rid=relation_id(import_id,'roi')
-            connection.execute('INSERT INTO roi VALUES (?,?,?,?,?)',(rid,project_id,asset_id,to_wkb(region),0))
+            connection.execute('INSERT INTO roi (roi_id,project_id,asset_id,geometry_wkb,revision) VALUES (?,?,?,?,?)',(rid,project_id,asset_id,to_wkb(region),0))
     ocr_path=source/'working/ocr_candidates.json';candidate_map={}
     if ocr_path.is_file():
         data=json.loads(ocr_path.read_text(encoding='utf-8'));file_hash=__import__('hashlib').sha256(ocr_path.read_bytes()).hexdigest()

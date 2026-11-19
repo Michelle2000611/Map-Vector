@@ -1,0 +1,4 @@
+.reason-list{margin:0;padding-inline-start:1.15em;list-style-type:disc;line-height:1.5;min-width:0;overflow-wrap:anywhere}
+.reason-list>li{padding-inline-start:0.15em}
+.reason-list>li+li{margin-top:3px}
+.reason-list>li::marker{content:"•  ";color:currentColor}

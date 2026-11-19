@@ -7,14 +7,16 @@ from collections import defaultdict
 import numpy as np
 from scipy.spatial import cKDTree
 from shapely import STRtree
+from shapely.affinity import rotate
 from shapely.geometry import LineString, Point, Polygon, box, shape
 
 
-ALGORITHM_REVISION = 'line_check_review_v3'
+ALGORITHM_REVISION = 'line_check_review_v6'
 MAX_CANDIDATES = 5000
 MAX_ENDPOINT_NEIGHBORS = 100
 MAX_RASTER_IMAGE_PIXELS = 32_000_000
 MAX_RASTER_PATCH_PIXELS = 262_144
+MAX_LOCAL_CONTEXT_LINES = 512
 
 
 def digest(value):
@@ -118,12 +120,65 @@ def _raster_evidence(connector, line, snapshot, pixels):
     return {**base, 'status':status, 'support_fraction':support, 'local_contrast':contrast, 'unsupported_run_px':unsupported_run}
 
 
+def _joint_raster_evidence(connector, first, second, snapshot, pixels):
+    """Raster support for a gap between two lines must not depend on which line the scan happened to visit first.
+
+    Lines are ordered by random UUID, so measuring against only one of them made the same drawing pass or fail between
+    runs whenever the two strokes differ in colour. Measure against each line and keep the better evidence."""
+    rank = {'supported':3, 'ambiguous':2, 'unsupported':1}
+    results = [_raster_evidence(connector, line, snapshot, pixels) for line in (first, second)]
+    return max(results, key=lambda item:(rank.get(item['status'], 0), float(item.get('support_fraction', 0.)), item['status']))
+
+
 def _crosses_third_line(connector, members, lines, geoms, geometry_tree, maximum_stroke):
     bridge = LineString(connector)
     connector_half_width = max(lines[index]['stroke_width_px'] for index in members) / 2
     footprint = bridge.buffer(connector_half_width, cap_style=2)
     neighbors = geometry_tree.query(bridge.buffer(connector_half_width + maximum_stroke / 2 + .5))
     return any(int(index) not in members and geoms[int(index)].buffer(lines[int(index)]['stroke_width_px'] / 2).intersects(footprint) for index in neighbors)
+
+
+def _text_context(snapshot):
+    regions=[]
+    for text in snapshot['texts']:
+        # Continuation protects the active rendered label. Moving/scaling may
+        # retain its OCR layout basis, so the original detection is only a
+        # fallback when current geometry is unavailable, never a ghost obstacle.
+        for basis in ('layout_rectangle','display_bbox','detected_quad'):
+            try:
+                if basis=='layout_rectangle':
+                    width,height=text.get('layout_width_px'),text.get('layout_height_px')
+                    if not width or not height:continue
+                    x,y=text['geometry']['coordinates']
+                    region=rotate(box(x-width/2,y-height/2,x+width/2,y+height/2),
+                                  -text.get('rotation_deg',0),origin=(x,y))
+                else:
+                    value=text.get('detected_quad_px' if basis=='detected_quad' else 'display_bbox_px')
+                    region=(Polygon(value) if basis=='detected_quad' else box(*value)) if value else None
+                if region is not None and region.is_valid and region.area>0:
+                    regions.append((text,region,basis));break
+            except (ValueError,TypeError):continue
+    return regions,STRtree([region for _,region,_ in regions])
+
+
+def _connector_text_conflicts(connectors,width,context):
+    regions,tree=context;related={}
+    for connector in connectors:
+        footprint=LineString(connector).buffer(width/2,cap_style=2)
+        if footprint.area<=0:continue
+        for index in tree.query(footprint,predicate='intersects'):
+            text,region,basis=regions[int(index)]
+            area=footprint.intersection(region).area
+            # Touching an OCR padding corner alone does not imply a conflict.
+            # Ordinary text remains reviewable; a meaningful crossing of a
+            # protected symbol blocks only automatic continuation.
+            if area<=max(1e-9,min(width*width*.25,footprint.area*.1)):continue
+            evidence={'feature_id':text['feature_id'],'geological_symbol':bool(text.get('geological_symbol')),
+                      'region_basis':basis,'overlap_area_px2':area,
+                      'connector_overlap_fraction':min(1.,area/footprint.area)}
+            previous=related.get(text['feature_id'])
+            if previous is None or area>previous['overlap_area_px2']:related[text['feature_id']]=evidence
+    return [related[identity] for identity in sorted(related)]
 
 
 def _edge_metrics(edge, geoms):
@@ -189,7 +244,7 @@ def _components(indices, edges):
 
 
 def _candidate(kind, members, lines, geoms, snapshot, connectors=None, metrics=None, reasons=None, blocked=None, texts=None, plan=None,
-               connection_mode='automatic', connector_kind='straight', evidence=None):
+               connection_mode='automatic', connector_kind='straight', evidence=None, text_context=None):
     identities = sorted(lines[index]['feature_id'] for index in members)
     bounds = [min(geoms[index].bounds[0] for index in members), min(geoms[index].bounds[1] for index in members),
               max(geoms[index].bounds[2] for index in members), max(geoms[index].bounds[3] for index in members)]
@@ -198,7 +253,16 @@ def _candidate(kind, members, lines, geoms, snapshot, connectors=None, metrics=N
         for x, y in connector:
             bounds = [min(bounds[0], x), min(bounds[1], y), max(bounds[2], x), max(bounds[3], y)]
     asset = snapshot.get('asset', {})
-    blocked = list(blocked or [])
+    blocked = list(blocked or []);reasons=list(reasons or []);texts=list(texts or []);evidence=dict(evidence or {})
+    if kind=='join_gap':
+        conflicts=_connector_text_conflicts(connectors,max(lines[index]['stroke_width_px'] for index in members),
+                                             text_context if text_context is not None else _text_context(snapshot))
+        if conflicts:
+            texts.extend(item['feature_id'] for item in conflicts)
+            reasons.append('CONNECTOR_TEXT_OVERLAP');evidence['text_conflicts']=conflicts
+            if any(item['geological_symbol'] for item in conflicts):
+                reasons.append('CONNECTOR_GEOLOGICAL_SYMBOL')
+                if connection_mode=='automatic':blocked.append('GEOLOGICAL_SYMBOL_TEXT_OVERLAP')
     if kind == 'join_gap' and asset and not (0 <= bounds[0] <= bounds[2] <= asset['width_px'] and 0 <= bounds[1] <= bounds[3] <= asset['height_px']):
         blocked.append('OUTSIDE_ASSET')
     normalized_connectors = sorted([min(segment, segment[::-1]) for segment in connectors])
@@ -217,6 +281,17 @@ def _candidate(kind, members, lines, geoms, snapshot, connectors=None, metrics=N
                 'raster_source':snapshot.get('raster_source'), 'algorithm_revision': ALGORITHM_REVISION}
     candidate['_evidence_sha256'] = digest(evidence)
     candidate['_plan'] = plan or {}
+    # These explanations derive solely from inputs already covered by the
+    # evidence digest. Keep their presentation out of decision identity so
+    # richer diagnostics do not reopen an otherwise unchanged kept result.
+    from mapvector.geometry.line_diagnostics import attribute_differences,self_intersection_locations
+    if 'ATTRIBUTE_MISMATCH' in candidate['blocked_reasons']:
+        selected=[lines[index] for index in members]
+        candidate['evidence']['attribute_differences']=attribute_differences(
+            selected,{item['feature_id']:_style_ids(item,snapshot) for item in selected})
+    if 'SELF_INTERSECTION' in candidate['blocked_reasons']:
+        candidate['evidence']['issue_locations']=self_intersection_locations(
+            (plan or {}).get('coordinates'),bounds)
     return candidate
 
 
@@ -250,7 +325,73 @@ def _chain(members, edges, lines, geoms):
     return {'ordered_feature_ids': order, 'coordinates': coordinates}, connectors
 
 
-def _manual_candidate(snapshot, request, lines, geoms, patterns, dash_members, memberships, geometry_tree, maximum_stroke, pixels):
+def _local_dash_context(selected,request,lines,geoms,snapshot,geometry_tree,maximum_stroke):
+    """Two endpoint hops cover every three-dash run containing a selection.
+
+    Only short matching neighboring strokes need tangent checks. Full geometry
+    stays in the obstacle tree; no unrelated gap is sampled from the raster.
+    Dense neighborhoods are explicitly uncertain rather than silently ignored.
+    """
+    local=set(selected);frontier=set(selected);dense=False
+    for _ in range(2):
+        following=set()
+        for index in sorted(frontier):
+            if geoms[index].length>request.max_short_length_px:continue
+            for point in (Point(geoms[index].coords[0]),Point(geoms[index].coords[-1])):
+                nearby=[]
+                for hit in geometry_tree.query(point.buffer(max(request.max_gap_px,1e-9))):
+                    other=int(hit)
+                    if other==index or geoms[other].length>request.max_short_length_px:continue
+                    count=sum(point.distance(Point(endpoint))<=request.max_gap_px
+                              for endpoint in (geoms[other].coords[0],geoms[other].coords[-1]))
+                    if count:nearby.extend([other]*count)
+                    if len(nearby)>MAX_ENDPOINT_NEIGHBORS:break
+                if len(nearby)>MAX_ENDPOINT_NEIGHBORS:
+                    dense=True;continue
+                following.update(nearby)
+        following-=local
+        if len(local|following)>MAX_LOCAL_CONTEXT_LINES:
+            dense=True;break
+        local.update(following);frontier=following
+        if not frontier:break
+    short=[index for index in sorted(local) if geoms[index].length<=request.max_short_length_px]
+    points=[];owners=[];tangents=[]
+    for index in short:
+        for side in (0,1):
+            point,tangent,_=_end(geoms[index],side,lines[index]['stroke_width_px'])
+            points.append(point);owners.append(index);tangents.append(tangent)
+    edges=[]
+    if points:
+        points=np.asarray(points);tree=cKDTree(points)
+        for end,point in enumerate(points):
+            for other in tree.query_ball_point(point,request.max_gap_px):
+                a,b=owners[end],owners[other]
+                if end>=other or a==b:continue
+                delta=points[other]-point;gap=float(np.linalg.norm(delta))
+                if gap<=1e-6:continue
+                direction=delta/gap
+                if max(_angle(tangents[end],direction),_angle(tangents[other],-direction))>45:continue
+                if not _compatible(lines[a],lines[b]) or _style_ids(lines[a],snapshot)!=_style_ids(lines[b],snapshot):continue
+                if _crosses_third_line([point.tolist(),points[other].tolist()],{a,b},lines,geoms,geometry_tree,maximum_stroke):continue
+                edges.append({'a':a,'b':b,'gap':gap})
+    touching=defaultdict(list)
+    for edge in edges:
+        touching[edge['a']].append(edge);touching[edge['b']].append(edge)
+    dash_members=set()
+    for adjacent in touching.values():
+        for first_index,first in enumerate(adjacent):
+            for second in adjacent[first_index+1:]:
+                members={first['a'],first['b'],second['a'],second['b']}
+                if len(members)!=3 or not members.intersection(selected):continue
+                lengths=[geoms[index].length for index in members]
+                if (max(lengths)<=min(lengths)*1.2
+                    and max(first['gap'],second['gap'])<=min(first['gap'],second['gap'])*1.2
+                    and all(geoms[index].length<=np.linalg.norm(np.asarray(geoms[index].coords[-1])-np.asarray(geoms[index].coords[0]))*1.05 for index in members)):
+                    dash_members.update(members)
+    return dash_members,dense,len(local)
+
+
+def _manual_candidate(snapshot, request, lines, geoms, patterns, dash_members, memberships, geometry_tree, maximum_stroke, pixels,text_context=None):
     """A chosen path authorizes just its two selected lines, with topology intact."""
     by_id = {line['feature_id']:index for index,line in enumerate(lines)}
     members = [by_id[identity] for identity in request.manual_feature_ids]
@@ -301,7 +442,7 @@ def _manual_candidate(snapshot, request, lines, geoms, patterns, dash_members, m
     asset = snapshot.get('asset', {})
     if asset and not (0 <= geometry.bounds[0] <= geometry.bounds[2] <= asset['width_px'] and 0 <= geometry.bounds[1] <= geometry.bounds[3] <= asset['height_px']):
         blocked.append('OUTSIDE_ASSET')
-    raster = _raster_evidence(connector, lines[a], snapshot, pixels)
+    raster = _joint_raster_evidence(connector, lines[a], lines[b], snapshot, pixels)
     if raster['status'] == 'source_mismatch':blocked.append('RASTER_SOURCE_MISMATCH')
     plan = {'ordered_feature_ids':[lines[a]['feature_id'],lines[b]['feature_id']], 'coordinates':coordinates,
             'keep_feature_id':next((identity for identity in (lines[a]['feature_id'],lines[b]['feature_id']) if identity in memberships),lines[a]['feature_id']),
@@ -313,24 +454,46 @@ def _manual_candidate(snapshot, request, lines, geoms, patterns, dash_members, m
         {'gap_px':float(np.linalg.norm(finish - start)), 'gap_stroke_ratio':float(np.linalg.norm(finish - start)) / max(1e-6, stroke),
          'length_px':geometry.length, 'connector_length_px':bridge.length, 'attachment_distance_px':attachment},
         reasons,blocked,plan=plan,connection_mode='manual',connector_kind='manual' if supplied else 'straight',
-        evidence={'raster':raster,'manual_feature_ids':sorted(identities),'endpoint_snap_tolerance_px':.5})
+        evidence={'raster':raster,'manual_feature_ids':sorted(identities),'endpoint_snap_tolerance_px':.5},text_context=text_context)
 
 
-def diagnose(snapshot, request, pixels=None):
+def _text_scan_coverage(snapshot):
+    from mapvector.geometry.text_residue import text_residue_regions
+    regions=text_residue_regions(snapshot['texts']);covered={item['text']['feature_id'] for item in regions}
+    return {'scanned_text_count':len(snapshot['texts']),'text_source_region_count':len(covered),'texts_without_source_region_count':len(snapshot['texts'])-len(covered),'unadopted_ocr_region_count':len(snapshot.get('unassigned_ocr_candidates',[])),'uncertain_text_region_count':sum(item.get('uncertain',False) for item in regions)}
+
+
+def diagnose(snapshot, request, pixels=None,*,candidate_limit=MAX_CANDIDATES):
     """All computation runs on materialized values and optional local raster pixels."""
     lines = snapshot['lines']; geoms = [shape(line['geometry']) for line in lines]
     if not lines: return {'candidates': [], 'summary': {'join_gap_count':0,'text_stroke_count':0,'dash_group_count':0,
-        'scanned_line_count':0,'candidate_count':0,'returned_count':0,'truncated':False,'dense_endpoint_count':0}}
+        'scanned_line_count':0,'candidate_count':0,'returned_count':0,'truncated':False,'dense_endpoint_count':0,**_text_scan_coverage(snapshot)}}
     patterns = [_pattern(line, snapshot) for line in lines]
+    geometry_tree=STRtree(geoms);maximum_stroke=max(line['stroke_width_px'] for line in lines)
+    text_context=_text_context(snapshot)
+    if getattr(request,'mode','automatic')=='manual':
+        by_id={line['feature_id']:index for index,line in enumerate(lines)}
+        selected={by_id[identity] for identity in request.manual_feature_ids}
+        memberships=defaultdict(list)
+        for group in snapshot['groups']:
+            for identity in group['feature_ids']:memberships[identity].append(group)
+        dash_members,dense,local_count=_local_dash_context(selected,request,lines,geoms,snapshot,geometry_tree,maximum_stroke)
+        candidate=_manual_candidate(snapshot,request,lines,geoms,patterns,dash_members,memberships,
+                                    geometry_tree,maximum_stroke,pixels,text_context)
+        if dense:
+            candidate['blocked_reasons']=sorted(set([*candidate['blocked_reasons'],'DENSE_ENDPOINT_REGION']))
+            candidate['_evidence_sha256']=digest([candidate['_evidence_sha256'],'DENSE_ENDPOINT_REGION'])
+        return {'candidates':[candidate],'summary':{'join_gap_count':1,'text_stroke_count':0,'dash_group_count':0,
+            'scanned_line_count':len(selected),'context_line_count':local_count,'candidate_count':1,'returned_count':1,
+            'truncated':False,'dense_endpoint_count':int(dense)}}
     points = []; tangents = []; turns = []; profiles = []
     for index, geometry in enumerate(geoms):
         for side in (0, 1):
             point, tangent, profile = _end(geometry, side, lines[index]['stroke_width_px'])
             points.append(point); tangents.append(tangent); profiles.append(profile)
             turns.append(_turning_sign(geometry, side))
-    points = np.asarray(points); tree = cKDTree(points); geometry_tree = STRtree(geoms)
+    points = np.asarray(points); tree = cKDTree(points)
     edges = []; crowded = set()
-    maximum_stroke = max(line['stroke_width_px'] for line in lines)
     # Bound dense endpoint neighborhoods before constructing a potentially quadratic graph.
     for end, point in enumerate(points):
         count = tree.query_ball_point(point, request.max_gap_px, return_length=True)
@@ -353,13 +516,13 @@ def diagnose(snapshot, request, pixels=None):
                     blocked.append('DIVERGENT_CURVATURE')
             stroke = min(lines[a]['stroke_width_px'], lines[b]['stroke_width_px'])
             connector = [point.tolist(), points[other].tolist()]
-            straight_raster = _raster_evidence(connector, lines[a], snapshot, pixels)
+            straight_raster = _joint_raster_evidence(connector, lines[a], lines[b], snapshot, pixels)
             raster = straight_raster
             connector_kind = 'straight'
             if angle > 8 and 'DIVERGENT_CURVATURE' not in blocked:
                 smooth = _smooth_connector(point, points[other], tangents[end], tangents[other], stroke)
                 if smooth is not None:
-                    smooth_raster = _raster_evidence(smooth, lines[a], snapshot, pixels)
+                    smooth_raster = _joint_raster_evidence(smooth, lines[a], lines[b], snapshot, pixels)
                     if smooth_raster['status'] == 'supported':
                         connector, connector_kind, raster = smooth, 'smooth', smooth_raster
             if angle > request.angle_tolerance_deg and connector_kind != 'smooth':blocked.append('ENDPOINT_DIRECTION_MISMATCH')
@@ -436,11 +599,6 @@ def diagnose(snapshot, request, pixels=None):
                           reasons=['KNOWN_DASH_PATTERN' if explicit else 'REGULAR_SHORT_SEGMENTS'], blocked=blocked)
         if already: item['status'] = 'kept'
         candidates.append(item)
-    if getattr(request, 'mode', 'automatic') == 'manual':
-        candidate = _manual_candidate(snapshot, request, lines, geoms, patterns, dash_members, memberships,
-                                      geometry_tree, maximum_stroke, pixels)
-        return {'candidates':[candidate], 'summary':{'join_gap_count':1,'text_stroke_count':0,'dash_group_count':0,
-            'scanned_line_count':len(lines),'candidate_count':1,'returned_count':1,'truncated':False,'dense_endpoint_count':len(crowded)}}
     join_edges = [edge for edge in edges if edge['a'] not in dash_members and edge['b'] not in dash_members
                   and patterns[edge['a']] not in ('dashed','teeth') and patterns[edge['b']] not in ('dashed','teeth')]
     for edge in join_edges:
@@ -475,7 +633,7 @@ def diagnose(snapshot, request, pixels=None):
             candidates.append(_candidate('join_gap', members, lines, geoms, snapshot, connectors,
                 metrics,reasons,blocked,plan=plan,
                 connector_kind='smooth' if any(edge['connector_kind']=='smooth' for edge in within) else 'straight',
-                evidence={'raster':raster, 'gap_paths':[edge['raster'] for edge in within]}))
+                evidence={'raster':raster, 'gap_paths':[edge['raster'] for edge in within]},text_context=text_context))
         else:
             for edge in within:edge['blocked'].append('CYCLIC_CONNECTION')
             join_edges.extend(edge for edge in within if edge not in join_edges)
@@ -486,35 +644,21 @@ def diagnose(snapshot, request, pixels=None):
         if edge['raster']['status'] != 'supported':reasons.append('RASTER_EVIDENCE_UNAVAILABLE' if pixels is None else 'RASTER_PATH_REQUIRES_REVIEW')
         candidates.append(_candidate('join_gap',[a,b],lines,geoms,snapshot,[connector],
             _edge_metrics(edge,geoms),reasons,edge['blocked']+group_protection([a,b]),
-            connector_kind=edge['connector_kind'], evidence={'raster':edge['raster']}))
-    # Text regions are evidence only. No face or text geometry enters an edit plan.
-    text_regions = []
-    for text in snapshot['texts']:
-        try:
-            region = Polygon(text['detected_quad_px']) if text.get('detected_quad_px') else box(*text['display_bbox_px']) if text.get('display_bbox_px') else None
-            if region is not None and region.is_valid and region.area > 0: text_regions.append((text,region))
-        except (ValueError, TypeError): continue
-    if text_regions:
-        text_tree = STRtree([region for _,region in text_regions])
-        for index,line in enumerate(lines):
-            geometry=geoms[index]
-            if geometry.length > request.max_short_length_px: continue
-            references=[text_regions[int(i)] for i in text_tree.query(geometry,predicate='intersects')]
-            if not references: continue
-            blocked=[]
-            if line['source_type']=='manual':blocked.append('MANUAL_LINE')
-            if line['line_role']=='split':blocked.append('GEOLOGICAL_BOUNDARY')
-            if patterns[index] in ('dashed','teeth') or index in dash_members:blocked.append('SEMANTIC_LINE_PATTERN')
-            if any(text.get('geological_symbol') for text,_ in references):blocked.append('GEOLOGICAL_SYMBOL')
-            if not any(region.buffer(-.25).covers(geometry) for _,region in references):blocked.append('CROSSES_TEXT_REGION')
-            try:
-                if max(int(line['stroke_color'][start:start+2],16) for start in (1,3,5))>=180:blocked.append('NON_TEXT_STROKE_COLOR')
-            except (ValueError,TypeError):blocked.append('NON_TEXT_STROKE_COLOR')
-            candidates.append(_candidate('text_stroke',[index],lines,geoms,snapshot,
-                metrics={'length_px':geometry.length},reasons=['SHORT_LINE_IN_TEXT_REGION'],blocked=blocked,
-                texts=[text['feature_id'] for text,_ in references]))
+            connector_kind=edge['connector_kind'], evidence={'raster':edge['raster']},text_context=text_context))
+    from mapvector.geometry.text_residue import scan_text_strokes
+    for item in scan_text_strokes(snapshot,request,pixels,lines,geoms,patterns,dash_members):
+        candidates.append(_candidate('text_stroke',[item['index']],lines,geoms,snapshot,
+            metrics=item['metrics'],reasons=['TEXT_STROKE_REGION'],blocked=item['blocked'],
+            texts=item['texts'],evidence=item['evidence']))
+    from mapvector.geometry.text_residue import scan_unassigned_strokes
+    for item in scan_unassigned_strokes(snapshot,request,pixels,lines,geoms,patterns,dash_members):
+        candidates.append(_candidate('text_stroke',item['members'],lines,geoms,snapshot,
+            metrics=item['metrics'],reasons=item['reasons'],blocked=item['blocked'],texts=[],evidence=item['evidence']))
     unique={item['candidate_id']:item for item in candidates}; ordered=sorted(unique.values(),key=lambda item:(item['kind'],bool(item['blocked_reasons']),item['candidate_id']))
     summary={kind+'_count':sum(item['kind']==kind for item in ordered) for kind in ('join_gap','text_stroke','dash_group')}
-    summary.update(scanned_line_count=len(lines),candidate_count=len(ordered),returned_count=min(len(ordered),MAX_CANDIDATES),
-                   truncated=len(ordered)>MAX_CANDIDATES,dense_endpoint_count=len(crowded))
-    return {'candidates':ordered[:MAX_CANDIDATES],'summary':summary}
+    text_candidates=[item for item in ordered if item['kind']=='text_stroke']
+    summary.update(**_text_scan_coverage(snapshot),text_referenced_line_count=len({fid for item in text_candidates if item['reference_text_ids'] for fid in item['feature_ids']}),text_edge_line_count=sum('TEXT_REGION_EDGE_REQUIRES_REVIEW' in item['blocked_reasons'] for item in text_candidates),text_complex_line_count=sum('COMPLEX_TEXT_STROKE_REQUIRES_REVIEW' in item['blocked_reasons'] for item in text_candidates))
+    returned=ordered if candidate_limit is None else ordered[:candidate_limit]
+    summary.update(unassigned_text_stroke_count=sum(item['kind']=='text_stroke' and item['evidence'].get('unassigned',False) for item in ordered),scanned_line_count=len(lines),candidate_count=len(ordered),returned_count=len(returned),
+                   truncated=len(returned)<len(ordered),dense_endpoint_count=len(crowded))
+    return {'candidates':returned,'summary':summary}

@@ -93,7 +93,7 @@ export function FaceSplitTools({project,asset,selected,features,busy,active,work
  return <section className="face-split-tools" aria-label="面分割工作区">
   <div className="face-split-settings face-split-settings-top"><InputNumber addonBefore="端点吸附（px）" aria-label="分割端点吸附" value={snap} min={0} max={2} step={.1} onChange={setSnap}/><InputNumber addonBefore="小片面积提醒（px²）" aria-label="分割小片面积提醒" value={minArea} min={0} max={10000} onChange={setMinArea}/></div>
   {error&&<Alert type="error" showIcon message={error}/>}
-  <Collapse ghost className="line-edit-groups" defaultActiveKey={['draw']} items={[
+  <Collapse ghost className="line-edit-groups" items={[
    {key:'draw',label:'手绘路径切割',children:<div className="face-split-path">
     <div className="property-operation-group"><Button disabled={disabled||invalidTargets} onClick={beginDraw}>绘制切分路径</Button>
      <Button disabled={disabled||invalidTargets||!validParameters||!validPath||mode==='draw'&&valid&&small.some(piece=>!confirmed.includes(piece.piece_id))} onClick={()=>void completeDraw()}>完成分割</Button></div>

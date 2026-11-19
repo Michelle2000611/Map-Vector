@@ -1,43 +1,66 @@
-import {useEffect,useRef,useState} from 'react';
-import {Alert,Button,Checkbox,InputNumber,Modal,Popover,Table,Tabs,Tag,Tooltip} from 'antd';
+import {ReasonList} from './ReasonList';
+import {useEffect,useId,useRef,useState} from 'react';
+import type {TextResidueReview} from './GlobalResidueTools';
+import {FeaturePreview} from './FeaturePreview';
+import {Alert,Button,Checkbox,InputNumber,Modal,Segmented,Table,Tabs,Tag,Tooltip} from 'antd';
+import {InspectionStatus} from './InspectionStatus';
 import type {TableColumnsType} from 'antd';
 import {request} from '../services/client';
 import {useWorkspace} from '../stores/workspace';
 import type {Asset,Candidate,Command,CommandInput,Page,Project,TextFeature,TextLayerAssessment as Assessment,TextLayerAssessmentReport as Report,Work} from '../services/models';
 import './TextReviewPanel.css';
-import {matchesTextReviewFilter,needsTextReview,useReviewPanelVisible,useTextReviewReveal} from './textReviewReveal';
+import {matchesResidueFilter,residueState,TEXT_REVIEW_PAGE_SIZE,useReviewPanelVisible,useTextReviewReveal} from './textReviewReveal';
 import type {TextReviewFilter,TextReviewRevealRequest} from './textReviewReveal';
+import {statusColor} from './statusTags';
+import {TextInformationPanel} from './TextInformationPanel';
+import {prepareResidueBatch,confirmResidueBatch,cleanupResidueBatch} from '../services/residueBatch';
+import type {ResidueBatchItem,ResidueBatchContext} from '../services/residueBatch';
 
 const labels:Record<string,string>={required:'待核对',auto_accepted_unverified:'自动通过（未人工确认）',confirmed:'已确认',manual_edited:'人工修改（待核对）',skipped:'稍后处理',pipeline_complete_unverified:'流程通过（未人工确认）'};
-const reasons:Record<string,string>={script_position_uncertain:'上下标位置需核对',no_ocr_evidence:'缺少 OCR 依据',low_ocr_score:'OCR 分数偏低',stratigraphic_or_lithology_code:'地质代号需核对',sub_or_superscript:'上下标或字母数字组合',numeric_or_short:'数字注记需核对',rotated_or_vertical:'旋转或竖排文字',orientation_measurement:'方位或角度数值需核对',special_symbol:'特殊符号',ocr_engine_disagreement:'两种引擎结果不同',text_changed_from_ocr:'采用文字与原识别不同',empty_text:'内容为空',suspected_text_faces:'疑似文字碎面',suspected_text_lines:'疑似文字短线',protected_boundary_or_crossing_line:'存在需保护的跨框线或边界',no_detection_quad:'缺少检测范围，无法检查残影；请人工定位'};
-type Props={project:Project;asset:Asset;busy:boolean;work:Work;command:Command;focus:(id:string,residue?:boolean)=>void;revealRequest?:TextReviewRevealRequest;onConfirmNext?:(id:string)=>void};
+const reasons:Record<string,string>={protected_face_source_scope:'字形碎面较大或超出可靠文字范围，暂不清理',protected_face_independent_line:'碎面涉及独立线，暂不清理',layout_fit_uncertain:'文字排版依据不足',ocr_spatial_conflict:'识别范围重叠，需核对采用结果',script_position_uncertain:'上下标位置需核对',no_ocr_evidence:'缺少 OCR 依据',low_ocr_score:'OCR 分数偏低',stratigraphic_or_lithology_code:'地质代号需核对',sub_or_superscript:'上下标或字母数字组合',numeric_or_short:'数字注记需核对',rotated_or_vertical:'旋转或竖排文字',orientation_measurement:'方位或角度数值需核对',special_symbol:'特殊符号',ocr_engine_disagreement:'两种引擎结果不同',text_changed_from_ocr:'采用文字与原识别不同',empty_text:'内容为空',suspected_text_faces:'疑似文字碎面',suspected_text_lines:'疑似文字残线',protected_boundary_or_crossing_line:'存在需保护的跨框线或边界',no_detection_quad:'缺少检测范围，无法检查残影；请人工定位'};
+const candidateReasons:Record<string,string>={OCR_SPATIAL_CONFLICT:'识别范围重叠，需核对采用结果',OCR_ENGINE_DISAGREEMENT:'识别读法存在分歧'};
+function candidateReasonTexts(candidate:Candidate){
+ const items=candidate.rule_suggestions.flatMap(suggestion=>typeof suggestion==='object'&&suggestion!==null&&'reason_codes' in suggestion&&Array.isArray(suggestion.reason_codes)?suggestion.reason_codes.map(code=>candidateReasons[String(code)]??String(code)):[]).filter(Boolean);
+ return items.length?items:['需对照原图'];
+}
+
+type Props={project:Project;asset:Asset;busy:boolean;work:Work;command:Command;focus:(id:string,residue?:boolean)=>void;revealRequest?:TextReviewRevealRequest;onReviewResidue?:(id:string)=>void;residueReview?:TextResidueReview};
+type LayoutPreview={base_revision:number;asset_id:string;input_sha256:string;updated_count:number;skipped_count:number;review_required_count:number;changes:{feature_id:string;text_value:string;before:TextFeature;after:TextFeature}[]};
 type Filter=TextReviewFilter;
-const filters:{value:Filter;label:string}[]=[{value:'required',label:'待核对'},{value:'skipped',label:'稍后处理'},{value:'confirmed',label:'已确认'},{value:'all',label:'全部'}];
-const needsReview=needsTextReview;
+const filters:{value:Filter;label:string}[]=[{value:'required',label:'待核对'},{value:'kept',label:'已保留'},{value:'none',label:'未发现'},{value:'all',label:'全部'}];
+// Status words are shared with the face/line panels (see statusTags.ts); text-only wording is mapped onto them.
+const tagLabels:Record<string,string>={required:'待核对',manual_edited:'待核对',skipped:'待核对',confirmed:'已确认',auto_accepted_unverified:'自动通过',pipeline_complete_unverified:'流程通过'};
+const statusLabel=(f:TextFeature)=>tagLabels[f.review_status]??labels[f.review_status]??f.review_status;
 const score=(n:number|null|undefined)=>typeof n==='number'?(n*100).toFixed(1)+'%':'无依据';
 type Inspection={ticket:string;report:Report};
+type CleanupBatch={scope:string;revision:number;stage:'review'|'confirmed'|'done';items:ResidueBatchItem[]};
 
 function residueEvidence(item:Assessment|undefined){
  if(!item)return <span className="text-review-unchecked">未检查</span>;
- const detail=<div>{item.reasons.map(reason=><div key={reason}>{reasons[reason]??reason}</div>)}{item.protected_line_ids.length>0&&<div>保护线需保留，不能据此自动删除。</div>}</div>;
+ const detail=<ReasonList items={[...item.reasons.map(reason=>reasons[reason]??reason),...(item.protected_line_ids.length>0?['受保护对象暂不自动清理，人工确认核对后可参与清理。']:[])]}/>;
  if(item.region_source==='missing')return <Tooltip title={detail}><span>需人工定位</span></Tooltip>;
  if(item.cleanup_status!=='review_required'&&item.cleanup_status!=='no_suspects')return <span>检查结果不完整</span>;
  return <Tooltip title={item.reasons.length?detail:undefined}><div className="text-review-residue">
-  {item.cleanup_status==='no_suspects'?<span>未发现疑似残影</span>:<div className="text-review-residue-counts"><span>碎面 {item.suspected_face_ids.length}</span><span>短线 {item.suspected_line_ids.length}</span></div>}
+  {residueState(item)==='none'?<span>未发现残影</span>:<div className="text-review-residue-counts"><span>碎面 {item.suspected_face_ids.length}</span><span>线段 {item.suspected_line_ids.length}</span></div>}
   {item.protected_line_ids.length>0&&<small>保护线 {item.protected_line_ids.length}</small>}
  </div></Tooltip>;
 }
 
-export function TextReviewPanel({project,asset,busy,work,command,focus,revealRequest,onConfirmNext}:Props){
- const session=useWorkspace(state=>state.session);
- const [filter,setFilter]=useState<Filter>('required'),[rows,setRows]=useState<TextFeature[]>([]),[candidates,setCandidates]=useState<Candidate[]>([]),[threshold,setThreshold]=useState(90),[moreOpen,setMoreOpen]=useState(false),[page,setPage]=useState(1),[inspection,setInspection]=useState<Inspection|null>(null),[onlySuspects,setOnlySuspects]=useState(false),[selected,setSelected]=useState<string[]>([]),[error,setError]=useState(''),[inspectionError,setInspectionError]=useState('');
+export function TextReviewPanel({project,asset,busy,work,command,focus,revealRequest,onReviewResidue,residueReview}:Props){
+ const session=useWorkspace(state=>state.session),detailsId=useId();
+ const [filter,setFilter]=useState<Filter>('required'),[rows,setRows]=useState<TextFeature[]>([]),[candidates,setCandidates]=useState<Candidate[]>([]),[threshold,setThreshold]=useState(90),[moreOpen,setMoreOpen]=useState(false),[page,setPage]=useState(1),[inspection,setInspection]=useState<Inspection|null>(null),[selected,setSelected]=useState<string[]>([]),[error,setError]=useState(''),[inspectionError,setInspectionError]=useState('');
+ const [category,setCategory]=useState<'residue'|'information'>('residue');
+ const [batch,setBatch]=useState<CleanupBatch|null>(null),[batchPhase,setBatchPhase]=useState<'idle'|'preparing'|'confirming'|'cleaning'>('idle'),[batchProgress,setBatchProgress]=useState(0),[batchTotal,setBatchTotal]=useState(0),[batchMessage,setBatchMessage]=useState('');
+ const batchBusy=useRef(false),batchGeneration=useRef(0);
+ const batchPending=batchPhase!=='idle',locked=busy||!!residueReview?.locked||batchPending;
+ const [layoutPreview,setLayoutPreview]=useState<LayoutPreview|null>(null),[layoutChecking,setLayoutChecking]=useState(false);
  const prefix='/projects/'+project.project_id,scope=JSON.stringify([project.project_id,asset.asset_id,session]),ticket=JSON.stringify([scope,project.working_revision]);
  const panel=useRef<HTMLDivElement>(null),visible=useReviewPanelVisible(panel);
  const [loadedTicket,setLoadedTicket]=useState<string|null>(null),[showOriginal,setShowOriginal]=useState(false),[showScore,setShowScore]=useState(false);
  const [checkAttempted,setCheckAttempted]=useState(false),[checking,setChecking]=useState(false);
  const currentScope=useRef(scope),currentTicket=useRef(ticket),currentRevision=useRef(project.working_revision),queueRequest=useRef(0),inspectionRequest=useRef(0),mounted=useRef(false);currentScope.current=scope;currentTicket.current=ticket;currentRevision.current=project.working_revision;
- useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;queueRequest.current+=1;};},[]);
- useEffect(()=>{setFilter('required');setPage(1);setThreshold(90);setMoreOpen(false);setRows([]);setCandidates([]);setLoadedTicket(null);setOnlySuspects(false);setSelected([]);setCheckAttempted(false);setChecking(false);},[scope]);
+ useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;queueRequest.current+=1;batchGeneration.current++;};},[]);
+ useEffect(()=>{batchGeneration.current++;batchBusy.current=false;setBatch(null);setBatchPhase('idle');setBatchMessage('');setCategory('residue');setFilter('required');setPage(1);setThreshold(90);setMoreOpen(false);setRows([]);setCandidates([]);setLoadedTicket(null);setSelected([]);setCheckAttempted(false);setChecking(false);},[scope]);
  async function load(){
   if(!mounted.current||currentScope.current!==scope)return;
   const requestedTicket=currentTicket.current,requestedRevision=currentRevision.current,serial=++queueRequest.current;
@@ -48,8 +71,36 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
   setRows(queue.items);setCandidates(ocr.items);setLoadedTicket(requestedTicket);
  }
  useEffect(()=>{let active=true;setError('');void load().catch(e=>{if(active&&e.name!=='AbortError')setError(String(e));});return()=>{active=false;queueRequest.current+=1;};},[ticket]);
- useEffect(()=>{setInspection(null);setInspectionError('');setChecking(false);setSelected([]);setMoreOpen(false);inspectionRequest.current+=1;},[ticket]);
- async function runCommand(input:CommandInput){await work(async()=>{const result=await command(input);if(result&&mounted.current&&currentScope.current===scope)await load();});}
+ useEffect(()=>{setLayoutPreview(null);setLayoutChecking(false);if(!batchBusy.current)setInspection(null);setInspectionError('');setChecking(false);if(!batchBusy.current)setSelected([]);setMoreOpen(false);inspectionRequest.current+=1;},[ticket]);
+ async function runCommand(input:CommandInput,propagateError=false){
+  const expectedScope=scope;let failure:unknown;
+  const result=await work(async()=>{
+   let changed;
+   try{changed=await command(input);}catch(exc){failure=exc;throw exc;}
+   if(changed&&mounted.current&&currentScope.current===expectedScope){
+    try{await load();}catch(exc){if(mounted.current&&currentScope.current===expectedScope)setError('编辑已保存，文字列表刷新失败：'+String(exc));}
+   }
+   return changed;
+  });
+  // The app work wrapper reports failures globally and returns undefined. Keep
+  // form errors inside the open dialog as well, so a failed draft can be retried.
+  if(propagateError&&failure)throw failure;
+  return !!result;
+ }
+ async function previewLayout(){
+  if(busy||layoutChecking)return;
+  const requestedTicket=currentTicket.current;setLayoutChecking(true);setError('');
+  try{
+   const value=await request<LayoutPreview>(prefix+'/text-layout-previews',{asset_id:asset.asset_id,base_revision:project.working_revision});
+   if(mounted.current&&currentTicket.current===requestedTicket)setLayoutPreview(value);
+  }catch(e){if(mounted.current&&currentTicket.current===requestedTicket)setError('排版检查失败：'+String(e));}
+  finally{if(mounted.current&&currentTicket.current===requestedTicket)setLayoutChecking(false);}
+ }
+ async function applyLayout(){
+  const preview=layoutPreview;if(!preview||busy)return;
+  if(preview.base_revision!==project.working_revision){setLayoutPreview(null);setError('项目已更新，请重新预览排版修复。');return;}
+  await runCommand({operation_type:'restore_ocr_layout',expected_preview_sha256:preview.input_sha256});
+ }
  async function inspectReport(){
   const requestedTicket=currentTicket.current,requestedRevision=currentRevision.current,serial=++inspectionRequest.current;
   setInspection(null);setInspectionError('');setSelected([]);setChecking(true);
@@ -62,63 +113,109 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
   }catch(e){if(mounted.current&&currentTicket.current===requestedTicket&&serial===inspectionRequest.current)setInspectionError('残影检查失败：'+String(e));}
   finally{if(mounted.current&&currentTicket.current===requestedTicket&&serial===inspectionRequest.current)setChecking(false);}
  }
- async function inspect(){if(busy||checking)return;const expectedScope=scope;setCheckAttempted(true);await work(async()=>{if(mounted.current&&currentScope.current===expectedScope)await inspectReport();});}
- function changeFilter(next:Filter){setFilter(next);setPage(1);setSelected([]);}
- function deleteSelected(){
-  const ids=[...selected],requestedScope=scope,requestedTicket=ticket;
-  if(!ids.length)return;
-  Modal.confirm({title:'删除 '+ids.length+' 项文字？',okText:'删除',cancelText:'取消',okButtonProps:{danger:true},content:'本次删除所选的 '+ids.length+' 项文字，记录进入历史，可通过一次撤销恢复。',onOk:()=>work(async()=>{
-   if(!mounted.current||currentScope.current!==requestedScope)return;
-   // The command passed by Workbench flushes its property draft before queuing deletion.
-   const result=await command({operation_type:'delete_text',feature_ids:ids});
-   if(!result||!mounted.current||currentScope.current!==requestedScope)return;
-   const removed=new Set(result.removed_feature_ids);
-   setSelected(current=>current.filter(id=>!removed.has(id)));
-   setRows(current=>current.filter(row=>!removed.has(row.feature_id)));
-   // load() captures the latest ticket after autosave/deletion advances the revision.
-   if(currentTicket.current===requestedTicket||result.result_revision>=project.working_revision)await load();
-  })});
+ async function inspect(){if(locked||checking)return;closeResidue();const expectedScope=scope;setCheckAttempted(true);await work(async()=>{if(mounted.current&&currentScope.current===expectedScope)await inspectReport();});}
+ function closeResidue(){if(residueReview?.locked||batchBusy.current)return;residueReview?.close();}
+ function changeCategory(next:'residue'|'information'){if(locked)return;closeResidue();setSelected([]);setCategory(next);}
+ useEffect(()=>{if(revealRequest)setCategory('residue');},[revealRequest?.ticket]);
+ function changeFilter(next:Filter){if(locked)return;setBatch(null);setBatchMessage('');closeResidue();setFilter(next);setPage(1);setSelected([]);}
+ function openResidue(id:string){
+  if(locked)return;
+  if(residueReview)void residueReview.open(id);else onReviewResidue?.(id);
  }
- const report=inspection?.ticket===ticket&&inspection.report.working_revision===project.working_revision?inspection.report:null;
- const resultsReady=!!report&&loadedTicket===ticket;
+ function batchContext():ResidueBatchContext {
+  const expectedScope=scope,expectedSession=session;
+  return {projectId:project.project_id,assetId:asset.asset_id,revision:()=>useWorkspace.getState().project?.working_revision??-1,
+   current:()=>{const state=useWorkspace.getState();return mounted.current&&currentScope.current===expectedScope&&state.session===expectedSession&&state.project?.project_id===project.project_id&&state.asset?.asset_id===asset.asset_id;}};
+ }
+ async function refreshBatchAssessment(context:ResidueBatchContext){
+  await load();const revision=context.revision();
+  const result=await request<Report>(prefix+'/text-layer-assessments?asset_id='+asset.asset_id,undefined,undefined,{quiet:true});
+  if(context.current()&&context.revision()===revision&&result.working_revision===revision){setInspection({ticket:JSON.stringify([scope,revision]),report:result});setInspectionError('');}
+ }
+ async function runResidueBatch(action:'confirm'|'cleanup',ids=selected){
+  if(locked||batchBusy.current||!resultsReady)return;
+  const texts=rows.filter(row=>ids.includes(row.feature_id)).map(row=>({textId:row.feature_id,textValue:row.text_value}));
+  if(!texts.length)return;
+  closeResidue();const context=batchContext(),serial=++batchGeneration.current;
+  batchBusy.current=true;setBatchPhase('preparing');setBatchProgress(0);setBatchTotal(texts.length);setBatchMessage('');
+  setBatch({scope,revision:context.revision(),stage:'review',items:[]});
+  const publish=(items:ResidueBatchItem[],stage:CleanupBatch['stage'])=>{if(context.current()&&serial===batchGeneration.current)setBatch({scope,revision:context.revision(),stage,items});};
+  await work(async()=>{
+   try{
+    const items=await prepareResidueBatch(context,texts,index=>setBatchProgress(index+1));
+    if(!context.current()||serial!==batchGeneration.current)return;
+    publish(items,'review');setBatchProgress(0);setBatchPhase(action==='confirm'?'confirming':'cleaning');
+    const result=action==='confirm'?await confirmResidueBatch(context,items,index=>setBatchProgress(index+1)):await cleanupResidueBatch(context,items,command,index=>setBatchProgress(index+1));
+    if(!context.current()||serial!==batchGeneration.current)return;
+    publish(result,action==='confirm'?'confirmed':'done');
+    await refreshBatchAssessment(context);
+   }catch(error){if(context.current()&&serial===batchGeneration.current)setBatchMessage(error instanceof Error?error.message:String(error));}
+   finally{if(context.current()&&serial===batchGeneration.current){batchBusy.current=false;setBatchPhase('idle');}}
+  },{quiet:true});
+ }
+ useEffect(()=>{const latest=residueReview?.report;if(latest?.working_revision===project.working_revision)setInspection({ticket,report:latest});},[residueReview?.report,ticket]);
+ const report=inspection&&(batchPending||inspection.ticket===ticket&&inspection.report.working_revision===project.working_revision)?inspection.report:null;
+ const resultsReady=!!report&&(batchPending||loadedTicket===ticket);
  const assessments=new Map(report?.items.map(item=>[item.text_feature_id,item]));
- const counts:Record<Filter,number>={required:rows.filter(needsReview).length,skipped:rows.filter(f=>f.review_status==='skipped').length,confirmed:rows.filter(f=>f.review_status==='confirmed').length,all:rows.length};
- const visibleRows=rows.filter(f=>matchesTextReviewFilter(f,filter)&&(!report||!onlySuspects||assessments.get(f.feature_id)?.cleanup_status==='review_required'));
- const visiblePageKey=JSON.stringify(visibleRows.slice((page-1)*8,page*8).map(row=>row.feature_id));
+ const matches=(feature:TextFeature,value:Filter)=>matchesResidueFilter(assessments.get(feature.feature_id),value);
+ const counts:Record<Filter,number>={required:rows.filter(f=>matches(f,'required')).length,kept:rows.filter(f=>matches(f,'kept')).length,none:rows.filter(f=>matches(f,'none')).length,all:rows.length};
+ // Keep the current detail visible until the user collapses it, including after cleanup changes its status.
+ const currentBatch=batch?.scope===scope&&(batchPending||batch.revision===project.working_revision)?batch:null;
+ const batchResults=new Map(currentBatch?.items.map(item=>[item.textId,item]));
+ const visibleRows=rows.filter(f=>matches(f,filter)||f.feature_id===residueReview?.targetId||batchResults.has(f.feature_id));
+ const visiblePageKey=JSON.stringify(visibleRows.slice((page-1)*TEXT_REVIEW_PAGE_SIZE,page*TEXT_REVIEW_PAGE_SIZE).map(row=>row.feature_id));
  useEffect(()=>{const available=new Set<string>(JSON.parse(visiblePageKey));setSelected(current=>current.filter(id=>available.has(id)));},[visiblePageKey]);
- useEffect(()=>{setPage(current=>Math.min(current,Math.max(1,Math.ceil(visibleRows.length/8))));},[visibleRows.length]);
- const revealedId=useTextReviewReveal({request:revealRequest,ticket,rows,loadedTicket,visible:visible&&resultsReady,panel,filter,setFilter,setOnlySuspects,setPage});
+ useEffect(()=>{setPage(current=>Math.min(current,Math.max(1,Math.ceil(visibleRows.length/TEXT_REVIEW_PAGE_SIZE))));},[visibleRows.length]);
+ const externalInspection=useRef('');
+ useEffect(()=>{
+  const targetId=residueReview?.targetId??revealRequest?.feature_id;
+  const key=targetId?JSON.stringify([targetId,revealRequest?.ticket,ticket]):'';
+  if(category!=='residue'||!key||externalInspection.current===key||report||checking||busy||!visible||loadedTicket!==ticket)return;
+  externalInspection.current=key;setCheckAttempted(true);void work(inspectReport);
+ },[category,revealRequest?.ticket,residueReview?.targetId,ticket,loadedTicket,visible,!!report,checking,busy]);
+ useEffect(()=>{if(loadedTicket===ticket&&residueReview?.targetId&&!rows.some(row=>row.feature_id===residueReview.targetId))residueReview.close();},[loadedTicket,ticket,rows,residueReview?.targetId]);
+ const revealedId=useTextReviewReveal({request:revealRequest,ticket,rows,loadedTicket,visible:category==='residue'&&visible&&resultsReady,panel,filter,setFilter,setPage,matches});
  const [located,setLocated]=useState<{ticket:string;id:string;revealTicket?:number}|null>(null);
  const highlightedId=located?.ticket===ticket&&located.revealTicket===revealRequest?.ticket?located.id:revealedId;
  const unused=candidates.filter(c=>!c.text_feature_id);
  const columns:TableColumnsType<TextFeature>=[
-  {title:'文字',dataIndex:'text_value',width:240,fixed:'left',render:(value:string,f:TextFeature)=><div className="text-review-text-cell"><span className="text-review-value">{value||'（空文字）'}</span><div className="text-review-scripts">{(f.layout_runs??[]).filter(r=>r.script!=='normal'||r.review_required).map((r,i)=><Tag className={r.review_required?'text-review-script-warning':undefined} key={i} color={r.review_required?'orange':'blue'}>{r.script==='subscript'?'下标':r.script==='superscript'?'上标':'排版'} {r.text}{r.review_required?' · 待核对':''}</Tag>)}</div></div>},
-  ...(showOriginal?[{title:'原始候选',dataIndex:'original_text',width:160,render:(value:string)=><span className="text-review-value">{value||'—'}</span>}]:[]),
-  ...(showScore?[{title:'识别分数',width:100,render:(_:unknown,f:TextFeature)=>score(f.ocr_score)}]:[]),
-  {title:'核对状态',width:170,render:(_,f)=>labels[f.review_status]??f.review_status},
-  {title:'残影',width:180,render:(_,f)=>residueEvidence(assessments.get(f.feature_id))},
-  {title:'原因',width:210,render:(_,f)=><div className="inspection-reasons">{[...new Set([...f.review_reason_codes.filter(code=>!code.startsWith('soft:')),...(assessments.get(f.feature_id)?.reasons??[])])].map(code=><span key={code}>{reasons[code]??code}</span>)}{f.review_status==='manual_edited'&&!f.review_reason_codes.length&&<span>修改后的文字需人工确认</span>}</div>},
-  {title:'涉及对象',width:160,render:(_,f)=>{const assessment=assessments.get(f.feature_id);return <div className="inspection-objects"><span title={f.feature_id}>文字 {f.feature_id.slice(0,8)}</span>{assessment?.suspected_face_ids.map(id=><span key={id} title={id}>面 {id.slice(0,8)}</span>)}{assessment?.suspected_line_ids.map(id=><span key={id} title={id}>线 {id.slice(0,8)}</span>)}{assessment?.protected_line_ids.map(id=><span key={id} title={id}>待核对线 {id.slice(0,8)}</span>)}</div>;}},
-  {title:'操作',width:onConfirmNext?210:80,fixed:'right',render:(_,f)=><div className="text-review-row-actions"><Button disabled={busy} onClick={()=>{setLocated({ticket,id:f.feature_id,revealTicket:revealRequest?.ticket});focus(f.feature_id);}}>查看</Button>{onConfirmNext&&f.review_status!=='confirmed'&&<Button disabled={busy} onClick={()=>onConfirmNext(f.feature_id)}>确认并下一条</Button>}</div>}
+  {title:'文字',dataIndex:'text_value',render:(value:string,f:TextFeature)=><div className="text-review-text-cell"><span className="text-review-value" title={'文字 '+f.feature_id+' · 内容核对：'+statusLabel(f)}>{value||'（空文字）'}</span>{(f.layout_runs??[]).filter(r=>r.script==='subscript'||r.script==='superscript').map((r,i)=><Tag key={i}>{r.script==='subscript'?'下标':'上标'} {r.text}</Tag>)}</div>},
+  ...(showOriginal?[{title:'原始候选',dataIndex:'original_text',render:(value:string)=><span className="text-review-value">{value||'—'}</span>}]:[]),
+  ...(showScore?[{title:'识别分数',render:(_:unknown,f:TextFeature)=>score(f.ocr_score)}]:[]),
+  {title:'残影状态',className:'text-review-nowrap',render:(_,f)=>{const state=residueState(assessments.get(f.feature_id)),label=state==='required'?'待核对':state==='kept'?'已保留':'未发现';const result=batchResults.get(f.feature_id),displayLabel=result?.status==='ready'?'已确认':label;return <div className="text-review-result"><Tag color={state==='none'?undefined:statusColor(displayLabel)}>{displayLabel}</Tag>{result&&<span className="text-review-batch-result" role="status">{result.message??(batchPending&&result.status==='review'?'正在处理…':({review:'请先确认核对后再清理',ready:'已确认核对',empty:'无需清理',blocked:'未处理，请查看原因',cleaned:'已清理',partial:'部分已清理'}[result.status]))}</span>}</div>;}},
+  {title:'残影',className:'text-review-residue-col',render:(_,f)=>residueEvidence(assessments.get(f.feature_id))},
+  {title:'原因',render:(_,f)=><ReasonList className="inspection-reasons" items={[...new Set(assessments.get(f.feature_id)?.reasons??[])].map(code=>reasons[code]??code)}/>},
+  {title:'操作',className:'text-review-nowrap',render:(_,f)=>{
+   const opened=residueReview?.targetId===f.feature_id,reviewable=residueState(assessments.get(f.feature_id))!=='none';
+   return <div className="text-review-row-actions"><div className="text-review-row-navigation">
+    {(onReviewResidue||residueReview)&&(reviewable||opened)&&<Button disabled={locked} aria-expanded={residueReview?opened:undefined} aria-controls={opened?detailsId:undefined} onClick={()=>{if(opened)closeResidue();else openResidue(f.feature_id);}}>{opened?'收起详情':'核对残影'}</Button>}
+    <Button disabled={locked} onClick={()=>{setLocated({ticket,id:f.feature_id,revealTicket:revealRequest?.ticket});focus(f.feature_id);}}>定位</Button>
+   </div>{opened?<div className="text-review-row-cleanup" ref={residueReview.cleanupActionRef}/>:reviewable&&(onReviewResidue||residueReview)?<div className="text-review-row-cleanup"><Button danger disabled={locked} onClick={()=>void runResidueBatch('cleanup',[f.feature_id])}>清理残影</Button></div>:null}</div>;
+  }}
  ];
  return <div ref={panel} className="text-review-panel">
-  <div className="text-review-toolbar" aria-label="文字核对工具">
-   <Button disabled={busy||checking} onClick={()=>void inspect()}>{checkAttempted?'重新检查':'开始检查'}</Button>
-   {resultsReady&&<><Popover trigger="click" placement="bottomRight" content={<div className="text-review-column-options" role="group" aria-label="显示列"><Checkbox checked={showOriginal} onChange={event=>setShowOriginal(event.target.checked)}>原始候选</Checkbox><Checkbox checked={showScore} onChange={event=>setShowScore(event.target.checked)}>识别分数</Checkbox></div>}><Button>显示列</Button></Popover>
-   <Button aria-expanded={moreOpen} aria-controls="text-review-more" onClick={()=>setMoreOpen(value=>!value)}>更多</Button>
-   <Button disabled={busy} onClick={()=>void work(load)}>刷新</Button></>}
+  <div className="text-review-toolbar" aria-label="文字残影检查工具">
+   <InspectionStatus ariaLabel="文字核对检查状态" state={checking?'checking':resultsReady?'done':'waiting'} attempted={checkAttempted} disabled={locked} onCheck={()=>void inspect()} extra={<><Button aria-expanded={moreOpen} aria-controls="text-review-more" onClick={()=>setMoreOpen(value=>!value)}>检查设置</Button>{resultsReady&&<span className="inspection-total">共 {rows.length} 项</span>}</>}/>
+  </div>
+  <Modal open={!!layoutPreview} title="排版修复预览" width={900} okText="应用修复" cancelText="取消" confirmLoading={busy} okButtonProps={{disabled:busy||!layoutPreview?.updated_count}} onCancel={()=>setLayoutPreview(null)} onOk={()=>void applyLayout()}>
+   {layoutPreview&&<><p>更新 {layoutPreview.updated_count} 项，跳过 {layoutPreview.skipped_count} 项（含人工编辑），其中排版仍需核对 {layoutPreview.review_required_count} 项。原始识别内容保留，修复可撤销。</p><div style={{maxHeight:'60vh',overflow:'auto'}}>{layoutPreview.changes.map(item=><section key={item.feature_id}><strong>{item.text_value}</strong><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:16}}><div><p>修复前 · 字号 {item.before.font_size_px.toFixed(2)} · 位置 {item.before.geometry.coordinates.map(v=>v.toFixed(1)).join(", ")}</p><FeaturePreview features={[item.before]} styles={[]}/></div><div><p>修复后 · 字号 {item.after.font_size_px.toFixed(2)} · 位置 {item.after.geometry.coordinates.map(v=>v.toFixed(1)).join(", ")}</p><FeaturePreview features={[item.after]} styles={[]}/></div></div></section>)}</div></>}
+  </Modal>
+  <div id="text-review-more" className="text-review-more" hidden={!moreOpen}>
+   <div className="text-review-column-options" role="group" aria-label="显示列"><Checkbox checked={showOriginal} onChange={event=>setShowOriginal(event.target.checked)}>原始候选</Checkbox><Checkbox checked={showScore} onChange={event=>setShowScore(event.target.checked)}>识别分数</Checkbox></div>
+   <div className="text-review-advanced-controls"><label htmlFor="text-review-threshold">自动通过分数</label><InputNumber id="text-review-threshold" aria-label="自动通过分数门槛" min={1} max={100} value={threshold} addonAfter="%" onChange={n=>setThreshold(Number(n??90))}/><Button disabled={busy} onClick={()=>void runCommand({operation_type:'classify_review',threshold:threshold/100})}>重新评估文字</Button><Button loading={layoutChecking} disabled={busy||layoutChecking} onClick={()=>void previewLayout()}>预览排版修复</Button></div>
+   <p className="review-note">模型分数不是正确率；自动通过的文字仍未人工确认。</p>
+   <details className="ocr-candidate-details"><summary>未采用的识别结果（{unused.length}）</summary><Table rowKey="candidate_id" size="small" dataSource={unused} pagination={{pageSize:8}} scroll={{x:650}} columns={[{title:'原文',dataIndex:'raw_text'},{title:'识别分数',render:(_,c:Candidate)=>score(c.score)},{title:'引擎 / 模型',render:(_:unknown,c:Candidate)=>(c.engine_id||'—')+' / '+(c.model_id||'—')},{title:'建议',render:(_:unknown,c:Candidate)=><ReasonList items={candidateReasonTexts(c)}/>},{title:'操作',render:(_,c:Candidate)=><Button disabled={busy} onClick={()=>void runCommand({operation_type:'adopt_ocr_candidate',candidate_id:c.candidate_id})}>保存为文字</Button>}]}/></details>
   </div>
   {error&&<Alert type="error" message={error}/>}
   {inspectionError&&<Alert type="error" message={inspectionError}/>}
-  {resultsReady&&<><Tabs className="text-review-filters" aria-label="按核对状态筛选" type="line" size="small" activeKey={filter} onChange={key=>changeFilter(key as Filter)} items={filters.map(item=>({key:item.value,label:item.label+' '+counts[item.value]}))}/>
-  {report&&<div className="text-review-inspection-summary" aria-label="全图残影检查结果"><span>检查 {report.summary.text_count} 条 · 疑似 {report.summary.cleanup_review_required} 处</span><Checkbox checked={onlySuspects} onChange={e=>{setOnlySuspects(e.target.checked);setPage(1);setSelected([]);}}>仅看疑似残影</Checkbox></div>}
-  {selected.length>0&&<div className="text-review-selection" aria-label="所选文字操作"><span>已选 {selected.length} 项</span><Button danger disabled={busy} onClick={deleteSelected}>删除所选文字</Button><Button disabled={busy} onClick={()=>setSelected([])}>清空选择</Button><small>仅选择当前页；翻页或切换筛选会清空选择。</small></div>}
-  <div id="text-review-more" className="text-review-more" hidden={!moreOpen}>
-   <div className="text-review-advanced-controls"><label htmlFor="text-review-threshold">自动通过分数</label><InputNumber id="text-review-threshold" aria-label="自动通过分数门槛" min={1} max={100} value={threshold} addonAfter="%" onChange={n=>setThreshold(Number(n??90))}/><Button disabled={busy} onClick={()=>void runCommand({operation_type:'classify_review',threshold:threshold/100})}>重新评估文字</Button><Button disabled={busy} onClick={()=>void runCommand({operation_type:'restore_ocr_layout'})}>恢复识别排版</Button></div>
-   <p className="review-note">模型分数不是正确率；自动通过的文字仍未人工确认。</p>
-   <details className="ocr-candidate-details"><summary>未采用的识别结果（{unused.length}）</summary><Table rowKey="candidate_id" size="small" dataSource={unused} pagination={{pageSize:8}} scroll={{x:650}} columns={[{title:'原文',dataIndex:'raw_text'},{title:'识别分数',render:(_,c:Candidate)=>score(c.score)},{title:'引擎 / 模型',render:(_:unknown,c:Candidate)=>(c.engine_id||'—')+' / '+(c.model_id||'—')},{title:'建议',render:(_:unknown,c:Candidate)=>c.rule_suggestions.map(r=>typeof r==='object'&&r!==null&&'reason_codes' in r&&Array.isArray(r.reason_codes)?r.reason_codes.join('；'):'').filter(Boolean).join('；')||'需对照原图'},{title:'操作',render:(_,c:Candidate)=><Button disabled={busy} onClick={()=>void runCommand({operation_type:'adopt_ocr_candidate',candidate_id:c.candidate_id})}>保存为文字</Button>}]}/></details>
-  </div>
-  <Table className="text-review-table" rowKey="feature_id" size="small" tableLayout="fixed" dataSource={visibleRows} rowClassName={row=>row.feature_id===highlightedId?'text-review-revealed':''} onRow={row=>({'aria-selected':row.feature_id===highlightedId})} rowSelection={{selectedRowKeys:selected,onChange:keys=>setSelected(keys.map(String)),columnWidth:40,fixed:true,getCheckboxProps:()=>({disabled:busy})}} pagination={{pageSize:8,current:page,onChange:next=>{setPage(next);setSelected([]);},showSizeChanger:false}} scroll={{x:(onConfirmNext?1210:1080)+(showOriginal?160:0)+(showScore?100:0)}} columns={columns}/>
+  <Tabs className="text-review-categories" aria-label="文字检查类型" activeKey={category} onChange={key=>changeCategory(key as 'residue'|'information')} items={[{key:'residue',label:'残影清理'+(resultsReady?' '+(counts.required+counts.kept):''),disabled:locked},{key:'information',label:'文字信息 '+rows.length,disabled:locked}]}/>
+  {category==='information'?<TextInformationPanel key={scope} project={project} asset={asset} rows={rows} ready={loadedTicket===ticket} busy={busy} mutate={input=>runCommand(input,true)} focus={focus}/>:resultsReady&&<>
+  <Segmented className="text-review-filters" aria-label="文字残影状态筛选" role="group" size="small" value={filter} disabled={locked} onChange={value=>changeFilter(value as Filter)} options={filters.map(item=>({value:item.value,label:item.label+' '+counts[item.value]}))}/>
+  {selected.length>0&&<div className="text-review-selection" role="group" aria-label="所选残影操作"><span>已选 {selected.length} 项</span><Button disabled={locked} onClick={()=>void runResidueBatch('confirm')}>确认核对</Button><Button danger disabled={locked} onClick={()=>void runResidueBatch('cleanup')}>清理残影</Button></div>}
+  {batchPending&&<div className="text-review-batch-progress" role="status">{batchPhase==='preparing'?'正在检查所选残影':batchPhase==='confirming'?'正在确认核对':'正在清理残影'}：{batchProgress} / {batchTotal} 项</div>}
+  {batchMessage&&<Alert type="error" message={batchMessage}/>}
+  {!batchPending&&currentBatch&&<div className="text-review-batch-summary" role="status">{currentBatch.stage==='confirmed'?'确认核对完成':'处理完成'}：已清理 {currentBatch.items.filter(item=>item.status==='cleaned').length} 项 · 部分清理 {currentBatch.items.filter(item=>item.status==='partial').length} 项 · 需先核对 {currentBatch.items.filter(item=>item.status==='review').length} 项 · 未处理 {currentBatch.items.filter(item=>item.status==='blocked').length} 项 · 无需清理 {currentBatch.items.filter(item=>item.status==='empty').length} 项{currentBatch.stage==='confirmed'&&<> · 已确认 {currentBatch.items.filter(item=>item.status==='ready').length} 项</>}</div>}
+  <Table className="text-review-table" rowKey="feature_id" size="small" dataSource={visibleRows} rowClassName={row=>[row.feature_id===highlightedId?'text-review-revealed':'',row.feature_id===residueReview?.targetId?'text-review-residue-open':''].filter(Boolean).join(' ')} onRow={row=>({'aria-selected':row.feature_id===highlightedId})} rowSelection={{selectedRowKeys:selected,onChange:keys=>{if(locked)return;setBatch(null);setBatchMessage('');setSelected(keys.map(String));},columnWidth:40,getCheckboxProps:row=>({disabled:locked||residueState(assessments.get(row.feature_id))==='none'})}} expandable={residueReview?{expandedRowKeys:residueReview.targetId?[residueReview.targetId]:[],expandedRowRender:row=>row.feature_id===residueReview.targetId?<div id={detailsId} className="text-review-inline-residue">{residueReview.content}</div>:null,showExpandColumn:false,expandedRowClassName:()=> 'text-review-residue-details'}:undefined} pagination={{pageSize:TEXT_REVIEW_PAGE_SIZE,current:page,disabled:locked,onChange:next=>{closeResidue();setPage(next);setSelected([]);},showSizeChanger:false}} scroll={{x:600}} columns={columns}/>
   </>}
  </div>;
 }

@@ -396,6 +396,74 @@
         "title": "ApplyPreview",
         "type": "object"
       },
+      "ApplyTextFormat": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "copy_color": {
+            "default": true,
+            "title": "Copy Color",
+            "type": "boolean"
+          },
+          "copy_rotation": {
+            "default": false,
+            "title": "Copy Rotation",
+            "type": "boolean"
+          },
+          "copy_size": {
+            "default": true,
+            "title": "Copy Size",
+            "type": "boolean"
+          },
+          "copy_text": {
+            "default": false,
+            "title": "Copy Text",
+            "type": "boolean"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2000,
+            "minItems": 1,
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "idempotency_key": {
+            "maxLength": 128,
+            "minLength": 1,
+            "title": "Idempotency Key",
+            "type": "string"
+          },
+          "operation_type": {
+            "const": "apply_text_format",
+            "title": "Operation Type",
+            "type": "string"
+          },
+          "sample": {
+            "$ref": "#/components/schemas/TextFormatSample"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "idempotency_key",
+          "feature_ids",
+          "operation_type",
+          "sample"
+        ],
+        "title": "ApplyTextFormat",
+        "type": "object"
+      },
       "Asset": {
         "additionalProperties": true,
         "properties": {
@@ -537,6 +605,35 @@
           "style_id": {
             "title": "Style Id",
             "type": "string"
+          },
+          "text_content": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TextFormatSample"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "text_fields": {
+            "anyOf": [
+              {
+                "items": {
+                  "enum": [
+                    "font_size_px",
+                    "text_color",
+                    "rotation_deg"
+                  ],
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Fields"
           }
         },
         "required": [
@@ -1308,6 +1405,157 @@
         "title": "DeleteText",
         "type": "object"
       },
+      "DeliveryCheckResult": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "check_complete": {
+            "default": true,
+            "title": "Check Complete",
+            "type": "boolean"
+          },
+          "checked_pair_count": {
+            "default": 0,
+            "title": "Checked Pair Count",
+            "type": "integer"
+          },
+          "coordinate_space": {
+            "const": "pixel",
+            "default": "pixel",
+            "title": "Coordinate Space",
+            "type": "string"
+          },
+          "issue_count": {
+            "title": "Issue Count",
+            "type": "integer"
+          },
+          "issue_count_exact": {
+            "default": true,
+            "title": "Issue Count Exact",
+            "type": "boolean"
+          },
+          "issues": {
+            "items": {
+              "$ref": "#/components/schemas/DeliveryIssue"
+            },
+            "title": "Issues",
+            "type": "array"
+          },
+          "issues_truncated": {
+            "title": "Issues Truncated",
+            "type": "boolean"
+          },
+          "quality_report": {
+            "$ref": "#/components/schemas/GeometryQualityReport"
+          },
+          "rule_version": {
+            "const": "delivery_checks_v1",
+            "default": "delivery_checks_v1",
+            "title": "Rule Version",
+            "type": "string"
+          },
+          "working_revision": {
+            "title": "Working Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id",
+          "working_revision",
+          "quality_report",
+          "issues",
+          "issue_count",
+          "issues_truncated"
+        ],
+        "title": "DeliveryCheckResult",
+        "type": "object"
+      },
+      "DeliveryIssue": {
+        "properties": {
+          "area_px2": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Area Px2"
+          },
+          "bounds_px": {
+            "anyOf": [
+              {
+                "maxItems": 4,
+                "minItems": 4,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bounds Px"
+          },
+          "code": {
+            "enum": [
+              "INVALID_GEOMETRY",
+              "FACE_OVERLAP",
+              "FACE_BOUNDARY_MISMATCH"
+            ],
+            "title": "Code",
+            "type": "string"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "issue_id": {
+            "title": "Issue Id",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "review"
+            ],
+            "title": "Severity",
+            "type": "string"
+          }
+        },
+        "required": [
+          "issue_id",
+          "code",
+          "severity",
+          "feature_ids",
+          "bounds_px",
+          "message"
+        ],
+        "title": "DeliveryIssue",
+        "type": "object"
+      },
       "EditEnvelope": {
         "properties": {
           "data": {
@@ -1457,6 +1705,28 @@
         "title": "Envelope[Asset]",
         "type": "object"
       },
+      "Envelope_DeliveryCheckResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeliveryCheckResult"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_revision": {
+            "default": "1.0",
+            "title": "Schema Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[DeliveryCheckResult]",
+        "type": "object"
+      },
       "Envelope_Export_": {
         "properties": {
           "data": {
@@ -1477,6 +1747,28 @@
           "request_id"
         ],
         "title": "Envelope[Export]",
+        "type": "object"
+      },
+      "Envelope_FaceColorReport_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FaceColorReport"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_revision": {
+            "default": "1.0",
+            "title": "Schema Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[FaceColorReport]",
         "type": "object"
       },
       "Envelope_FaceMergePreviewResponse_": {
@@ -1521,6 +1813,28 @@
           "request_id"
         ],
         "title": "Envelope[LineCheckDecisionResult]",
+        "type": "object"
+      },
+      "Envelope_LineCheckPage_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LineCheckPage"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_revision": {
+            "default": "1.0",
+            "title": "Schema Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[LineCheckPage]",
         "type": "object"
       },
       "Envelope_LineCheckReport_": {
@@ -1831,6 +2145,50 @@
         "title": "Envelope[ReviewPage]",
         "type": "object"
       },
+      "Envelope_RoiAuditResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RoiAuditResult"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_revision": {
+            "default": "1.0",
+            "title": "Schema Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[RoiAuditResult]",
+        "type": "object"
+      },
+      "Envelope_RoiPreviewResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/RoiPreviewResult"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_revision": {
+            "default": "1.0",
+            "title": "Schema Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[RoiPreviewResult]",
+        "type": "object"
+      },
       "Envelope_RoiResult_": {
         "properties": {
           "data": {
@@ -1895,6 +2253,28 @@
           "request_id"
         ],
         "title": "Envelope[SelectionResult]",
+        "type": "object"
+      },
+      "Envelope_SnapshotScope_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SnapshotScope"
+          },
+          "request_id": {
+            "title": "Request Id",
+            "type": "string"
+          },
+          "schema_revision": {
+            "default": "1.0",
+            "title": "Schema Revision",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data",
+          "request_id"
+        ],
+        "title": "Envelope[SnapshotScope]",
         "type": "object"
       },
       "Envelope_Snapshot_": {
@@ -2140,6 +2520,153 @@
           "snapshot_id"
         ],
         "title": "Export",
+        "type": "object"
+      },
+      "FaceColorMatch": {
+        "properties": {
+          "delta_e": {
+            "minimum": 0.0,
+            "title": "Delta E",
+            "type": "number"
+          },
+          "feature_id": {
+            "title": "Feature Id",
+            "type": "string"
+          },
+          "fill_color": {
+            "pattern": "^#[0-9a-f]{6}$",
+            "title": "Fill Color",
+            "type": "string"
+          },
+          "match_type": {
+            "enum": [
+              "exact",
+              "similar"
+            ],
+            "title": "Match Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature_id",
+          "fill_color",
+          "delta_e",
+          "match_type"
+        ],
+        "title": "FaceColorMatch",
+        "type": "object"
+      },
+      "FaceColorReport": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "invalid_color_count": {
+            "minimum": 0.0,
+            "title": "Invalid Color Count",
+            "type": "integer"
+          },
+          "match_count": {
+            "minimum": 0.0,
+            "title": "Match Count",
+            "type": "integer"
+          },
+          "matches": {
+            "items": {
+              "$ref": "#/components/schemas/FaceColorMatch"
+            },
+            "title": "Matches",
+            "type": "array"
+          },
+          "mode": {
+            "enum": [
+              "exact",
+              "similar"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "scanned_face_count": {
+            "minimum": 0.0,
+            "title": "Scanned Face Count",
+            "type": "integer"
+          },
+          "source_color": {
+            "pattern": "^#[0-9a-f]{6}$",
+            "title": "Source Color",
+            "type": "string"
+          },
+          "source_feature_id": {
+            "title": "Source Feature Id",
+            "type": "string"
+          },
+          "tolerance": {
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tolerance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "source_feature_id",
+          "source_color",
+          "mode",
+          "tolerance",
+          "scanned_face_count",
+          "invalid_color_count",
+          "match_count",
+          "matches"
+        ],
+        "title": "FaceColorReport",
+        "type": "object"
+      },
+      "FaceColorRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "mode": {
+            "default": "similar",
+            "enum": [
+              "exact",
+              "similar"
+            ],
+            "title": "Mode",
+            "type": "string"
+          },
+          "source_feature_id": {
+            "title": "Source Feature Id",
+            "type": "string"
+          },
+          "tolerance": {
+            "default": 15,
+            "maximum": 100.0,
+            "minimum": 0.0,
+            "title": "Tolerance",
+            "type": "number"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "source_feature_id"
+        ],
+        "title": "FaceColorRequest",
         "type": "object"
       },
       "FaceMergeAffectedFeature": {
@@ -3433,6 +3960,98 @@
         "title": "FeaturePage",
         "type": "object"
       },
+      "GeometryQualityReport": {
+        "properties": {
+          "area_statistics_complete": {
+            "title": "Area Statistics Complete",
+            "type": "boolean"
+          },
+          "coverage_is_valid": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Coverage Is Valid"
+          },
+          "covered_area_px2": {
+            "title": "Covered Area Px2",
+            "type": "number"
+          },
+          "face_count": {
+            "title": "Face Count",
+            "type": "integer"
+          },
+          "geometry_count": {
+            "title": "Geometry Count",
+            "type": "integer"
+          },
+          "invalid_geometry_count": {
+            "title": "Invalid Geometry Count",
+            "type": "integer"
+          },
+          "note": {
+            "title": "Note",
+            "type": "string"
+          },
+          "overlap_area_px2": {
+            "title": "Overlap Area Px2",
+            "type": "number"
+          },
+          "recognition_accuracy": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Recognition Accuracy"
+          },
+          "target": {
+            "const": "full_asset_pixel_extent",
+            "title": "Target",
+            "type": "string"
+          },
+          "target_area_px2": {
+            "title": "Target Area Px2",
+            "type": "number"
+          },
+          "tolerance_px2": {
+            "title": "Tolerance Px2",
+            "type": "number"
+          },
+          "uncovered_area_px2": {
+            "title": "Uncovered Area Px2",
+            "type": "number"
+          },
+          "valid_geometry_count": {
+            "title": "Valid Geometry Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "target",
+          "target_area_px2",
+          "face_count",
+          "geometry_count",
+          "valid_geometry_count",
+          "invalid_geometry_count",
+          "coverage_is_valid",
+          "covered_area_px2",
+          "uncovered_area_px2",
+          "overlap_area_px2",
+          "tolerance_px2",
+          "area_statistics_complete",
+          "note"
+        ],
+        "title": "GeometryQualityReport",
+        "type": "object"
+      },
       "GroupFeatures": {
         "additionalProperties": false,
         "properties": {
@@ -3486,6 +4105,52 @@
           "operation_type"
         ],
         "title": "GroupFeatures",
+        "type": "object"
+      },
+      "HealResidueDecision": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "maximum": 9007199254740990.0,
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "decision": {
+            "enum": [
+              "confirm",
+              "keep",
+              "reopen"
+            ],
+            "title": "Decision",
+            "type": "string"
+          },
+          "feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 2000,
+            "minItems": 1,
+            "title": "Feature Ids",
+            "type": "array"
+          },
+          "preview_id": {
+            "title": "Preview Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "preview_id",
+          "feature_ids",
+          "decision"
+        ],
+        "title": "HealResidueDecision",
         "type": "object"
       },
       "HistoryCommand": {
@@ -3845,6 +4510,11 @@
             "title": "Kind",
             "type": "string"
           },
+          "manually_confirmed": {
+            "default": false,
+            "title": "Manually Confirmed",
+            "type": "boolean"
+          },
           "metrics": {
             "additionalProperties": {
               "type": "number"
@@ -3921,7 +4591,8 @@
           "decision": {
             "enum": [
               "keep",
-              "reopen"
+              "reopen",
+              "confirm"
             ],
             "title": "Decision",
             "type": "string"
@@ -3953,7 +4624,8 @@
           "decision": {
             "enum": [
               "keep",
-              "reopen"
+              "reopen",
+              "confirm"
             ],
             "title": "Decision",
             "type": "string"
@@ -4071,6 +4743,11 @@
             "title": "Kind",
             "type": "string"
           },
+          "manually_confirmed": {
+            "default": false,
+            "title": "Manually Confirmed",
+            "type": "boolean"
+          },
           "metrics": {
             "additionalProperties": {
               "type": "number"
@@ -4128,6 +4805,85 @@
           "created_at"
         ],
         "title": "LineCheckHistory",
+        "type": "object"
+      },
+      "LineCheckPage": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "expires_at": {
+            "title": "Expires At",
+            "type": "string"
+          },
+          "filter": {
+            "enum": [
+              "pending",
+              "kept",
+              "applied",
+              "all"
+            ],
+            "title": "Filter",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/LineCheckCandidate"
+                },
+                {
+                  "$ref": "#/components/schemas/LineCheckHistory"
+                }
+              ]
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "kind": {
+            "enum": [
+              "join_gap",
+              "text_stroke",
+              "dash_group"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "limit": {
+            "title": "Limit",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "preview_id": {
+            "title": "Preview Id",
+            "type": "string"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "preview_id",
+          "asset_id",
+          "base_revision",
+          "expires_at",
+          "kind",
+          "filter",
+          "offset",
+          "limit",
+          "total",
+          "items"
+        ],
+        "title": "LineCheckPage",
         "type": "object"
       },
       "LineCheckReport": {
@@ -4795,6 +5551,41 @@
         "title": "MergeFaces",
         "type": "object"
       },
+      "MultiLineGeometry": {
+        "properties": {
+          "coordinates": {
+            "items": {
+              "items": {
+                "maxItems": 2,
+                "minItems": 2,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              "type": "array"
+            },
+            "title": "Coordinates",
+            "type": "array"
+          },
+          "type": {
+            "const": "MultiLineString",
+            "title": "Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "coordinates"
+        ],
+        "title": "MultiLineGeometry",
+        "type": "object"
+      },
       "MultiPolygonGeometry": {
         "properties": {
           "coordinates": {
@@ -5299,6 +6090,16 @@
             "title": "Base Revision",
             "type": "integer"
           },
+          "cleanup_preview": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResidueCleanupPreview"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "expires_at": {
             "title": "Expires At",
             "type": "string"
@@ -5356,6 +6157,235 @@
         "title": "Preview",
         "type": "object"
       },
+      "PreviewLineResponse": {
+        "additionalProperties": true,
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "associated_text_feature_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Associated Text Feature Id"
+          },
+          "bbox_max_x_px": {
+            "title": "Bbox Max X Px",
+            "type": "number"
+          },
+          "bbox_max_y_px": {
+            "title": "Bbox Max Y Px",
+            "type": "number"
+          },
+          "bbox_min_x_px": {
+            "title": "Bbox Min X Px",
+            "type": "number"
+          },
+          "bbox_min_y_px": {
+            "title": "Bbox Min Y Px",
+            "type": "number"
+          },
+          "coordinate_space": {
+            "const": "pixel",
+            "default": "pixel",
+            "title": "Coordinate Space",
+            "type": "string"
+          },
+          "created_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Created At"
+          },
+          "draw_order": {
+            "title": "Draw Order",
+            "type": "integer"
+          },
+          "feature_id": {
+            "format": "uuid",
+            "title": "Feature Id",
+            "type": "string"
+          },
+          "feature_type": {
+            "const": "line",
+            "title": "Feature Type",
+            "type": "string"
+          },
+          "geometry": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LineGeometry"
+              },
+              {
+                "$ref": "#/components/schemas/MultiLineGeometry"
+              }
+            ],
+            "title": "Geometry"
+          },
+          "geometry_type": {
+            "enum": [
+              "Point",
+              "LineString",
+              "Polygon",
+              "MultiPolygon",
+              "MultiLineString"
+            ],
+            "title": "Geometry Type",
+            "type": "string"
+          },
+          "isolation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Isolation Reason"
+          },
+          "length_px": {
+            "title": "Length Px",
+            "type": "number"
+          },
+          "lifecycle_status": {
+            "enum": [
+              "active",
+              "isolated",
+              "deleted",
+              "superseded"
+            ],
+            "title": "Lifecycle Status",
+            "type": "string"
+          },
+          "line_pattern": {
+            "title": "Line Pattern",
+            "type": "string"
+          },
+          "line_role": {
+            "title": "Line Role",
+            "type": "string"
+          },
+          "origin_run_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Origin Run Id"
+          },
+          "project_id": {
+            "format": "uuid",
+            "title": "Project Id",
+            "type": "string"
+          },
+          "revision": {
+            "title": "Revision",
+            "type": "integer"
+          },
+          "source_type": {
+            "enum": [
+              "algorithm",
+              "manual",
+              "legacy_import",
+              "unknown"
+            ],
+            "title": "Source Type",
+            "type": "string"
+          },
+          "stroke_color": {
+            "title": "Stroke Color",
+            "type": "string"
+          },
+          "stroke_width_px": {
+            "title": "Stroke Width Px",
+            "type": "number"
+          },
+          "style_id": {
+            "anyOf": [
+              {
+                "format": "uuid",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Id"
+          },
+          "style_override": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Override"
+          },
+          "updated_at": {
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "feature_id",
+          "project_id",
+          "asset_id",
+          "feature_type",
+          "lifecycle_status",
+          "geometry",
+          "revision",
+          "origin_run_id",
+          "source_type",
+          "geometry_type",
+          "style_id",
+          "bbox_min_x_px",
+          "bbox_min_y_px",
+          "bbox_max_x_px",
+          "bbox_max_y_px",
+          "created_at",
+          "updated_at",
+          "stroke_color",
+          "stroke_width_px",
+          "line_pattern",
+          "line_role",
+          "length_px",
+          "draw_order",
+          "isolation_reason",
+          "associated_text_feature_id"
+        ],
+        "title": "PreviewLineResponse",
+        "type": "object"
+      },
       "PreviewRequest": {
         "additionalProperties": false,
         "properties": {
@@ -5400,6 +6430,13 @@
             "default": false,
             "title": "Complete Region",
             "type": "boolean"
+          },
+          "face_assignments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Face Assignments",
+            "type": "object"
           },
           "feature_ids": {
             "items": {
@@ -5617,7 +6654,8 @@
           "feature_type": {
             "enum": [
               "face",
-              "line"
+              "line",
+              "text"
             ],
             "title": "Feature Type",
             "type": "string"
@@ -5740,6 +6778,45 @@
         "title": "RepairFace",
         "type": "object"
       },
+      "ResidueCleanupPreview": {
+        "properties": {
+          "features": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FaceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/LineResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/TextResponse"
+                }
+              ]
+            },
+            "title": "Features",
+            "type": "array"
+          },
+          "has_changes": {
+            "title": "Has Changes",
+            "type": "boolean"
+          },
+          "styles": {
+            "items": {
+              "$ref": "#/components/schemas/Style"
+            },
+            "title": "Styles",
+            "type": "array"
+          }
+        },
+        "required": [
+          "features",
+          "styles",
+          "has_changes"
+        ],
+        "title": "ResidueCleanupPreview",
+        "type": "object"
+      },
       "ResidueReviewGroup": {
         "properties": {
           "bounds_px": {
@@ -5775,10 +6852,16 @@
             "title": "Reason Codes",
             "type": "array"
           },
+          "requires_confirmation": {
+            "default": false,
+            "title": "Requires Confirmation",
+            "type": "boolean"
+          },
           "status": {
             "enum": [
               "pending",
-              "kept"
+              "kept",
+              "confirmed"
             ],
             "title": "Status",
             "type": "string"
@@ -5856,6 +6939,18 @@
             "minimum": 0.0,
             "title": "Base Revision",
             "type": "integer"
+          },
+          "expected_preview_sha256": {
+            "anyOf": [
+              {
+                "pattern": "^[0-9a-f]{64}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expected Preview Sha256"
           },
           "feature_ids": {
             "items": {
@@ -5972,10 +7067,7 @@
             "type": "string"
           },
           "operation_type": {
-            "enum": [
-              "confirm_text",
-              "skip_text"
-            ],
+            "const": "confirm_text",
             "title": "Operation Type",
             "type": "string"
           }
@@ -6012,6 +7104,15 @@
           "roi_id": {
             "title": "Roi Id",
             "type": "string"
+          },
+          "scope_mode": {
+            "default": "clip",
+            "enum": [
+              "keep_crossing",
+              "clip"
+            ],
+            "title": "Scope Mode",
+            "type": "string"
           }
         },
         "required": [
@@ -6032,6 +7133,18 @@
             "title": "Asset Id",
             "type": "string"
           },
+          "base_revision": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Base Revision"
+          },
           "roi_id": {
             "anyOf": [
               {
@@ -6049,6 +7162,159 @@
           "asset_id"
         ],
         "title": "RoiAudit",
+        "type": "object"
+      },
+      "RoiAuditCounts": {
+        "properties": {
+          "crossing": {
+            "title": "Crossing",
+            "type": "integer"
+          },
+          "inside": {
+            "title": "Inside",
+            "type": "integer"
+          },
+          "outside": {
+            "title": "Outside",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "inside",
+          "crossing",
+          "outside"
+        ],
+        "title": "RoiAuditCounts",
+        "type": "object"
+      },
+      "RoiAuditResult": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "coordinate_space": {
+            "const": "pixel",
+            "default": "pixel",
+            "title": "Coordinate Space",
+            "type": "string"
+          },
+          "counts": {
+            "additionalProperties": {
+              "$ref": "#/components/schemas/RoiAuditCounts"
+            },
+            "propertyNames": {
+              "enum": [
+                "face",
+                "line",
+                "text"
+              ]
+            },
+            "title": "Counts",
+            "type": "object"
+          },
+          "roi": {
+            "$ref": "#/components/schemas/Roi"
+          },
+          "roi_revision": {
+            "title": "Roi Revision",
+            "type": "integer"
+          },
+          "rule_version": {
+            "const": "delivery_scope_v1",
+            "default": "delivery_scope_v1",
+            "title": "Rule Version",
+            "type": "string"
+          },
+          "working_revision": {
+            "title": "Working Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id",
+          "working_revision",
+          "roi_revision",
+          "roi",
+          "counts"
+        ],
+        "title": "RoiAuditResult",
+        "type": "object"
+      },
+      "RoiPreviewResult": {
+        "properties": {
+          "asset_id": {
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "clip": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FaceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/PreviewLineResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/TextResponse"
+                }
+              ]
+            },
+            "title": "Clip",
+            "type": "array"
+          },
+          "coordinate_space": {
+            "const": "pixel",
+            "default": "pixel",
+            "title": "Coordinate Space",
+            "type": "string"
+          },
+          "keep_crossing": {
+            "items": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FaceResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/PreviewLineResponse"
+                },
+                {
+                  "$ref": "#/components/schemas/TextResponse"
+                }
+              ]
+            },
+            "title": "Keep Crossing",
+            "type": "array"
+          },
+          "roi_id": {
+            "title": "Roi Id",
+            "type": "string"
+          },
+          "roi_revision": {
+            "title": "Roi Revision",
+            "type": "integer"
+          },
+          "rule_version": {
+            "const": "delivery_scope_v1",
+            "default": "delivery_scope_v1",
+            "title": "Rule Version",
+            "type": "string"
+          },
+          "working_revision": {
+            "title": "Working Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id",
+          "working_revision",
+          "roi_id",
+          "roi_revision",
+          "keep_crossing",
+          "clip"
+        ],
+        "title": "RoiPreviewResult",
         "type": "object"
       },
       "RoiResult": {
@@ -6659,6 +7925,15 @@
             "const": "set_roi",
             "title": "Operation Type",
             "type": "string"
+          },
+          "scope_mode": {
+            "default": "clip",
+            "enum": [
+              "keep_crossing",
+              "clip"
+            ],
+            "title": "Scope Mode",
+            "type": "string"
           }
         },
         "required": [
@@ -6701,7 +7976,8 @@
           "feature_type": {
             "enum": [
               "face",
-              "line"
+              "line",
+              "text"
             ],
             "title": "Feature Type",
             "type": "string"
@@ -6717,6 +7993,19 @@
               }
             ],
             "title": "Fill Color"
+          },
+          "font_size_px": {
+            "anyOf": [
+              {
+                "maximum": 200.0,
+                "minimum": 1.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Font Size Px"
           },
           "idempotency_key": {
             "maxLength": 128,
@@ -6744,6 +8033,17 @@
             "const": "set_style",
             "title": "Operation Type",
             "type": "string"
+          },
+          "rotation_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rotation Deg"
           },
           "stroke_color": {
             "anyOf": [
@@ -6786,6 +8086,18 @@
             "minLength": 1,
             "title": "Style Name",
             "type": "string"
+          },
+          "text_color": {
+            "anyOf": [
+              {
+                "pattern": "^#[0-9a-fA-F]{6}$",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Color"
           },
           "tooth_height_px": {
             "anyOf": [
@@ -6884,6 +8196,53 @@
           "snapshot_rel_path"
         ],
         "title": "Snapshot",
+        "type": "object"
+      },
+      "SnapshotScope": {
+        "properties": {
+          "asset_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Asset Id"
+          },
+          "coordinate_space": {
+            "const": "pixel",
+            "default": "pixel",
+            "title": "Coordinate Space",
+            "type": "string"
+          },
+          "roi": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Roi"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "snapshot_id": {
+            "title": "Snapshot Id",
+            "type": "string"
+          },
+          "working_revision": {
+            "title": "Working Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "snapshot_id",
+          "asset_id",
+          "working_revision",
+          "roi"
+        ],
+        "title": "SnapshotScope",
         "type": "object"
       },
       "Source": {
@@ -7142,7 +8501,8 @@
           "feature_type": {
             "enum": [
               "face",
-              "line"
+              "line",
+              "text"
             ],
             "title": "Feature Type",
             "type": "string"
@@ -7157,6 +8517,17 @@
               }
             ],
             "title": "Fill Color"
+          },
+          "font_size_px": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Font Size Px"
           },
           "line_pattern": {
             "anyOf": [
@@ -7176,6 +8547,17 @@
           "revision": {
             "title": "Revision",
             "type": "integer"
+          },
+          "rotation_deg": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rotation Deg"
           },
           "stroke_color": {
             "anyOf": [
@@ -7206,6 +8588,17 @@
           "style_name": {
             "title": "Style Name",
             "type": "string"
+          },
+          "text_color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text Color"
           },
           "tooth_height_px": {
             "anyOf": [
@@ -7259,6 +8652,190 @@
         "title": "Style",
         "type": "object"
       },
+      "TextFormatRun": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_offset_px": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "Baseline Offset Px",
+            "type": "number"
+          },
+          "font_size_px": {
+            "exclusiveMinimum": 0.0,
+            "maximum": 40000.0,
+            "title": "Font Size Px",
+            "type": "number"
+          },
+          "ink_bbox_px": {
+            "anyOf": [
+              {
+                "maxItems": 4,
+                "minItems": 4,
+                "prefixItems": [
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  },
+                  {
+                    "type": "number"
+                  }
+                ],
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ink Bbox Px"
+          },
+          "quality_reasons": {
+            "items": {
+              "maxLength": 100,
+              "minLength": 1,
+              "type": "string"
+            },
+            "maxItems": 30,
+            "title": "Quality Reasons",
+            "type": "array"
+          },
+          "script": {
+            "enum": [
+              "normal",
+              "subscript",
+              "superscript"
+            ],
+            "title": "Script",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "width_px": {
+            "maximum": 1000000.0,
+            "minimum": 0.0,
+            "title": "Width Px",
+            "type": "number"
+          },
+          "x_offset_px": {
+            "maximum": 1000000.0,
+            "minimum": -1000000.0,
+            "title": "X Offset Px",
+            "type": "number"
+          }
+        },
+        "required": [
+          "text",
+          "script",
+          "font_size_px",
+          "x_offset_px",
+          "baseline_offset_px",
+          "width_px"
+        ],
+        "title": "TextFormatRun",
+        "type": "object"
+      },
+      "TextFormatSample": {
+        "additionalProperties": false,
+        "properties": {
+          "baseline_offset_px": {
+            "anyOf": [
+              {
+                "maximum": 1000000.0,
+                "minimum": -1000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Baseline Offset Px"
+          },
+          "font_size_px": {
+            "maximum": 200.0,
+            "minimum": 1.0,
+            "title": "Font Size Px",
+            "type": "number"
+          },
+          "layout_basis": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Layout Basis"
+          },
+          "layout_height_px": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Layout Height Px"
+          },
+          "layout_runs": {
+            "items": {
+              "$ref": "#/components/schemas/TextFormatRun"
+            },
+            "maxItems": 200,
+            "title": "Layout Runs",
+            "type": "array"
+          },
+          "layout_width_px": {
+            "anyOf": [
+              {
+                "exclusiveMinimum": 0.0,
+                "maximum": 1000000.0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Layout Width Px"
+          },
+          "rotation_deg": {
+            "title": "Rotation Deg",
+            "type": "number"
+          },
+          "text_color": {
+            "pattern": "^#[0-9a-fA-F]{6}$",
+            "title": "Text Color",
+            "type": "string"
+          },
+          "text_value": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "font_size_px",
+          "text_color",
+          "rotation_deg",
+          "text_value"
+        ],
+        "title": "TextFormatSample",
+        "type": "object"
+      },
       "TextLayerAssessment": {
         "properties": {
           "candidate_id": {
@@ -7294,6 +8871,34 @@
             "title": "Evidence",
             "type": "array"
           },
+          "kept_face_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Kept Face Ids",
+            "type": "array"
+          },
+          "kept_line_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Kept Line Ids",
+            "type": "array"
+          },
+          "manually_confirmed_face_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Manually Confirmed Face Ids",
+            "type": "array"
+          },
+          "manually_confirmed_line_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Manually Confirmed Line Ids",
+            "type": "array"
+          },
           "ocr_score": {
             "anyOf": [
               {
@@ -7304,6 +8909,23 @@
               }
             ],
             "title": "Ocr Score"
+          },
+          "protected_face_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Protected Face Ids",
+            "type": "array"
+          },
+          "protected_face_reasons": {
+            "additionalProperties": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "title": "Protected Face Reasons",
+            "type": "object"
           },
           "protected_line_ids": {
             "items": {
@@ -7459,6 +9081,27 @@
         "title": "TextLayerEvidence",
         "type": "object"
       },
+      "TextLayoutPreviewRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "minimum": 0.0,
+            "title": "Base Revision",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision"
+        ],
+        "title": "TextLayoutPreviewRequest",
+        "type": "object"
+      },
       "TextLayoutRun": {
         "properties": {
           "baseline_offset_px": {
@@ -7473,6 +9116,27 @@
           "font_size_px": {
             "title": "Font Size Px",
             "type": "number"
+          },
+          "ink_bbox_px": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "number"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ink Bbox Px"
+          },
+          "quality_reasons": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Quality Reasons",
+            "type": "array"
           },
           "review_required": {
             "default": false,
@@ -7533,7 +9197,8 @@
           "decision": {
             "enum": [
               "keep",
-              "reopen"
+              "reopen",
+              "confirm"
             ],
             "title": "Decision",
             "type": "string"
@@ -7567,7 +9232,8 @@
           "decision": {
             "enum": [
               "keep",
-              "reopen"
+              "reopen",
+              "confirm"
             ],
             "title": "Decision",
             "type": "string"
@@ -7641,6 +9307,13 @@
             "title": "Face Feature Ids",
             "type": "array"
           },
+          "kept_face_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Kept Face Feature Ids",
+            "type": "array"
+          },
           "line_feature_ids": {
             "items": {
               "type": "string"
@@ -7648,9 +9321,40 @@
             "title": "Line Feature Ids",
             "type": "array"
           },
+          "manually_confirmed_face_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Manually Confirmed Face Feature Ids",
+            "type": "array"
+          },
+          "manually_confirmed_line_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Manually Confirmed Line Feature Ids",
+            "type": "array"
+          },
           "preserves_existing_text": {
             "title": "Preserves Existing Text",
             "type": "boolean"
+          },
+          "protected_face_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Protected Face Feature Ids",
+            "type": "array"
+          },
+          "protected_face_reasons": {
+            "additionalProperties": {
+              "items": {
+                "type": "object"
+              },
+              "type": "array"
+            },
+            "title": "Protected Face Reasons",
+            "type": "object"
           },
           "protected_line_feature_ids": {
             "items": {
@@ -7659,11 +9363,47 @@
             "title": "Protected Line Feature Ids",
             "type": "array"
           },
+          "region_geometry": {
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Geometry"
+          },
+          "region_source": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region Source"
+          },
+          "resolved_face_assignments": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Resolved Face Assignments",
+            "type": "object"
+          },
           "review_groups": {
             "items": {
               "$ref": "#/components/schemas/ResidueReviewGroup"
             },
             "title": "Review Groups",
+            "type": "array"
+          },
+          "unresolved_face_feature_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Unresolved Face Feature Ids",
             "type": "array"
           },
           "verification_pending_feature_ids": {
@@ -7982,6 +9722,27 @@
               }
             ],
             "title": "Style Id"
+          },
+          "style_override": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "anyOf": [
+                    {
+                      "type": "string"
+                    },
+                    {
+                      "type": "number"
+                    }
+                  ]
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Style Override"
           },
           "text_anchor": {
             "title": "Text Anchor",
@@ -9776,6 +11537,7 @@
                     "adopt_ocr_candidate": "#/components/schemas/AdoptOcrCandidate",
                     "apply_face_merge": "#/components/schemas/ApplyFaceMerge",
                     "apply_line_check": "#/components/schemas/ApplyLineCheck",
+                    "apply_text_format": "#/components/schemas/ApplyTextFormat",
                     "bind_style": "#/components/schemas/BindStyle",
                     "classify_review": "#/components/schemas/ClassifyReview",
                     "cleanup_text_residue": "#/components/schemas/ApplyPreview",
@@ -9806,7 +11568,6 @@
                     "set_line_width": "#/components/schemas/LineWidth",
                     "set_roi": "#/components/schemas/SetRoi",
                     "set_style": "#/components/schemas/SetStyle",
-                    "skip_text": "#/components/schemas/ReviewText",
                     "split_faces": "#/components/schemas/ApplyPreview",
                     "split_line": "#/components/schemas/SplitLine",
                     "split_selected_faces": "#/components/schemas/SplitSelectedFaces",
@@ -9822,6 +11583,9 @@
                   },
                   {
                     "$ref": "#/components/schemas/UpdateText"
+                  },
+                  {
+                    "$ref": "#/components/schemas/ApplyTextFormat"
                   },
                   {
                     "$ref": "#/components/schemas/ReviewText"
@@ -10966,6 +12730,126 @@
         "summary": "Download Export"
       }
     },
+    "/api/projects/{project_id}/face-color-searches": {
+      "post": {
+        "operationId": "face_color_search_api_projects__project_id__face_color_searches_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FaceColorRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_FaceColorReport_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Face Color Search"
+      }
+    },
     "/api/projects/{project_id}/face-merge-previews": {
       "post": {
         "operationId": "preview_api_projects__project_id__face_merge_previews_post",
@@ -11354,6 +13238,40 @@
               "format": "uuid",
               "title": "Asset Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "cursor",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Cursor"
+            }
+          },
+          {
+            "in": "query",
+            "name": "base_revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Base Revision"
             }
           }
         ],
@@ -12008,6 +13926,124 @@
         "summary": "List Features"
       }
     },
+    "/api/projects/{project_id}/heal-residue-decisions": {
+      "post": {
+        "operationId": "heal_residue_decision_api_projects__project_id__heal_residue_decisions_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/HealResidueDecision"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Heal Residue Decision"
+      }
+    },
     "/api/projects/{project_id}/layers": {
       "get": {
         "operationId": "list_layers_api_projects__project_id__layers_get",
@@ -12366,6 +14402,200 @@
           }
         },
         "summary": "Line Check Preview"
+      }
+    },
+    "/api/projects/{project_id}/line-check-previews/{preview_id}/candidates": {
+      "get": {
+        "operationId": "line_check_candidates_api_projects__project_id__line_check_previews__preview_id__candidates_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "preview_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Preview Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "asset_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Asset Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "base_revision",
+            "required": true,
+            "schema": {
+              "maximum": 9007199254740990,
+              "minimum": 0,
+              "title": "Base Revision",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "kind",
+            "required": true,
+            "schema": {
+              "enum": [
+                "join_gap",
+                "text_stroke",
+                "dash_group"
+              ],
+              "title": "Kind",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "filter",
+            "required": false,
+            "schema": {
+              "default": "pending",
+              "enum": [
+                "pending",
+                "kept",
+                "applied",
+                "all"
+              ],
+              "title": "Filter",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_LineCheckPage_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Line Check Candidates"
       }
     },
     "/api/projects/{project_id}/name": {
@@ -12768,13 +14998,32 @@
               "title": "Asset Id",
               "type": "string"
             }
+          },
+          {
+            "in": "query",
+            "name": "base_revision",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Base Revision"
+            }
           }
         ],
         "responses": {
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_DeliveryCheckResult_"
+                }
               }
             },
             "description": "Successful Response"
@@ -13320,7 +15569,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RoiAuditResult_"
+                }
               }
             },
             "description": "Successful Response"
@@ -13438,7 +15689,9 @@
           "200": {
             "content": {
               "application/json": {
-                "schema": {}
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_RoiPreviewResult_"
+                }
               }
             },
             "description": "Successful Response"
@@ -14975,6 +17228,126 @@
         "summary": "Restore Snapshot"
       }
     },
+    "/api/projects/{project_id}/snapshots/{snapshot_id}/scope": {
+      "get": {
+        "operationId": "snapshot_scope_api_projects__project_id__snapshots__snapshot_id__scope_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "snapshot_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Snapshot Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Envelope_SnapshotScope_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Snapshot Scope"
+      }
+    },
     "/api/projects/{project_id}/sources": {
       "get": {
         "operationId": "list_sources_api_projects__project_id__sources_get",
@@ -15549,6 +17922,124 @@
           }
         },
         "summary": "Text Layer Assessments"
+      }
+    },
+    "/api/projects/{project_id}/text-layout-previews": {
+      "post": {
+        "operationId": "preview_api_projects__project_id__text_layout_previews_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "project_id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "title": "Project Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TextLayoutPreviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Bad Request"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "500": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Internal Server Error"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          },
+          "504": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            },
+            "description": "Gateway Timeout"
+          }
+        },
+        "summary": "Preview"
       }
     },
     "/api/projects/{project_id}/text-residue-decisions": {

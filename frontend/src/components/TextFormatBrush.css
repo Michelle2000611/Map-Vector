@@ -1,0 +1,9 @@
+.text-format-brush-group{width:100%;min-width:0}
+.text-format-brush{display:flex;flex-direction:column;gap:10px;min-width:0}
+.text-format-brush-options,.text-format-brush-source{display:flex;align-items:center;flex-wrap:wrap;gap:8px 16px;min-width:0}
+.text-format-brush-options .ant-checkbox-wrapper{font-size:12px;margin:0}
+.text-format-brush-source{font-size:12px;color:#65758a}
+.text-format-brush-source>span{max-width:100%;overflow-wrap:anywhere}
+.text-format-brush-note{font-size:12px;color:#65758a}
+.text-format-brush>.property-labeled-field{width:280px;max-width:100%}
+.text-style-save-summary{font-size:12px;color:#65758a}

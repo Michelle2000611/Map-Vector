@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from shapely.geometry import Polygon, box, shape
 
+from mapvector.application.residue_policy import is_kept, write_decision, decision_for, has_decision, evidence as shared_evidence, is_confirmed, write_confirmation
 from mapvector.application.ports import load_feature
 from mapvector.domain.commands import UUIDString
 from mapvector.domain.errors import CommandConflict
@@ -18,7 +19,7 @@ class TextResidueDecision(BaseModel):
     base_revision: int = Field(ge=0, le=9007199254740990, strict=True)
     preview_id: UUIDString
     feature_ids: list[UUIDString] = Field(min_length=1, max_length=2000)
-    decision: Literal['keep', 'reopen']
+    decision: Literal['keep', 'reopen', 'confirm']
 
     @model_validator(mode='after')
     def unique_ids(self):
@@ -29,7 +30,7 @@ class TextResidueDecision(BaseModel):
 
 class TextResidueDecisionResult(BaseModel):
     feature_ids: list[str]
-    decision: Literal['keep', 'reopen']
+    decision: Literal['keep', 'reopen', 'confirm']
 
 
 def digest(value):
@@ -51,18 +52,9 @@ def _text_evidence(connection, text):
 
 
 def _hard_protection(connection,project_id,asset_id,line):
-    reasons=[]
-    if line['source_type']=='manual':reasons.append('manual_line')
-    if line['line_role']=='split':reasons.append('explicit_split_line')
-    binding=connection.execute('SELECT style_id FROM feature_style WHERE feature_id=?',(line['feature_id'],)).fetchone()
-    layer=connection.execute("SELECT default_style_id FROM layer_setting WHERE project_id=? AND asset_id=? AND layer_type='line'",(project_id,asset_id)).fetchone()
-    style_id=binding['style_id'] if binding else line.get('style_id') or (layer['default_style_id'] if layer else None)
-    style_row=connection.execute('SELECT * FROM style WHERE style_id=? AND project_id=?',(style_id,project_id)).fetchone()
-    style=dict(style_row) if style_row else None
-    patterns={str(line.get('line_pattern','')).lower(),str(style.get('line_pattern','')).lower() if style else ''}
-    if patterns & {'dash','dashed','teeth','tooth','toothed'} or style and (style.get('tooth_spacing_px') or style.get('tooth_height_px') or json.loads(style.get('dash_pattern_px') or '[]')):
-        reasons.append('semantic_line_pattern')
-    return reasons,style
+    from mapvector.application.residue_policy import line_protection
+    policy=line_protection(connection,project_id,asset_id,line)
+    return policy['reasons'],policy['style']
 
 
 def _other_texts(connection,project_id,asset_id,target_id,geometry,local_texts,evidence_cache):
@@ -91,9 +83,9 @@ def protect_without_target(connection,project_id,asset_id,features,display):
     display.update(line_feature_ids=sorted(safe),cleanup_line_feature_ids=sorted(safe),protected_line_feature_ids=sorted(protected))
 
 
-def review_lines(connection, project_id, asset_id, text_id, features, display):
+def review_lines(connection, project_id, asset_id, text_id, features, display,*,residue_context=None):
     """Materialize only preview lines, effective styles and intersecting text."""
-    region = box(*display['bounds_px'])
+    region = shape(display['region_geometry']) if display.get('region_geometry') else box(*display['bounds_px'])
     text = next((f for f in features if f['feature_id']==text_id), None)
     if text is None: raise CommandConflict('TEXT_TARGET_REQUIRED')
     target_evidence = _text_evidence(connection,text)
@@ -102,34 +94,52 @@ def review_lines(connection, project_id, asset_id, text_id, features, display):
     suggested = set(display['line_feature_ids'])
     local_texts={f['feature_id']:f for f in features if f['feature_type']=='text' and f['lifecycle_status']=='active' and f['feature_id']!=text_id}
     text_evidence={}
+    from mapvector.application.residue_context import materialize,checked
+    revision=connection.execute('SELECT working_revision FROM project WHERE project_id=?',(project_id,)).fetchone()[0]
+    shared=materialize(connection,project_id,asset_id,revision) if residue_context is None else checked(residue_context,project_id,asset_id,revision,True)
+    context=shared['source']
+    canonical={context['lines'][item['index']]['feature_id']:item for item in shared['proposals']}
     items = {}
     for line in features:
         fid = line['feature_id']
         if line['feature_type']!='line' or line['lifecycle_status']!='active': continue
         geometry = shape(line['geometry'])
-        if geometry.intersection(region.buffer(-1e-6)).length<=1e-7: continue
+        proposal=canonical.get(fid)
+        related_proposal=proposal if proposal and text_id in proposal['texts'] else None
+        if geometry.intersection(region.buffer(-1e-6)).length<=1e-7 and not related_proposal: continue
         reasons,style=_hard_protection(connection,project_id,asset_id,line)
         others=_other_texts(connection,project_id,asset_id,text_id,geometry,local_texts,text_evidence)
         if others: reasons.append('other_text_overlap')
+        proposal=canonical.get(fid)
+        canonical_hard={'MANUAL_LINE','GEOLOGICAL_BOUNDARY','SEMANTIC_LINE_PATTERN','GEOLOGICAL_SYMBOL','RASTER_PATH_UNSUPPORTED','RASTER_SOURCE_MISMATCH','TEXT_REGION_EDGE_REQUIRES_REVIEW','SOURCE_REGION_UNCERTAIN'}
+        if proposal:reasons.extend(code.lower() for code in proposal['blocked'] if code in canonical_hard)
         hard=bool(reasons)
+        if related_proposal:reasons.extend(code.lower() for code in related_proposal['blocked'] if code not in canonical_hard)
         if not region.buffer(1e-6).covers(geometry): reasons.append('crosses_review_bounds')
-        if not hard and fid not in protected: continue
+        shared_kept=is_kept(connection,project_id,asset_id,sorted(set([text_id]+(proposal['texts'] if proposal else []))),fid)
+        confirmed=is_confirmed(connection,project_id,asset_id,fid)
+        if not hard and fid not in protected and not shared_kept and not confirmed: continue
         if not reasons: reasons.append('uncertain_text_line')
         protected.add(fid);suggested.discard(fid)
         evidence=digest({'policy':'text-residue-review-1','asset':asset,'target':target_evidence,'line':_evidence_feature(line),'style':_evidence_feature(style) if style else None,'other_texts':others,'bounds_px':display['bounds_px'],'reason_codes':sorted(reasons)})
         decision=connection.execute('SELECT evidence_sha256,decision FROM text_residue_decision WHERE project_id=? AND asset_id=? AND text_feature_id=? AND line_feature_id=?',(project_id,asset_id,text_id,fid)).fetchone()
-        status='kept' if decision and decision['decision']=='keep' and decision['evidence_sha256']==evidence else 'pending'
-        items[fid]={'feature_id':fid,'reason_codes':sorted(reasons),'can_confirm':not hard,'status':status,'evidence_sha256':evidence,'geometry':geometry}
+        shared_decision=decision_for(connection,project_id,asset_id,text_id,fid)
+        status='confirmed' if confirmed else 'kept' if shared_kept or shared_decision is None and not has_decision(connection,project_id,asset_id,text_id,fid) and decision and decision['decision']=='keep' and decision['evidence_sha256']==evidence else 'pending'
+        items[fid]={'feature_id':fid,'reason_codes':sorted(reasons),'can_confirm':shared['source'].get('raster_source',{}).get('status')!='mismatch','requires_confirmation':hard,'status':status,'evidence_sha256':evidence,'geometry':geometry}
     groups=[];pending=set(items)
     while pending:
         first=min(pending);pending.remove(first);members=[first];queue=[first]
         while queue:
             current=items[queue.pop()]
-            nearby=[fid for fid in sorted(pending) if all(items[fid][k]==current[k] for k in ('reason_codes','can_confirm','status')) and items[fid]['geometry'].distance(current['geometry'])<=max(4,text['font_size_px'])]
+            nearby=[fid for fid in sorted(pending) if all(items[fid][k]==current[k] for k in ('reason_codes','can_confirm','requires_confirmation','status')) and items[fid]['geometry'].distance(current['geometry'])<=max(4,text['font_size_px'])]
             for fid in nearby:pending.remove(fid);members.append(fid);queue.append(fid)
-        members.sort();head=items[first];bounds=[items[fid]['geometry'].intersection(region).bounds for fid in members]
+        members.sort();head=items[first];bounds=[(items[fid]['geometry'].intersection(region) if not items[fid]['geometry'].intersection(region).is_empty else items[fid]['geometry']).bounds for fid in members]
         evidence=digest({fid:items[fid]['evidence_sha256'] for fid in members})
-        groups.append({'group_id':digest({'text_id':text_id,'feature_ids':members,'evidence':evidence})[:24],'feature_ids':members,'bounds_px':[min(b[0] for b in bounds),min(b[1] for b in bounds),max(b[2] for b in bounds),max(b[3] for b in bounds)],'reason_codes':head['reason_codes'],'status':head['status'],'can_confirm':head['can_confirm'],'evidence_sha256':evidence})
+        groups.append({'group_id':digest({'text_id':text_id,'feature_ids':members,'evidence':evidence})[:24],'feature_ids':members,'bounds_px':[min(b[0] for b in bounds),min(b[1] for b in bounds),max(b[2] for b in bounds),max(b[3] for b in bounds)],'reason_codes':head['reason_codes'],'status':head['status'],'can_confirm':head['can_confirm'],'requires_confirmation':head['requires_confirmation'],'evidence_sha256':evidence})
+    confirmed={fid for fid,i in items.items() if i['status']=='confirmed'}
+    suggested.update(confirmed)
+    protected.difference_update(confirmed)
+    display['manually_confirmed_line_feature_ids']=sorted(confirmed)
     display.update(line_feature_ids=sorted(suggested),cleanup_line_feature_ids=sorted(suggested),protected_line_feature_ids=sorted(protected),review_groups=groups,verification_pending_feature_ids=sorted(fid for fid,i in items.items() if i['status']=='pending'))
     return {fid:{key:value for key,value in item.items() if key!='geometry'} for fid,item in items.items()}
 
@@ -142,13 +152,18 @@ def validate_preview(connection, project_id, asset_id, revision, preview_id):
     row=connection.execute('SELECT * FROM edit_preview WHERE preview_id=? AND project_id=? AND asset_id=?',(preview_id,project_id,asset_id)).fetchone()
     if row is None or row['base_revision']!=revision or datetime.fromisoformat(row['expires_at'])<=datetime.now(timezone.utc): raise CommandConflict('PREVIEW_STALE')
     request=PreviewRequest.model_validate_json(row['request_json']);stored=json.loads(row['result_json'])
-    if request.preview_type!='text_residue' or len(request.feature_ids)!=1 or not stored.get('scope_bounds_px') or 'line_review_evidence' not in stored: raise CommandConflict('PREVIEW_STALE')
+    text_id=stored.get('residue_review_target_text_id') or (request.feature_ids[0] if len(request.feature_ids)==1 else None)
+    if request.preview_type!='text_residue' or not text_id or not stored.get('scope_bounds_px') or 'line_review_evidence' not in stored: raise CommandConflict('PREVIEW_STALE')
     features=residue_scope_features(connection,project_id,asset_id,stored['scope_bounds_px'])
     actual=hashlib.sha256(json.dumps(features,sort_keys=True,ensure_ascii=False).encode('utf-8')).hexdigest()
     if actual!=row['input_sha256']: raise CommandConflict('PREVIEW_STALE')
+    from mapvector.application.residue_context import validate_raster_binding
+    validate_raster_binding(connection,project_id,asset_id,stored)
     display=json.loads(json.dumps(stored['text_residue_display']))
-    evidence=review_lines(connection,project_id,asset_id,request.feature_ids[0],features,display)
+    evidence=review_lines(connection,project_id,asset_id,text_id,features,display)
     if {fid:i['evidence_sha256'] for fid,i in evidence.items()}!={fid:i['evidence_sha256'] for fid,i in stored['line_review_evidence'].items()}: raise CommandConflict('PREVIEW_STALE')
+    for fid,expected in stored.get('residue_face_evidence',{}).items():
+        if shared_evidence(connection,project_id,asset_id,text_id,fid)!=expected:raise CommandConflict('PREVIEW_STALE')
     return request,stored,evidence
 
 
@@ -160,7 +175,10 @@ def validate_confirmation(connection,project_id,request,display):
     if source.feature_ids!=request.feature_ids or source.bounds_px!=request.bounds_px or stored['text_residue_display']['bounds_px']!=display['bounds_px']:raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
     for fid in verified:
         item=evidence.get(fid);original=stored['line_review_evidence'].get(fid)
-        if not item or not original or not original['can_confirm'] or original['status']!='pending' or not item['can_confirm'] or item['status']!='pending':raise CommandConflict('LINE_REVIEW_FORBIDDEN',{'feature_id':fid})
+        if not item or not original or not original['can_confirm'] or original['status'] not in ('pending','confirmed') or not item['can_confirm'] or item['status'] not in ('pending','confirmed'):
+            raise CommandConflict('LINE_REVIEW_FORBIDDEN',{'feature_id':fid})
+        if item.get('requires_confirmation') and not is_confirmed(connection,project_id,request.asset_id,fid):
+            raise CommandConflict('LINE_REVIEW_FORBIDDEN',{'feature_id':fid})
     return sorted(verified)
 
 
@@ -168,10 +186,15 @@ def decide(database, project_id, request):
     with database.transaction() as connection:
         source,stored,evidence=validate_preview(connection,project_id,request.asset_id,request.base_revision,request.preview_id)
         # Complete validation precedes the first write, including every requested ID.
-        if any(fid not in evidence for fid in request.feature_ids):raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
+        if any(fid not in evidence and fid not in stored.get('residue_face_evidence',{}) and fid not in stored['text_residue_display']['line_feature_ids'] for fid in request.feature_ids):raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
         timestamp=datetime.now(timezone.utc).isoformat()
         for fid in request.feature_ids:
-            connection.execute('INSERT INTO text_residue_decision VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(project_id,asset_id,text_feature_id,line_feature_id) DO UPDATE SET evidence_sha256=excluded.evidence_sha256,decision=excluded.decision,updated_at=excluded.updated_at,preview_id=excluded.preview_id',(project_id,request.asset_id,source.feature_ids[0],fid,evidence[fid]['evidence_sha256'],request.decision,timestamp,request.preview_id))
+            if request.decision=='confirm':
+                write_confirmation(connection,project_id,request.asset_id,fid,request.preview_id,timestamp)
+                continue
+            write_decision(connection,project_id,request.asset_id,stored.get('residue_review_target_text_id') or source.feature_ids[0],fid,request.decision,request.preview_id,timestamp)
+            if fid not in evidence:continue
+            connection.execute('INSERT INTO text_residue_decision VALUES (?,?,?,?,?,?,?,?) ON CONFLICT(project_id,asset_id,text_feature_id,line_feature_id) DO UPDATE SET evidence_sha256=excluded.evidence_sha256,decision=excluded.decision,updated_at=excluded.updated_at,preview_id=excluded.preview_id',(project_id,request.asset_id,stored.get('residue_review_target_text_id') or source.feature_ids[0],fid,evidence[fid]['evidence_sha256'],request.decision,timestamp,request.preview_id))
         return {'feature_ids':request.feature_ids,'decision':request.decision}
 
 
@@ -189,9 +212,11 @@ def create_local_preview(database,project_id,request,project_dir):
         features=residue_scope_features(connection,project_id,request.asset_id,stored['scope_bounds_px'])
         actual=hashlib.sha256(json.dumps(features,sort_keys=True,ensure_ascii=False).encode('utf-8')).hexdigest()
         if actual!=record[7]:raise CommandConflict('PREVIEW_STALE')
+        from mapvector.application.residue_context import validate_raster_binding
+        validate_raster_binding(connection,project_id,request.asset_id,stored)
         if 'line_review_evidence' in stored:
             current_display=json.loads(json.dumps(stored['text_residue_display']))
-            evidence=review_lines(connection,project_id,request.asset_id,effective.feature_ids[0],features,current_display)
+            evidence=review_lines(connection,project_id,request.asset_id,stored.get('residue_review_target_text_id') or effective.feature_ids[0],features,current_display)
             if evidence!=stored['line_review_evidence']:raise CommandConflict('PREVIEW_STALE')
             validate_confirmation(connection,project_id,effective,current_display)
         connection.execute('INSERT INTO edit_preview VALUES (?,?,?,?,?,?,?,?)',record)

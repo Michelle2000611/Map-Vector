@@ -91,6 +91,14 @@ class SnapshotService:
                 raise CommandConflict('SNAPSHOT_HASH_MISMATCH',{'file':name})
         return dict(row),directory
 
+    def scope(self,project_id,snapshot_id):
+        from mapvector.application.relations import roi_state
+        snapshot,directory=self.validate(project_id,snapshot_id)
+        with get_ports().archives.open(directory/'project.sqlite') as frozen:
+            row=frozen.execute('SELECT * FROM roi WHERE project_id=? AND asset_id=?',(project_id,snapshot['asset_id'])).fetchone()
+        return {'snapshot_id':snapshot_id,'asset_id':snapshot['asset_id'],'working_revision':snapshot['working_revision'],
+                'coordinate_space':'pixel','roi':roi_state(row) if row else None}
+
     def restore(self,project_id,snapshot_id,base_revision):
         snapshot,directory=self.validate(project_id,snapshot_id)
         self.create(project_id,base_revision,'Before restoring snapshot '+snapshot_id)
@@ -124,7 +132,11 @@ class SnapshotService:
             for table in tables:
                 for item in saved[table]:
                     if table=='text_attribute':
-                        item={**{'layout_width_px':None,'layout_height_px':None,'baseline_offset_px':None,'layout_basis':'legacy_estimate','layout_runs':'[]'},**item}
+                        item={**{'style_override':None,'layout_width_px':None,'layout_height_px':None,'baseline_offset_px':None,'layout_basis':'legacy_estimate','layout_runs':'[]'},**item}
+                    elif table=='roi':
+                        item={'scope_mode':'clip',**item}
+                    elif table=='style':
+                        item={'font_size_px':None,'text_color':None,'rotation_deg':None,**item}
                     elif table in ('face_attribute','line_attribute'):
                         item={'style_override':None,**item}
                     if table in ('feature','style','roi','logical_group'):

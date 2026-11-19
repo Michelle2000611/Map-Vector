@@ -45,8 +45,8 @@
 .view-field{display:flex;align-items:center;gap:10px}.tool-card .view-field .ant-select{width:185px}
 .visible-layers{display:flex;align-items:center;flex-wrap:wrap;gap:8px 12px}.visible-layers>span,.view-field>span{color:#65758a;white-space:nowrap}
 .canvas-view-hint,.canvas-load-error{margin:0 10px 8px}.canvas-view-hint .ant-alert-message,.canvas-load-error .ant-alert-message{font-size:12px}
-.workbench.comparison-mode .reference-card{display:flex}.canvas-card>.canvas-view-hint,.canvas-card>.canvas-load-error{flex-shrink:0}
-@media(max-width:760px){.workbench.single-mode .comparison>.canvas-card:first-child{display:flex}.workbench.comparison-mode .comparison{grid-template-columns:repeat(2,minmax(0,1fr))}.workbench.comparison-mode .canvas-card>.ant-card-head{padding:8px}.workbench.comparison-mode .canvas-mode{width:125px}.view-controls{gap:12px}.visible-layers{gap:8px}}
+.canvas-card>.canvas-view-hint,.canvas-card>.canvas-load-error{flex-shrink:0}
+@media(max-width:760px){.workbench.single-mode .comparison>.canvas-card:first-child{display:flex}.view-controls{gap:12px}.visible-layers{gap:8px}}
 
 /* Single mode uses the full available viewport; scrolling stays at its outer edge. */
 .workbench.single-mode .result-card .canvas{width:100%;max-width:100%;min-width:0;flex:1 1 auto;background:transparent;overflow:auto}

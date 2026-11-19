@@ -48,7 +48,7 @@ def document(features,width,height,image=None,groups=None,styles=None):
     return d,identities
 
 
-def apply(features,asset,command,now,image=None,preview_request=None,groups=None,styles=None,inherited_memberships=None):
+def apply(features,asset,command,now,image=None,preview_request=None,groups=None,styles=None,inherited_memberships=None,heal_plan=None):
     d,identities=document(features,asset['width_px'],asset['height_px'],image,groups,styles)
     original={f['feature_id']:f for f in features}
     by_id={value:key for key,value in identities.items()}
@@ -80,8 +80,27 @@ def apply(features,asset,command,now,image=None,preview_request=None,groups=None
         if preview_request is None:raise EditError('Preview required')
         if operation=='heal_faces':
             pv=d.heal_preview(d.gesture('brush',preview_request.points,preview_request.radius_px),preview_request.max_area_px2)
-            if any(identity not in by_id or by_id[identity][0]!='face' for identity in command.accept_uncertain_feature_ids):raise EditError('Uncertain face selection includes unknown or wrong-layer features')
-            accepted=[by_id[identity][1] for identity in command.accept_uncertain_feature_ids]
+            # Apply exactly the target scope shown by the public preview.
+            if preview_request.feature_ids:
+                targets={by_id[identity][1] for identity in preview_request.feature_ids if identity in by_id and by_id[identity][0]=='face'}
+                if len(targets)!=1:raise EditError('Heal requires one explicit face target')
+                stored=d.previews[pv['preview_id']]
+                stored['candidates']=[item for item in stored['candidates'] if item.get('target') in targets]
+            if heal_plan is not None:
+                stored=d.previews[pv['preview_id']]
+                # Only service-validated identities and receiver relations are executable.
+                wanted={by_id[fid][1]:by_id[target][1] for fid,target in heal_plan.items() if fid in by_id and target in by_id}
+                candidates=[]
+                for item in stored['candidates']:
+                    if item['id'] not in wanted:continue
+                    if item.get('target')!=wanted[item['id']]:raise EditError('Heal receiver differs from validated preview')
+                    candidates.append({**item,'decision':'merge'})
+                if len(candidates)!=len(wanted):raise EditError('Heal candidate differs from validated preview')
+                stored['candidates']=candidates
+                accepted=[]
+            else:
+                if any(identity not in by_id or by_id[identity][0]!='face' for identity in command.accept_uncertain_feature_ids):raise EditError('Uncertain face selection includes unknown or wrong-layer features')
+                accepted=[by_id[identity][1] for identity in command.accept_uncertain_feature_ids]
             d.heal_apply(pv['preview_id'],accepted,command.allow_mixed_algorithm_labels)
         elif operation=='split_faces':
             line_ids=[by_id[identity][1] for identity in preview_request.feature_ids if identity in by_id and by_id[identity][0]=='line']

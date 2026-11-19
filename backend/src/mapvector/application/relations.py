@@ -21,8 +21,8 @@ def apply_relations(connection,project_id,command,revision):
             if not (0<=x0<x1<=asset['width_px'] and 0<=y0<y1<=asset['height_px']):
                 raise CommandConflict('EXPORT_SCOPE_INVALID')
             roi_id=row['roi_id'] if row else str(uuid4())
-            roi={'roi_id':roi_id,'project_id':project_id,'asset_id':command.asset_id,'geometry':json.loads(json.dumps(mapping(box(x0,y0,x1,y1)))),'revision':revision}
-            connection.execute('INSERT INTO roi VALUES (?,?,?,?,?) ON CONFLICT(roi_id) DO UPDATE SET geometry_wkb=excluded.geometry_wkb,revision=excluded.revision',(roi_id,project_id,command.asset_id,to_wkb(box(x0,y0,x1,y1)),revision))
+            roi={'roi_id':roi_id,'project_id':project_id,'asset_id':command.asset_id,'geometry':json.loads(json.dumps(mapping(box(x0,y0,x1,y1)))),'revision':revision,'scope_mode':command.scope_mode}
+            connection.execute('INSERT INTO roi (roi_id,project_id,asset_id,geometry_wkb,revision,scope_mode) VALUES (?,?,?,?,?,?) ON CONFLICT(roi_id) DO UPDATE SET geometry_wkb=excluded.geometry_wkb,revision=excluded.revision,scope_mode=excluded.scope_mode',(roi_id,project_id,command.asset_id,to_wkb(box(x0,y0,x1,y1)),revision,command.scope_mode))
             changes.append(('roi',roi_id,old,roi))
     else:
         features=[]
@@ -50,7 +50,7 @@ def apply_relations(connection,project_id,command,revision):
 
 
 def roi_state(row):
-    result=dict(row);result['geometry']=json.loads(json.dumps(mapping(from_wkb(result.pop('geometry_wkb')))))
+    result=dict(row);result.setdefault('scope_mode','clip');result['geometry']=json.loads(json.dumps(mapping(from_wkb(result.pop('geometry_wkb')))))
     return result
 
 
@@ -59,6 +59,7 @@ def restore_relation(connection,kind,entity_id,state):
         if state is None:
             connection.execute('DELETE FROM style WHERE style_id=?',(entity_id,))
         else:
+            state={'font_size_px':None,'text_color':None,'rotation_deg':None,**state}
             fields=list(state)
             connection.execute('INSERT INTO style ('+','.join(fields)+') VALUES ('+','.join('?' for _ in fields)+') ON CONFLICT(style_id) DO UPDATE SET '+','.join(field+'=excluded.'+field for field in fields if field!='style_id'),tuple(state.values()))
     elif kind=='layer_setting':
@@ -67,7 +68,7 @@ def restore_relation(connection,kind,entity_id,state):
         if state:connection.execute('INSERT INTO layer_setting VALUES (?,?,?,?,?,?)',tuple(state[key] for key in ('project_id','asset_id','layer_type','is_visible','opacity','default_style_id')))
     elif kind=='roi':
         connection.execute('DELETE FROM roi WHERE roi_id=?',(entity_id,))
-        if state:connection.execute('INSERT INTO roi VALUES (?,?,?,?,?)',(state['roi_id'],state['project_id'],state['asset_id'],to_wkb(shape(state['geometry'])),state['revision']))
+        if state:connection.execute('INSERT INTO roi (roi_id,project_id,asset_id,geometry_wkb,revision,scope_mode) VALUES (?,?,?,?,?,?)',(state['roi_id'],state['project_id'],state['asset_id'],to_wkb(shape(state['geometry'])),state['revision'],state.get('scope_mode','clip')))
     elif kind=='logical_group':
         if state:connection.execute('INSERT INTO logical_group VALUES (?,?,?,?,?,?) ON CONFLICT(group_id) DO UPDATE SET group_name=excluded.group_name,revision=excluded.revision',tuple(state[field] for field in ('group_id','project_id','asset_id','feature_type','group_name','revision')))
         else:connection.execute('DELETE FROM logical_group WHERE group_id=?',(entity_id,))

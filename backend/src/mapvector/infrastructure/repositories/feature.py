@@ -23,7 +23,7 @@ def load_feature(connection,feature_id):
             feature[field]=json.loads(feature[field])
     if feature['feature_type']=='text':
         for key,value in {'layout_width_px':None,'layout_height_px':None,'baseline_offset_px':None,'layout_basis':'legacy_estimate','layout_runs':[]}.items():feature.setdefault(key,value)
-    else:feature.setdefault('style_override',None)
+    feature.setdefault('style_override',None)
     return feature
 
 
@@ -35,7 +35,7 @@ def restore_feature(connection,feature):
     connection.execute(insert,tuple(data[field] for field in fields))
     table=TABLES[feature['feature_type']]
     if feature['feature_type']=='text':feature={**{'layout_width_px':None,'layout_height_px':None,'baseline_offset_px':None,'layout_basis':'legacy_estimate','layout_runs':[]},**feature}
-    else:feature={'style_override':None,**feature}
+    feature={'style_override':None,**feature}
     fields=[row['name'] for row in connection.execute('PRAGMA table_info('+table+')')]
     data={key:json.dumps(value,ensure_ascii=False) if key in JSON_FIELDS and value is not None and not isinstance(value,str) else value for key,value in feature.items()}
     insert='INSERT INTO '+table+' ('+','.join(fields)+') VALUES ('+','.join('?' for _ in fields)+') ON CONFLICT(feature_id) DO UPDATE SET '+','.join(field+'=excluded.'+field for field in fields if field!='feature_id')

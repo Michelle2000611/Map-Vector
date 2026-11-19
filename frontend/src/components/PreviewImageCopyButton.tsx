@@ -19,5 +19,5 @@ export function PreviewImageCopyButton({svgRef}:{svgRef:RefObject<SVGSVGElement>
   }catch{feedback.error('复制图像失败，请允许剪贴板访问后重试。');}
   finally{pending.current=false;setCopying(false);}
  }
- return <Button loading={copying} disabled={copying} onClick={()=>void copyImage()}>复制图像</Button>;
+ return <Button aria-label="复制图像" loading={copying} disabled={copying} onClick={()=>void copyImage()}>复制图像</Button>;
 }

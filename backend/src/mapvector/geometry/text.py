@@ -2,18 +2,19 @@
 import math
 
 
-def _quad_frame(quad):
+def _quad_frame(quad,reading_axis=False):
     if len(quad)!=4 or not all(len(p)==2 and all(math.isfinite(v) for v in p) for p in quad):raise ValueError('Invalid OCR quadrilateral')
     edges=[(quad[(i+1)%4][0]-quad[i][0],quad[(i+1)%4][1]-quad[i][1]) for i in range(4)]
     lengths=[math.hypot(*edge) for edge in edges]
-    axis=0 if lengths[0]+lengths[2]>=lengths[1]+lengths[3] else 1
+    axis=0 if reading_axis or lengths[0]+lengths[2]>=lengths[1]+lengths[3] else 1
     dx=(edges[axis][0]-edges[(axis+2)%4][0])/2;dy=(edges[axis][1]-edges[(axis+2)%4][1])/2
     width=(lengths[axis]+lengths[(axis+2)%4])/2
     height=(lengths[(axis+1)%4]+lengths[(axis+3)%4])/2
-    if min(width,height)<=0:raise ValueError('Degenerate OCR quadrilateral')
+    if min(width,height)<=0 or not all(math.isfinite(v) for v in (width,height)):raise ValueError('Degenerate OCR quadrilateral')
     angle=-math.degrees(math.atan2(dy,dx))
-    while angle<=-90:angle+=180
-    while angle>90:angle-=180
+    if not reading_axis:
+        while angle<=-90:angle+=180
+        while angle>90:angle-=180
     return width,height,angle
 
 
@@ -33,14 +34,14 @@ def ocr_layout(text,quad,source_image=None):
     # rotated horizontal line, even when its axis is almost vertical.
     _quad_frame(quad)  # Validate before reading coordinates below.
     top=math.dist(quad[0],quad[1]);side=math.dist(quad[0],quad[3])
-    tilt=math.degrees(math.atan2(quad[1][1]-quad[0][1],quad[1][0]-quad[0][0]))
-    if len(text.strip())>1 and sum(0x2e80<=ord(ch)<=0x9fff for ch in text)/len(text)>.5 and side>top*1.8 and abs(tilt)<20:
+    if len(text.strip())>1 and sum(0x2e80<=ord(ch)<=0x9fff for ch in text)/len(text)>.5 and side>top*1.8:
         return _vertical_layout(text,quad,source_image)
     if source_image is not None:
-        from mapvector.geometry.text_ink import source_ink_layout
+        from mapvector.geometry.text_ink import source_ink_layout,conservative_layout
         found=source_ink_layout(text,quad,source_image)
         if found is not None:return found
-    width,height,angle=_quad_frame(quad)
+        return conservative_layout(text,quad,['insufficient_source_ink'])
+    width,height,angle=_quad_frame(quad,reading_axis=True)
     font,family=layout_font()
     top,bottom=font.getbbox(text or ' ',anchor='ls')[1::2]
     ink=max(1,bottom-top)
@@ -70,19 +71,27 @@ def ocr_layout(text,quad,source_image=None):
 
 
 def _vertical_layout(text,quad,source_image):
+    from mapvector.geometry.text_metrics import center_runs,fit_run
+    from mapvector.geometry.text_ink import _sampling_scale,_rectify,_components,_region_reasons,_glyph_similarity
     font,family=layout_font();chars=[(i,ch) for i,ch in enumerate(text) if not ch.isspace()]
     width=(math.dist(quad[0],quad[1])+math.dist(quad[2],quad[3]))/2
     height=(math.dist(quad[0],quad[3])+math.dist(quad[1],quad[2]))/2
     angle=-math.degrees(math.atan2(quad[1][1]-quad[0][1],quad[1][0]-quad[0][0]))
-    cell=height/len(chars);boxes=[];basis='ocr_vertical_v1'
-    if source_image is not None:
+    cell=height/len(chars);boxes=[];basis='ocr_vertical_v1';quality_reasons=[]
+    scale=_sampling_scale(width,height)
+    if source_image is not None and scale<.5:quality_reasons.append('raster_budget_exceeded')
+    if source_image is not None and scale>=.5:
         import numpy as np
         from scipy import ndimage
-        from PIL import Image
-        scale=4
-        pixels=np.asarray(source_image.convert('RGB').transform((max(2,round(width*scale)),max(2,round(height*scale))),Image.Transform.QUAD,tuple(v for i in (0,3,2,1) for v in quad[i]),resample=Image.Resampling.BICUBIC)).astype(float)
-        gray=pixels@np.array([.299,.587,.114]);mask=(pixels.max(2)<178)&(pixels.max(2)-pixels.min(2)<48)
+        pixels,_=_rectify(source_image,quad,width,height,scale)
+        mask=(pixels.max(2)<178)&(pixels.max(2)-pixels.min(2)<48)
+        mask,region_components=_components(mask,scale)
+        # In a vertical line, adjacent glyphs may share x and occupy different
+        # rows. Border-crossing cartography still invalidates source fitting.
+        quality_reasons.extend(reason for reason in _region_reasons(mask,region_components,scale)
+                               if reason!='multiple_ink_regions')
         for number,(index,ch) in enumerate(chars):
+            if quality_reasons:break
             lo=round(number*cell*scale);hi=round((number+1)*cell*scale)
             local=mask[lo:hi];labels,count=ndimage.label(local);components=[]
             for label,section in enumerate(ndimage.find_objects(labels),1):
@@ -95,6 +104,8 @@ def _vertical_layout(text,quad,source_image):
             x0=min(c[1] for c in components)/scale;x1=max(c[2] for c in components)/scale
             y0=min(c[3] for c in components)/scale;y1=max(c[4] for c in components)/scale
             if min(x1-x0,y1-y0)<2 or x1-x0>cell*1.6:break
+            if _glyph_similarity(mask[round(y0*scale):round(y1*scale),round(x0*scale):round(x1*scale)],ch)<.62:
+                quality_reasons.append('glyph_shape_mismatch');break
             boxes.append((index,ch,x0,y0,x1,y1))
         if len(boxes)==len(chars):basis='ocr_vertical_ink_v2'
         else:boxes=[]
@@ -103,16 +114,17 @@ def _vertical_layout(text,quad,source_image):
         for number,(index,ch) in enumerate(chars):
             top,bottom=font.getbbox(ch,anchor='ls')[1::2];advance=font.getlength(ch)*size/1024;h=(bottom-top)*size/1024
             boxes.append((index,ch,(width-advance)/2,cell*(number+.5)-h/2,(width+advance)/2,cell*(number+.5)+h/2))
-    x0=min(b[2] for b in boxes);y0=min(b[3] for b in boxes);x1=max(b[4] for b in boxes);y1=max(b[5] for b in boxes)
-    center_u=(x0+x1)/2;center_v=(y0+y1)/2;runs=[]
+    source_verified=basis=='ocr_vertical_ink_v2'
+    runs=[]
     for index,ch,left,top,right,bottom in boxes:
-        glyph_top,glyph_bottom=font.getbbox(ch,anchor='ls')[1::2]
-        size=(bottom-top)*1024/max(1,glyph_bottom-glyph_top)
-        runs.append({'text':ch,'script':'normal','font_size_px':size,'x_offset_px':left-center_u,'baseline_offset_px':top-center_v-glyph_top*size/1024,'width_px':right-left,'source_index':index,'basis':'source_ink_vertical' if basis=='ocr_vertical_ink_v2' else 'vertical_quad','review_required':False})
+        runs.append(fit_run(ch,[left,top,right,bottom],source_index=index,
+                            basis='source_ink_vertical' if source_verified else 'vertical_quad',
+                            quality_reasons=() if source_verified else (*quality_reasons,'vertical_position_unverified')))
+    center_u,center_v,ink_width,ink_height=center_runs(runs)
     u=center_u/width;v=center_v/height;p0,p1,p2,p3=quad
     x=(1-u)*(1-v)*p0[0]+u*(1-v)*p1[0]+u*v*p2[0]+(1-u)*v*p3[0]
     y=(1-u)*(1-v)*p0[1]+u*(1-v)*p1[1]+u*v*p2[1]+(1-u)*v*p3[1]
-    return {'x':x,'y':y,'font_size_px':sum(r['font_size_px'] for r in runs)/len(runs),'rotation_deg':angle,'font_family':family,'layout_width_px':x1-x0,'layout_height_px':y1-y0,'baseline_offset_px':0.,'layout_basis':basis,'layout_runs':runs}
+    return {'x':x,'y':y,'font_size_px':sum(r['font_size_px'] for r in runs)/len(runs),'rotation_deg':angle,'font_family':family,'layout_width_px':ink_width,'layout_height_px':ink_height,'baseline_offset_px':0.,'layout_basis':'ocr_vertical_ink_v3','layout_runs':runs}
 
 
 from functools import lru_cache

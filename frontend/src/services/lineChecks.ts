@@ -6,8 +6,10 @@ type Schema=components['schemas'];
 export type LineCheckKind=Schema['LineCheckCandidate']['kind'];
 export type LineCheckAction=Schema['LineCheckCandidate']['allowed_action'];
 type RasterEvidence={status?:string;support_fraction?:number;local_contrast?:number;unsupported_run_px?:number};
-export type LineCheckCandidate=Omit<Schema['LineCheckCandidate'],'status'|'evidence'>&{status:Schema['LineCheckCandidate']['status']|'applied';evidence?:Record<string,unknown>&{raster?:RasterEvidence}}&Partial<Pick<Schema['LineCheckHistory'],'operation_id'|'result_revision'|'created_at'>>;
-export type LineCheckReport=Omit<Schema['LineCheckReport'],'candidates'|'history'>&{candidates:LineCheckCandidate[];history:LineCheckCandidate[]};
+export type LineCheckCandidate=Omit<Schema['LineCheckCandidate'],'status'|'evidence'|'manually_confirmed'>&{manually_confirmed?:boolean;status:Schema['LineCheckCandidate']['status']|'applied';evidence?:Record<string,unknown>&{raster?:RasterEvidence}}&Partial<Pick<Schema['LineCheckHistory'],'operation_id'|'result_revision'|'created_at'>>;
+export type LineCheckReport=Omit<Schema['LineCheckReport'],'candidates'|'history'|'mode'>&{candidates:LineCheckCandidate[];history:LineCheckCandidate[];mode?:'automatic'|'manual'};
+export type LineCheckFilter='pending'|'kept'|'applied'|'all';
+export type LineCheckPage={preview_id:string;asset_id:string;base_revision:number;expires_at:string;kind:LineCheckKind;filter:LineCheckFilter;offset:number;limit:number;total:number;items:LineCheckCandidate[]};
 export type LineCheckParameters=Required<Pick<Schema['LineCheckRequest'],'max_gap_px'|'angle_tolerance_deg'|'max_short_length_px'>>;
 export type LineCheckModeOptions={mode:'automatic'|'manual';manual_feature_ids?:string[];manual_connector_px?:number[][]|null};
 export type ApplyLineCheckInput=Extract<CommandInput,{operation_type:'apply_line_check'}>;
@@ -22,19 +24,30 @@ function candidate(value:unknown,history=false):LineCheckCandidate|null{
  const evidence=object(value.evidence)?{...value.evidence}:{};
  if(object(evidence.raster))evidence.raster=Object.fromEntries(Object.entries(evidence.raster).filter(([name,entry])=>name==='status'?typeof entry==='string':typeof entry==='number'&&Number.isFinite(entry)));
  else delete evidence.raster;
- return {...value,kind,evidence,metrics:object(value.metrics)?Object.fromEntries(Object.entries(value.metrics).filter((entry):entry is [string,number]=>typeof entry[1]==='number'&&Number.isFinite(entry[1]))):{}} as LineCheckCandidate;
+ if(value.manually_confirmed!==undefined&&typeof value.manually_confirmed!=='boolean')return null;
+ return {...value,kind,evidence,manually_confirmed:value.manually_confirmed===true,metrics:object(value.metrics)?Object.fromEntries(Object.entries(value.metrics).filter((entry):entry is [string,number]=>typeof entry[1]==='number'&&Number.isFinite(entry[1]))):{}} as LineCheckCandidate;
 }
 export function parseLineCheckReport(value:unknown):LineCheckReport{
  const invalid=()=>new ApiError('LINE_CHECK_INVALID_RESPONSE','线检查返回的数据格式异常，请重新检查。');
  if(!object(value)||typeof value.preview_id!=='string'||!value.preview_id||typeof value.asset_id!=='string'||!Number.isSafeInteger(value.base_revision)||typeof value.expires_at!=='string'||!Number.isFinite(Date.parse(value.expires_at))||!Array.isArray(value.candidates))throw invalid();
  const candidates=value.candidates.map(item=>candidate(item));
  if(candidates.some(item=>!item)||new Set(candidates.map(item=>item!.candidate_id)).size!==candidates.length)throw invalid();
- return {preview_id:value.preview_id,asset_id:value.asset_id,base_revision:value.base_revision as number,algorithm_revision:String(value.algorithm_revision??''),expires_at:value.expires_at,input_sha256:String(value.input_sha256??''),request_sha256:String(value.request_sha256??''),candidates:candidates as LineCheckCandidate[],history:Array.isArray(value.history)?value.history.map(item=>candidate(item,true)).filter((item):item is LineCheckCandidate=>!!item&&item.status==='applied'):[],summary:object(value.summary)?Object.fromEntries(Object.entries(value.summary).filter((entry):entry is [string,number|boolean]=>typeof entry[1]==='boolean'||typeof entry[1]==='number'&&Number.isFinite(entry[1]))):{}};
+ if(value.mode!==undefined&&value.mode!=='automatic'&&value.mode!=='manual')throw invalid();
+ return {preview_id:value.preview_id,asset_id:value.asset_id,base_revision:value.base_revision as number,algorithm_revision:String(value.algorithm_revision??''),expires_at:value.expires_at,input_sha256:String(value.input_sha256??''),request_sha256:String(value.request_sha256??''),...(value.mode?{mode:value.mode as 'automatic'|'manual'}:{}),candidates:candidates as LineCheckCandidate[],history:Array.isArray(value.history)?value.history.map(item=>candidate(item,true)).filter((item):item is LineCheckCandidate=>!!item&&item.status==='applied'):[],summary:object(value.summary)?Object.fromEntries(Object.entries(value.summary).filter((entry):entry is [string,number|boolean]=>typeof entry[1]==='boolean'||typeof entry[1]==='number'&&Number.isFinite(entry[1]))):{}};
+}
+export async function pageLineCandidates(projectId:string,report:LineCheckReport,kind:LineCheckKind,filter:LineCheckFilter,offset:number,limit:number,signal:AbortSignal):Promise<LineCheckPage>{
+ const query=new URLSearchParams({asset_id:report.asset_id,base_revision:String(report.base_revision),kind,filter,offset:String(offset),limit:String(limit)});
+ const value=await request<unknown>('/projects/'+projectId+'/line-check-previews/'+encodeURIComponent(report.preview_id)+'/candidates?'+query,undefined,signal,{quiet:true});
+ const invalid=()=>new ApiError('LINE_CHECK_INVALID_RESPONSE','线候选分页已失效，请重新检查。');
+ if(!object(value)||value.preview_id!==report.preview_id||value.asset_id!==report.asset_id||value.base_revision!==report.base_revision||value.expires_at!==report.expires_at||value.kind!==kind||value.filter!==filter||value.offset!==offset||value.limit!==limit||!Number.isSafeInteger(value.total)||Number(value.total)<0||!Array.isArray(value.items)||value.items.length>limit)throw invalid();
+ const items=value.items.map(item=>candidate(item,true));
+ if(items.some(item=>!item||item.kind!==kind||(filter!=='all'&&item.status!==filter))||new Set(items.map(item=>(item!.operation_id??'')+':'+item!.candidate_id)).size!==items.length||value.items.length!==Math.min(limit,Math.max(0,Number(value.total)-offset)))throw invalid();
+ return {...value,items} as LineCheckPage;
 }
 export async function inspectLines(projectId:string,assetId:string,revision:number,parameters:LineCheckParameters,signal:AbortSignal,options?:LineCheckModeOptions){
  return parseLineCheckReport(await request<unknown>('/projects/'+projectId+'/line-check-previews',{asset_id:assetId,base_revision:revision,...parameters,...options},signal));
 }
-export async function decideLines(projectId:string,assetId:string,report:LineCheckReport,candidateIds:string[],decision:'keep'|'reopen',signal:AbortSignal){
+export async function decideLines(projectId:string,assetId:string,report:LineCheckReport,candidateIds:string[],decision:'keep'|'reopen'|'confirm',signal:AbortSignal){
  const result=await request<{candidate_ids:string[];decision:string}>('/projects/'+projectId+'/line-check-decisions',{asset_id:assetId,base_revision:report.base_revision,preview_id:report.preview_id,candidate_ids:candidateIds,decision},signal,{quiet:true});
  if(!result||result.decision!==decision||!strings(result.candidate_ids)||result.candidate_ids.length!==candidateIds.length||candidateIds.some(id=>!result.candidate_ids.includes(id)))throw new ApiError('LINE_CHECK_INVALID_RESPONSE','线检查决定未返回完整结果，请重新检查。');
  return result;

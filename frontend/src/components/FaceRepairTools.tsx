@@ -1,3 +1,4 @@
+import {ReasonList} from './ReasonList';
 import {useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Alert, Button, Checkbox, Collapse, InputNumber, Pagination, Select, Tag} from 'antd';
@@ -7,6 +8,10 @@ import {geometryPath} from './FeatureGlyph';
 import {PropertyNumber} from './PropertyNumber';
 import type {Asset, Command, CommandInput, Feature, Geometry, Project, Work} from '../services/models';
 import './FaceRepairTools.css';
+import './InspectionStatus.css';
+import {InspectionStatus} from './InspectionStatus';
+import {statusColor} from './statusTags';
+import {faceCandidateNeedsReview} from '../services/faceRepairBatch';
 
 type Candidate = {
  candidate_id: string;
@@ -58,6 +63,7 @@ const evidenceLabels: Record<string, string> = {
  STROKE_LIKE_GEOMETRY: '形状窄长，可能为线状附着', MISSING_INDEPENDENT_REFERENCE: '缺少独立线或文字依据',
  INTERSECTS_INDEPENDENT_LINE: '与独立线相交，需保留线表达', INTERSECTS_TEXT_DISPLAY: '与文字范围相交，需保留文字',
  BOUNDARY_GAP: '开口缺口的地质归属需核对', RASTER_DISTINCT_HOLE_REGION: '孔洞存在独立色块，需核对是否为真实地质区域',
+ RESIDUE_KEPT: '此对象之前已保留，需再次确认清理',
  RASTER_DISTINCT_HOLE_OWNER: '内部碎面包含独立色块，需核对归属',
  RASTER_DARK_STROKE: '原图存在深色笔画', RASTER_MATCHES_RECEIVER_COLOR: '原图颜色接近建议接收面',
  RASTER_COLOR_CONTRADICTS_SOURCE: '原图显示独立色块', RASTER_EVIDENCE_AMBIGUOUS: '原图依据不足以确定归属',
@@ -81,29 +87,24 @@ function boundsOf(geometry: Geometry | null | undefined) {
 function mergeable(item: Candidate | HistoryItem) {
  const advisory = item.kind === 'occupied_hole' ? 'OCCUPIED_HOLE_REQUIRES_MERGE' : 'BOUNDARY_GAP_REQUIRES_REVIEW';
  return (item.kind === 'occupied_hole' || item.kind === 'boundary_gap') && item.mergeable === true &&
-  item.blocked_reason === advisory && Array.isArray(item.merging_feature_ids) && item.merging_feature_ids.length > 0 &&
+  (item.blocked_reason === advisory || item.blocked_reason === 'RESIDUE_KEPT') && Array.isArray(item.merging_feature_ids) && item.merging_feature_ids.length > 0 &&
   item.merging_feature_ids.every(id => typeof id === 'string' && id.length > 0);
 }
 function hardBlocked(item: Candidate | HistoryItem) {
- if (item.risk_level === 'blocked') return true;
+ const semanticProtection = ['PROTECTED_LINE_OR_TEXT', 'RESIDUE_KEPT'].includes(item.blocked_reason ?? '');
+ if (item.risk_level === 'blocked' && !semanticProtection) return true;
  if (item.kind === 'occupied_hole' || item.kind === 'boundary_gap') return !mergeable(item);
  if (item.kind === 'spur' && !item.receiver_options?.length) return true;
- return !!item.blocked_reason && !(item.kind === 'spur' && item.blocked_reason === 'PROTECTED_LINE_OR_TEXT');
+ return !!item.blocked_reason && !semanticProtection;
 }
 function needsReview(item: Candidate | HistoryItem) {
- // Older previews incorrectly called the occupied-hole merge instruction a
- // review risk, even with review_required=false and no review reasons.
- const ownershipOnly = item.kind === 'occupied_hole' && mergeable(item) &&
-  item.review_required === false && !(item.review_reason_codes?.length) &&
-  (item.merging_feature_ids?.length === 1 || item.owner_raster_evidence?.length === item.merging_feature_ids?.length);
- const distinctRegion = (item.kind === 'void' || item.kind === 'occupied_hole') &&
-  ['distinct_region','distinct_hole_region'].includes(item.raster_evidence?.status ?? '');
- return distinctRegion || item.risk_level === 'review' && !ownershipOnly || item.review_required === true || item.kind === 'boundary_gap' ||
-  (item.kind === 'spur' && item.blocked_reason === 'PROTECTED_LINE_OR_TEXT');
+ return faceCandidateNeedsReview(item);
 }
+
 function kindLabel(item: Candidate | HistoryItem) {
  return item.kind === 'spur' ? '线状附着' : item.kind === 'boundary_gap' ? '边界缺口' : '孔洞';
 }
+
 function involvedIds(item: Candidate | HistoryItem, source: string | undefined, receiver?: string) {
  return [source, ...(item.merging_feature_ids ?? item.occupying_feature_ids ?? []), receiver].filter((id): id is string => !!id);
 }
@@ -128,7 +129,7 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
  const [assignments, setAssignments] = useState<Record<string, string>>({});
  const [shown, setShown] = useState(allKindsShown), [detailsOpen, setDetailsOpen] = useState(false);
  const [page, setPage] = useState(1), [highlighted, setHighlighted] = useState('');
- const [pending, setPending] = useState(false), [error, setError] = useState('');
+ const [pending, setPending] = useState(false), [error, setError] = useState(''), [operationMessage, setOperationMessage] = useState('');
  const [errorAction, setErrorAction] = useState<'diagnose' | 'apply'>('diagnose');
  const [history, setHistory] = useState<HistoryItem[]>([]), [historyError, setHistoryError] = useState('');
  const [historyLoading, setHistoryLoading] = useState(false), [historyRetry, setHistoryRetry] = useState(0);
@@ -156,7 +157,7 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
  // background; the user starts each diagnosis explicitly.
  useEffect(() => {
   ticket.current++;
-  previewAbort.current?.abort(); attempted.current = ''; setCheckStatus('idle');
+  previewAbort.current?.abort(); attempted.current = ''; setCheckStatus('idle'); setOperationMessage('');
   setPlan(null); setChecked([]); setVerified([]); setAssignments({}); setHighlighted('');
   setError(''); setPage(1);
   onPreview(null);
@@ -249,6 +250,7 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
     state.selected.length!==1||state.selected[0]!==plan.feature_id||state.project.working_revision!==plan.base_revision||!Number.isFinite(expires)||expires<=Date.now()){
     if(inspectionRef.current===inspectionContext){clearPreview();setError('检查结果已更新或过期，请重新检查。');setErrorAction('diagnose');}return;
    }
+   if(scopeRef.current!==context||inspectionRef.current!==inspectionContext||useWorkspace.getState().session!==session)return;
    setVerified(old=>[...new Set([...old,...allowed])]);info('已确认核对 '+allowed.length+' 项。');
   }catch(e){if(scopeRef.current===context)setError(e instanceof Error?e.message:String(e));}
   finally{inFlight.current=false;setPending(false);}
@@ -262,7 +264,7 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
   const controller = new AbortController(), context = inspectionRef.current, start = ++ticket.current;
   previewAbort.current = controller; attempted.current = context;
   setCheckAttempted(true);
-  setCheckStatus('checking'); setError(''); setErrorAction('diagnose');
+  setCheckStatus('checking'); setError(''); setOperationMessage(''); setErrorAction('diagnose');
   setPlan(null); setChecked([]); setVerified([]); setAssignments({}); setHighlighted('');
   onPreview(null);
   const identity = feature.feature_id, session = useWorkspace.getState().session;
@@ -294,8 +296,9 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
  }
  async function apply() {
   if (!plan || !chosen.length || busy || inFlight.current) return;
-  inFlight.current = true; setPending(true); setError(''); setErrorAction('apply');
+  inFlight.current = true; setPending(true); setError(''); setOperationMessage(''); setErrorAction('apply');
   const context = scopeRef.current, inspectionContext = inspectionRef.current, ids = chosen.map(item => item.candidate_id), session = useWorkspace.getState().session;
+  const reviewRemaining=selectedReview.length,receiverRemaining=selectedCandidates.length-chosen.length-reviewRemaining;
   try {
    await work(async () => {
     if (!await flush()) {if (inspectionRef.current === inspectionContext) setError('属性草稿未能保存，请先修正或重试保存。'); return;}
@@ -313,14 +316,15 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
      operation_type: 'repair_face_geometry', feature_ids: [plan.feature_id], preview_id: plan.preview_id,
      candidate_ids: ids, merge_occupied_candidate_ids: chosen.filter(mergeable).map(item => item.candidate_id),
      assignments: Object.fromEntries(chosen.filter(item => item.kind === 'spur').map(item => [item.candidate_id, assignments[item.candidate_id]])),
-     verified_protected_candidate_ids: chosen.filter(item => item.kind === 'spur' && item.blocked_reason === 'PROTECTED_LINE_OR_TEXT' && verified.includes(item.candidate_id)).map(item => item.candidate_id),
+     verified_protected_candidate_ids: chosen.filter(item => ['PROTECTED_LINE_OR_TEXT', 'RESIDUE_KEPT'].includes(item.blocked_reason ?? '') && verified.includes(item.candidate_id)).map(item => item.candidate_id),
      verified_review_candidate_ids: chosen.filter(item => item.review_required === true || item.kind === 'boundary_gap').filter(item => verified.includes(item.candidate_id)).map(item => item.candidate_id),
     } as CommandInput);
     const latest = useWorkspace.getState();
     if (result && latest.session === session && latest.project?.project_id === project.project_id && latest.asset?.asset_id === asset.asset_id) {
      if (context === scopeRef.current) clearPreview();
      setHistoryRetry(value => value + 1);
-     info('面几何已修复，可撤销。');
+     const message='已处理 '+ids.length+' 项'+(reviewRemaining?'；另有 '+reviewRemaining+' 项受保护、已保留或待核对对象，请重新检查并确认核对后再清理':'')+(receiverRemaining?'；另有 '+receiverRemaining+' 项需选择接收面后再处理':'')+'；可撤销。';
+     setOperationMessage(message);info(message);
     }
    });
   } catch (e) {
@@ -329,6 +333,8 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
  }
 
  const selectionResults = <>
+  {operationMessage&&<Alert type="info" message={operationMessage}/>}
+  {selectedReview.length>0&&<Alert type="info" message="所选受保护、已保留或需核对归属的对象，请先确认核对后再清理；普通候选可直接处理。"/>}
   {error && <Alert type="error" showIcon message={error} action={<Button size="small" disabled={disabled || (errorAction === 'apply' && !chosen.length)} onClick={() => errorAction === 'apply' ? void apply() : void diagnose()}>重试</Button>} />}
   {plan && historyError && <Alert type="warning" showIcon message={'处理历史加载失败：' + historyError} action={<Button size="small" disabled={historyLoading} onClick={() => setHistoryRetry(value => value + 1)}>重试历史</Button>} />}
   {plan && <div className="face-repair-summary" aria-label="面修复汇总">
@@ -354,11 +360,9 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
        <td><strong><i className={'face-repair-swatch is-' + item.kind}/>{kindLabel(item)}</strong>{item.kind === 'void' && <small>{row.history ? '已填充' : '未占用'}</small>}{item.kind === 'occupied_hole' && <small>{row.history ? '已合并内部碎面' : mergeable(item) ? '合并内部碎面' : '已占用'}</small>}</td>
        <td>{Number(item.area_px2.toFixed(1))}</td>
        <td className="face-repair-evidence">
-        <small title={[...lines, ...texts].join('、')}>{lines.length || texts.length ? `相交线 ${lines.length} · 文字 ${texts.length}` : row.history ? '操作记录中无相交线或文字' : '未发现独立线或文字依据'}</small>
-        {reasons.map(text => <small key={text}>{text}</small>)}
-        {!row.history && item.kind === 'boundary_gap' && <small>开口区域归属需人工核对</small>}
+        <ReasonList items={[<span title={[...lines, ...texts].join('、')}>{lines.length || texts.length ? `相交线 ${lines.length} · 文字 ${texts.length}` : row.history ? '操作记录中无相交线或文字' : '未发现独立线或文字依据'}</span>,...reasons,...(!row.history && item.kind === 'boundary_gap'?['开口区域归属需人工核对']:[])]}/>
        </td>
-       <td>{row.history ? <span title={row.history.operation_id}><Tag color="green">已处理</Tag><small>修订 {row.history.result_revision}</small></span> : blocked ? <Tag>已保留</Tag> : ready(item as Candidate) ? <Tag color="blue">可修复</Tag> : <Tag color="gold">{item.kind === 'spur' && (acknowledged || !needsReview(item)) ? '待选接收面' : '待核对'}</Tag>}</td>
+       <td>{row.history ? <span title={row.history.operation_id}><Tag color={statusColor('已处理')}>已处理</Tag><small>修订 {row.history.result_revision}</small></span> : blocked ? <Tag color={statusColor('已保留')}>已保留</Tag> : ready(item as Candidate) ? <Tag color={statusColor('可修复')}>可修复</Tag> : <Tag color={statusColor('待核对')}>{item.kind === 'spur' && (acknowledged || !needsReview(item)) ? '待选接收面' : '待核对'}</Tag>}</td>
        <td onClick={event => event.stopPropagation()}><div className="face-repair-row-actions">
         <Button size="small" disabled={!item.geometry} onClick={() => locate(row)}>定位</Button>
         {!row.history && !blocked && needsReview(item) && <Button size="small" disabled={disabled} onClick={() => acknowledged ? cancelReview(item.candidate_id) : void verify([item.candidate_id])}>{acknowledged ? '取消核对' : '核对'}</Button>}
@@ -373,15 +377,18 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
   </div>}
  </>;
 
+ const brushHasPreview=!!brush.preview;
+ const brushState=brushHasPreview?'done':brush.brushing?'checking':'waiting';
  return <section className="face-repair-tools" aria-label="面几何修复">
-  <Collapse ghost defaultActiveKey={['select_repair']} className="line-edit-groups face-repair-mode-groups" items={[
+  <Collapse ghost className="line-edit-groups face-repair-mode-groups" items={[
    {key: 'select_repair', label: '选择修复', children: <div className="face-repair-select-group"><div className="face-repair-toolbar">
     <div className="face-repair-toolbar-main">
      <div className="face-repair-toolbar-options" aria-label="面检查选项">
-      <span className="face-repair-check-state" data-state={checkStatus} role="status" aria-label="面检查状态" aria-live="polite">{checking ? '正在检查…' : checkStatus === 'checked' ? '已检查' : checkStatus === 'error' ? '检查失败' : !singleFace ? '请选择单个面' : !validParameters ? '检查参数未填写完整' : '等待检查'}</span>
-      {checkStatus === 'checked' && <span className="face-repair-candidate-count">{current.length} 项候选</span>}
-      <div className="property-operation-group"><Button size="small" disabled={disabled || !active || !singleFace || !validParameters} onClick={() => void diagnose()}>{checkAttempted ? '重新检查' : '开始检查'}</Button>
-      <Button size="small" aria-expanded={parametersOpen} onClick={() => setParametersOpen(open => !open)}>检查设置</Button></div>
+      <InspectionStatus size="small" ariaLabel="面检查状态" state={checking?'checking':checkStatus==='checked'?'done':'waiting'} attempted={checkAttempted} disabled={disabled || !active || !singleFace || !validParameters} onCheck={() => void diagnose()} extra={<>
+       {checkStatus === 'checked' && <span className="face-repair-candidate-count">{current.length} 项候选</span>}
+       {singleFace && !validParameters && <span className="face-repair-candidate-count">检查参数未填写完整</span>}
+       <Button size="small" aria-expanded={parametersOpen} onClick={() => setParametersOpen(open => !open)}>检查设置</Button>
+      </>}/>
      </div>
      {plan && <div className="face-repair-toolbar-actions" aria-label="面修复操作">
       <Button size="small" aria-label="清除预览" disabled={pending} onClick={clearPreview}>清除预览</Button>
@@ -394,11 +401,12 @@ export function FaceRepairTools({project, asset, feature, active = true, busy, c
     {!singleFace && <Alert type="info" message="请选择一个面后开始检查。" />}
    </div>{selectionResults}</div>},
    {key: 'brush_repair', label: '涂画修复', children: <div className="face-repair-brush-group">
-    <Alert type="info" showIcon message="先选中一个面，再开始涂画；只有能并入该面的碎面才会被修复，其余碎面不受影响。" />
-    <div className="property-operation-group">
-     <Button size="small" aria-pressed={brush.brushing} disabled={disabled || !active || (!brush.brushing && !singleFace)} onClick={() => brush.brushing ? brush.onStopBrush() : brush.onStartBrush()}>{brush.brushing ? '退出涂画修复' : '开始涂画修复'}</Button>
+    <div className="inspection-status face-repair-brush-status" data-state={brushState}>
+     <span className="inspection-status-text" role="status" aria-label="涂画修复状态" aria-live="polite" aria-atomic="true"><i className="inspection-status-dot" aria-hidden="true"/>{brushHasPreview?'检查完成':brush.brushing?'等待涂画':'等待检查'}</span>
+     {(!brush.brushing||brushHasPreview)&&<Button size="small" disabled={disabled || !active || !singleFace} onClick={brush.onStartBrush}>{brushHasPreview?'重新检查':'开始检查'}</Button>}
+     {brush.brushing&&<Button size="small" aria-pressed={true} disabled={disabled || !active} onClick={brush.onStopBrush}>退出涂画修复</Button>}
     </div>
-    {!singleFace && !brush.brushing && <Alert type="info" message="请选择单个面后开始涂画修复。" />}
+    <p className="face-repair-brush-hint">{!singleFace&&!brush.brushing?'请选择单个面后开始涂画修复。':'涂画碎面后查看修复预览，确认后再应用；仅修复能并入所选面的碎面。'}</p>
     {brush.brushing && <div className="face-repair-brush-parameters" aria-label="涂画修复参数">
      <PropertyNumber disabled={busy} label="刷半径（px）" ariaLabel="碎面修复刷半径" min={1} max={100} value={brush.radius} onChange={brush.onRadiusChange} />
      <PropertyNumber disabled={busy} label="面积上限（px²）" ariaLabel="碎面修复面积上限" min={.1} value={brush.maxArea} onChange={brush.onMaxAreaChange} />

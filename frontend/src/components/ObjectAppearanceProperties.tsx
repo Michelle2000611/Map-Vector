@@ -11,7 +11,7 @@ import {TextPositionFields} from './TextPositionFields';
 type Props={layer:string;feature?:Feature;selectedFeatures:Feature[];previewFeatures?:Feature[];drafts:ReturnType<typeof usePropertyDrafts>;cropSrc?:string;disabled?:boolean;styles?:Style[];onSaveStyle?:(styleName:string,color:string)=>Promise<boolean>;onApplyStyle?:(styleId:string)=>void;onClearOverride?:(featureIds:string[])=>void};
 
 export function StyleSwatch({style}:{style:Style}){
- return style.feature_type==='face'
+ return style.feature_type==='text'?<span className="style-swatch style-swatch-text" style={{color:style.text_color??undefined}}>文</span>:style.feature_type==='face'
   ?<span className="style-swatch" style={{background:style.fill_color??undefined,borderColor:style.stroke_color&&style.stroke_width_px?style.stroke_color:undefined}}/>
   :<span className="style-swatch style-swatch-line" style={{borderTopColor:style.stroke_color??undefined,borderTopWidth:Math.min(Math.max(style.stroke_width_px??2,2),5),borderTopStyle:style.line_pattern==='dashed'?'dashed':'solid'}}/>;
 }
@@ -53,7 +53,7 @@ export function ObjectAppearanceProperties({layer,feature,selectedFeatures,previ
    <PropertyNumber disabled={disabled} label="宽度（px）" ariaLabel="线宽" min={.25} max={50} value={values.width} {...input('width')} onChange={value=>drafts.set('width',value)} mixed={mixed('width',item=>item.feature_type==='line'?item.stroke_width_px:undefined)}/>
    <PropertyField label="用途"><Select disabled={disabled} value={mixed('role',item=>item.feature_type==='line'?item.line_role:undefined)?undefined:values.role} placeholder="多个值" aria-label="线用途" onChange={value=>drafts.set('role',value)} options={[{value:'unknown',label:'待定'},{value:'cover',label:'覆盖线'},{value:'split',label:'分割线'}]}/></PropertyField>
   </>}
-  {brush&&<Collapse ghost defaultActiveKey={['brush']} className="line-edit-groups property-style-actions" items={[{key:'brush',label:<span className="property-brush-heading">格式刷{boundStyle&&<Tag color="blue">已绑定 {boundStyle.style_name}</Tag>}</span>,children:<div className="property-style-body">
+  {brush&&<Collapse ghost className="line-edit-groups property-style-actions" items={[{key:'brush',label:<span className="property-brush-heading">格式刷{boundStyle&&<Tag color="blue">已绑定 {boundStyle.style_name}</Tag>}</span>,children:<div className="property-style-body">
    <div className="property-style-buttons">
     <Button disabled={disabled||mixed('color',item=>item.feature_type==='face'?item.fill_color:item.feature_type==='line'?item.stroke_color:undefined)} onClick={()=>setSaving({name:(layer==='face'?'面样式 ':'线样式 ')+(layerStyles.length+1),color:values.color})}>保存为新样式</Button>
     <Button disabled={disabled||!styleToApply} onClick={()=>{if(styleToApply)onApplyStyle?.(styleToApply);}}>应用到已选对象</Button>

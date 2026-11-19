@@ -6,12 +6,13 @@ import math
 import warnings
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
+from typing import Literal
 
 import numpy as np
 import rasterio
 from affine import Affine
 from PIL import ImageColor
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from rasterio.errors import NotGeoreferencedWarning
 from rasterio.features import rasterize
 from rasterio.windows import Window
@@ -37,10 +38,75 @@ class FaceRepairRequest(BaseModel):
     max_area_px2:float=Field(default=150,gt=0,le=2000)
 
 
+
+class HealResidueDecision(BaseModel):
+    model_config=ConfigDict(extra='forbid',allow_inf_nan=False)
+    asset_id:UUIDString
+    base_revision:int=Field(ge=0,le=9007199254740990,strict=True)
+    preview_id:UUIDString
+    feature_ids:list[UUIDString]=Field(min_length=1,max_length=2000)
+    decision:Literal['confirm','keep','reopen']
+
+    @field_validator('feature_ids')
+    @classmethod
+    def unique_features(cls,value):
+        if len(value)!=len(set(value)):raise ValueError('Feature IDs must be unique')
+        return value
+
+
+def _valid_heal_target(connection,project_id,asset_id,item):
+    source_id=item.get('feature_id');target_id=item.get('target_feature_id')
+    if not source_id or not target_id or source_id==target_id:return False
+    if item.get('receiver_options') and target_id not in item['receiver_options']:return False
+    try:
+        source=load_feature(connection,source_id);target=load_feature(connection,target_id)
+    except KeyError:return False
+    if any((feature['project_id'],feature['asset_id'],feature['feature_type'],feature['lifecycle_status'])!=(project_id,asset_id,'face','active') for feature in (source,target)):return False
+    small=shape(source['geometry']);receiver=shape(target['geometry'])
+    if any(geometry.is_empty or not geometry.is_valid or geometry.geom_type not in ('Polygon','MultiPolygon') for geometry in (small,receiver)):return False
+    combined=small.union(receiver)
+    return (small.intersection(receiver).area<=1e-7 and small.boundary.intersection(receiver.boundary).length>1e-7
+            and combined.is_valid and combined.geom_type in ('Polygon','MultiPolygon') and _part_count(combined)==_part_count(receiver))
+
+
+def confirm_heal_candidates(database,project_id,request):
+    """Record explicit object decisions against an unexpired brush preview."""
+    from mapvector.domain.selection import PreviewRequest
+    from mapvector.application.residue_policy import clear_confirmation,related_text_ids,write_confirmation,write_decision,write_object_decision
+    with database.transaction() as connection:
+        current=connection.execute('SELECT working_revision,current_asset_id FROM project WHERE project_id=?',(project_id,)).fetchone()
+        if current is None:raise KeyError(project_id)
+        if current['working_revision']!=request.base_revision or current['current_asset_id']!=request.asset_id:raise CommandConflict('REVISION_CONFLICT')
+        row=connection.execute('SELECT * FROM edit_preview WHERE preview_id=? AND project_id=? AND asset_id=?',(request.preview_id,project_id,request.asset_id)).fetchone()
+        if row is None or row['base_revision']!=request.base_revision or datetime.fromisoformat(row['expires_at'])<=datetime.now(timezone.utc):raise CommandConflict('PREVIEW_STALE')
+        source=PreviewRequest.model_validate_json(row['request_json']);stored=json.loads(row['result_json'])
+        if source.preview_type!='heal_faces' or stored.get('preview_type')!='heal_faces':raise CommandConflict('PREVIEW_TYPE_MISMATCH')
+        features=[load_feature(connection,record[0]) for record in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status IN ('active','isolated') ORDER BY feature_id",(project_id,request.asset_id))]
+        digest=hashlib.sha256(json.dumps(features,sort_keys=True,ensure_ascii=False).encode('utf-8')).hexdigest()
+        if digest!=row['input_sha256']:raise CommandConflict('PREVIEW_STALE')
+        candidates={item['feature_id']:item for item in stored.get('legacy_report',{}).get('candidates',[]) if item.get('feature_id')}
+        if not set(request.feature_ids).issubset(candidates):raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
+        if request.decision=='confirm' and any(not _valid_heal_target(connection,project_id,request.asset_id,candidates[fid]) for fid in request.feature_ids):raise CommandConflict('REPAIR_RECEIVER_REQUIRED')
+        timestamp=datetime.now(timezone.utc).isoformat()
+        for fid in request.feature_ids:
+            if request.decision=='confirm':write_confirmation(connection,project_id,request.asset_id,fid,request.preview_id,timestamp)
+            else:
+                clear_confirmation(connection,project_id,request.asset_id,fid)
+                write_object_decision(connection,project_id,request.asset_id,fid,request.decision,request.preview_id,timestamp)
+                refs=sorted(set(candidates[fid].get('reference_text_ids',[]))|set(related_text_ids(connection,project_id,request.asset_id,fid)))
+                for text_id in refs:write_decision(connection,project_id,request.asset_id,text_id,fid,request.decision,request.preview_id,timestamp)
+        return {'feature_ids':request.feature_ids,'decision':request.decision}
+
+
 def _scope(connection,project_id,asset_id,bounds):
     x0,y0,x1,y1=bounds
-    rows=connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status IN ('active','isolated') AND rowid IN (SELECT id FROM feature_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=? UNION SELECT id FROM text_display_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=?) ORDER BY feature_id",(project_id,asset_id,x0,x1,y0,y1,x0,x1,y0,y1))
-    return [load_feature(connection,row[0]) for row in rows]
+    rows=connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status IN ('active','isolated') AND rowid IN (SELECT id FROM feature_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=? UNION SELECT id FROM text_display_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=? UNION SELECT id FROM text_ocr_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=?) ORDER BY feature_id",(project_id,asset_id,x0,x1,y0,y1,x0,x1,y0,y1,x0,x1,y0,y1))
+    features=[load_feature(connection,row[0]) for row in rows]
+    for feature in features:
+        if feature['feature_type']=='text':
+            candidate=connection.execute('SELECT detected_quad_px FROM ocr_candidate WHERE candidate_id=? AND project_id=? AND asset_id=?',(feature.get('primary_candidate_id'),project_id,asset_id)).fetchone()
+            feature['detected_quad_px']=json.loads(candidate[0]) if candidate and candidate[0] else None
+    return features
 
 
 def _maximum_stroke(connection,project_id,asset_id):
@@ -70,11 +136,11 @@ def _merge_owners(hole,source_id,active):
 
 def _references(candidate,features):
     """Return spatial intersections only; these are not semantic matches."""
-    lines=[];texts=[]
+    from mapvector.geometry.text_residue import text_residue_regions
+    lines=[]
     for feature in features:
-        if feature['lifecycle_status']!='active':continue
-        if feature['feature_type']=='line' and shape(feature['geometry']).buffer(feature['stroke_width_px']/2).intersects(candidate):lines.append(feature['feature_id'])
-        elif feature['feature_type']=='text' and feature.get('display_bbox_px') and box(*feature['display_bbox_px']).intersects(candidate):texts.append(feature['feature_id'])
+        if feature['lifecycle_status']=='active' and feature['feature_type']=='line' and shape(feature['geometry']).buffer(feature['stroke_width_px']/2).intersects(candidate):lines.append(feature['feature_id'])
+    texts=[item['text']['feature_id'] for item in text_residue_regions([feature for feature in features if feature['feature_type']=='text' and feature['lifecycle_status']=='active']) if item['geometry'].intersects(candidate)]
     return sorted(lines),sorted(texts)
 
 
@@ -189,7 +255,7 @@ def _enrich_evidence(item,candidate,geometry,target,asset,directory,width_px,fea
         option['recommendation_reason_codes']=['SHARED_BOUNDARY']+(['RASTER_COLOR_DISTANCE'] if 'color_distance' in option else [])
     ranked=sorted(options,key=lambda option:(-option['recommendation_score'],option['feature_id']))
     item['recommended_receiver_id']=ranked[0]['feature_id'] if ranked and (len(ranked)==1 or ranked[0]['recommendation_score']-ranked[1]['recommendation_score']>.05) else None
-    confirmable={'PROTECTED_LINE_OR_TEXT','OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW'}
+    confirmable={'PROTECTED_LINE_OR_TEXT','RESIDUE_KEPT','OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW'}
     blocked=item.get('blocked_reason')
     # Whole owners already validated to exactly fill this internal hole need a
     # merge operation, not an additional human review unless actual risk exists.
@@ -219,18 +285,19 @@ def _current_raster_inputs(path,records):
     return current
 
 
-def _diagnose_target(connection,project_id,asset_id,asset,directory,target,width_px,min_length_px,max_area_px2):
+def _diagnose_target(connection,project_id,asset_id,asset,directory,target,width_px,min_length_px,max_area_px2,scan_context=None):
     """Per-face candidate generation shared by the single-face preview and the asset-wide scan."""
     geometry=shape(target['geometry'])
     if not geometry.is_valid or geometry.is_empty:raise CommandConflict('GEOMETRY_VALIDATION_FAILED')
-    maximum_stroke=_maximum_stroke(connection,project_id,asset_id)
+    maximum_stroke=scan_context['maximum_stroke'] if scan_context else _maximum_stroke(connection,project_id,asset_id)
     margin=float(maximum_stroke)/2+1
     bounds=list(geometry.buffer(margin).bounds);features=_scope(connection,project_id,asset_id,bounds)
     faces=[f for f in features if f['feature_type']=='face' and f['lifecycle_status']=='active']
     # Include the target: another component of the same multipart face may be
     # an existing island inside this component's ring and must stay occupied.
     ownership=[(f['feature_id'],shape(f['geometry'])) for f in faces]
-    region=_region(asset,directory);candidates=diagnose(geometry,ownership,width_px,min_length_px,max_area_px2)
+    region=scan_context['region'] if scan_context else _region(asset,directory)
+    candidates=diagnose(geometry,ownership,width_px,min_length_px,max_area_px2)
     for item in candidates:
         candidate=shape(item['geometry'])
         lines,texts=_references(candidate,features)
@@ -246,6 +313,13 @@ def _diagnose_target(connection,project_id,asset_id,asset,directory,target,width
             if lines:reasons.append('INTERSECTS_INDEPENDENT_LINE')
             if texts:reasons.append('INTERSECTS_TEXT_DISPLAY')
         item.update(mergeable=False,merging_feature_ids=[],review_required=bool(reasons),review_reason_codes=reasons,reference_line_ids=lines,reference_text_ids=texts)
+        # Spatial references remain evidence, never proof of glyph ownership.
+        from mapvector.geometry.text_residue import text_residue_regions
+        item['residue_evidence']=[{'text_feature_id':entry['text']['feature_id'],'region_source':entry['basis'],
+            'inside_share':float(candidate.intersection(entry['geometry']).area/max(candidate.area,1e-9)),
+            'source_region':mapping(entry['geometry']),'ownership':'requires_review'}
+            for entry in text_residue_regions([feature for feature in features if feature['feature_type']=='text' and feature['lifecycle_status']=='active'])
+            if entry['geometry'].intersects(candidate)]
         if not region.covers(candidate):item['blocked_reason']='OUTSIDE_VALID_RASTER'
         elif item['kind'] in ('occupied_hole','boundary_gap') and candidate.area<=max_area_px2:
             owners=_merge_owners(candidate,target['feature_id'],dict(ownership))
@@ -267,6 +341,13 @@ def _diagnose_target(connection,project_id,asset_id,asset,directory,target,width
                     if shape(feature['geometry']).buffer(feature['stroke_width_px']/2).intersects(candidate):protected.append(feature['feature_id'])
                 elif feature['feature_type']=='text' and feature.get('display_bbox_px') and box(*feature['display_bbox_px']).intersects(candidate):protected.append(feature['feature_id'])
             if protected:item.setdefault('blocked_reason','PROTECTED_LINE_OR_TEXT');item['protected_feature_ids']=protected
+        from mapvector.application.residue_policy import is_kept,related_text_ids
+        affected_ids=[target['feature_id']] if item['kind']=='spur' else item.get('merging_feature_ids',[])
+        if any(is_kept(connection,project_id,asset_id,sorted(set(texts+related_text_ids(connection,project_id,asset_id,identity))),identity) for identity in affected_ids):
+            item['human_decision']='keep'
+            if item.get('blocked_reason') in (None,'PROTECTED_LINE_OR_TEXT','OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW'):
+                item['blocked_reason']='RESIDUE_KEPT'
+                item['review_reason_codes'].append('RESIDUE_KEPT')
         identity=hashlib.sha256((target['feature_id']+item['kind']+candidate.normalize().wkb_hex).encode()).hexdigest()[:32]
         item['candidate_id']=identity
         item['receiver_options'].sort(key=lambda option:(-option['shared_edge_px'],option['feature_id']))
@@ -295,13 +376,11 @@ def create_preview(connection,project_id,request,directory):
 MAX_SCAN_FACES=2000
 
 
-def scan_asset(connection,project_id,asset_id,directory,width_px=2,min_length_px=12,max_area_px2=150):
+def scan_asset(connection,project_id,asset_id,directory,width_px=2,min_length_px=12,max_area_px2=150,*,cursor=None,base_revision=None):
     """Read-only, asset-wide pass: which faces have a repair candidate worth a look.
 
-    Does not persist an edit_preview; a face the operator picks from this list
-    still goes through the normal single-face face-repair-previews flow before
-    anything is applied. Bounded so an unusually large asset degrades to a
-    truncated, clearly-marked result instead of an unbounded scan.
+    Keyset pages cover the complete layer at one revision, without an unbounded
+    request. Applying still requires the normal single-face preview.
     """
     project=connection.execute('SELECT working_revision,current_asset_id FROM project WHERE project_id=?',(project_id,)).fetchone()
     if project is None:raise KeyError(project_id)
@@ -309,18 +388,22 @@ def scan_asset(connection,project_id,asset_id,directory,width_px=2,min_length_px
     asset=connection.execute('SELECT * FROM asset WHERE asset_id=? AND project_id=?',(asset_id,project_id)).fetchone()
     if asset is None:raise KeyError(asset_id)
     asset=dict(asset)
-    rows=connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type='face' AND lifecycle_status='active' ORDER BY feature_id LIMIT ?",(project_id,asset_id,MAX_SCAN_FACES+1)).fetchall()
+    if cursor is not None and base_revision is None:raise CommandConflict('SCAN_REVISION_REQUIRED')
+    if base_revision is not None and base_revision!=project['working_revision']:raise CommandConflict('REVISION_CONFLICT')
+    total=connection.execute("SELECT count(*) FROM feature WHERE project_id=? AND asset_id=? AND feature_type='face' AND lifecycle_status='active'",(project_id,asset_id)).fetchone()[0]
+    rows=connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type='face' AND lifecycle_status='active' AND feature_id>? ORDER BY feature_id LIMIT ?",(project_id,asset_id,cursor or '',MAX_SCAN_FACES+1)).fetchall()
     face_ids=[row[0] for row in rows];truncated=len(face_ids)>MAX_SCAN_FACES;face_ids=face_ids[:MAX_SCAN_FACES]
+    scan_context={'maximum_stroke':_maximum_stroke(connection,project_id,asset_id),'region':_region(asset,directory)}
     results=[]
     for feature_id in face_ids:
         target=load_feature(connection,feature_id)
         if target['lifecycle_status']!='active':continue
         try:
-            candidates,_features,_region,_stroke,_bounds=_diagnose_target(connection,project_id,asset_id,asset,directory,target,width_px,min_length_px,max_area_px2)
+            candidates,_features,_valid_region,_stroke,_bounds=_diagnose_target(connection,project_id,asset_id,asset,directory,target,width_px,min_length_px,max_area_px2,scan_context=scan_context)
         except CommandConflict:continue
         flagged=[item for item in candidates if item.get('review_required') or item.get('mergeable')]
         if flagged:results.append({'feature_id':feature_id,'candidate_count':len(flagged),'kinds':sorted({item['kind'] for item in flagged})})
-    return {'base_revision':project['working_revision'],'scanned_face_count':len(face_ids),'flagged_faces':results,'truncated':truncated}
+    return {'base_revision':project['working_revision'],'scanned_face_count':len(face_ids),'flagged_faces':results,'truncated':truncated,'total_face_count':total,'next_cursor':face_ids[-1] if truncated else None}
 
 
 def plan_changes(connection,project_id,command,timestamp,directory):
@@ -335,14 +418,19 @@ def plan_changes(connection,project_id,command,timestamp,directory):
     candidates={item['candidate_id']:item for item in report['candidates']};original={f['feature_id']:f for f in features}
     if any(identity not in candidates for identity in command.candidate_ids):raise CommandConflict('REPAIR_CANDIDATE_INVALID')
     selected=[candidates[identity] for identity in command.candidate_ids]
+    from mapvector.application.residue_policy import is_kept,related_text_ids,write_confirmation
     verified=set(command.verified_protected_candidate_ids)
-    if not verified.issubset(command.candidate_ids) or any(candidates[identity].get('blocked_reason')!='PROTECTED_LINE_OR_TEXT' for identity in verified):raise CommandConflict('REPAIR_PROTECTION_CONFIRMATION_INVALID')
+    for item in selected:
+        affected_ids=[report['feature_id']] if item['kind']=='spur' else item.get('merging_feature_ids',[])
+        if any(is_kept(connection,project_id,command.asset_id,sorted(set(item.get('reference_text_ids',[])+related_text_ids(connection,project_id,command.asset_id,identity))),identity) for identity in affected_ids):
+            if item.get('blocked_reason')!='RESIDUE_KEPT' or item['candidate_id'] not in verified:raise CommandConflict('RESIDUE_KEPT')
+    if not verified.issubset(command.candidate_ids) or any(candidates[identity].get('blocked_reason') not in ('PROTECTED_LINE_OR_TEXT','RESIDUE_KEPT') for identity in verified):raise CommandConflict('REPAIR_PROTECTION_CONFIRMATION_INVALID')
     reviewed=set(command.verified_review_candidate_ids)
     if not reviewed.issubset(command.candidate_ids) or any(not candidates[identity].get('review_required',False) for identity in reviewed):raise CommandConflict('REPAIR_REVIEW_CONFIRMATION_INVALID')
     if any(item.get('review_required',False) and item['candidate_id'] not in reviewed for item in selected):raise CommandConflict('REPAIR_REVIEW_REQUIRED')
     merge_confirmed=set(command.merge_occupied_candidate_ids)
-    if not merge_confirmed.issubset(command.candidate_ids) or any(candidates[identity]['kind'] not in ('occupied_hole','boundary_gap') or not candidates[identity].get('mergeable') or candidates[identity].get('blocked_reason') not in ('OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW') or not candidates[identity].get('merging_feature_ids') for identity in merge_confirmed):raise CommandConflict('REPAIR_MERGE_CONFIRMATION_INVALID')
-    if any(item['kind'] in ('occupied_hole','boundary_gap') and item['candidate_id'] not in merge_confirmed or item.get('blocked_reason') and not (item['blocked_reason']=='PROTECTED_LINE_OR_TEXT' and item['candidate_id'] in verified or item['blocked_reason'] in ('OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW') and item['candidate_id'] in merge_confirmed) for item in selected):raise CommandConflict('REPAIR_CANDIDATE_BLOCKED')
+    if not merge_confirmed.issubset(command.candidate_ids) or any(candidates[identity]['kind'] not in ('occupied_hole','boundary_gap') or not candidates[identity].get('mergeable') or candidates[identity].get('blocked_reason') not in ('OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW','RESIDUE_KEPT') or not candidates[identity].get('merging_feature_ids') for identity in merge_confirmed):raise CommandConflict('REPAIR_MERGE_CONFIRMATION_INVALID')
+    if any(item['kind'] in ('occupied_hole','boundary_gap') and item['candidate_id'] not in merge_confirmed or item.get('blocked_reason') and not (item['blocked_reason'] in ('PROTECTED_LINE_OR_TEXT','RESIDUE_KEPT') and item['candidate_id'] in verified or item['blocked_reason'] in ('OCCUPIED_HOLE_REQUIRES_MERGE','BOUNDARY_GAP_REQUIRES_REVIEW') and item['candidate_id'] in merge_confirmed) for item in selected):raise CommandConflict('REPAIR_CANDIDATE_BLOCKED')
     selected_geometry=[shape(item['geometry']) for item in selected]
     if abs(sum(item.area for item in selected_geometry)-union_all(selected_geometry).area)>1e-7:raise CommandConflict('REPAIR_SELECTION_OVERLAP')
     spur_ids={item['candidate_id'] for item in selected if item['kind']=='spur'}
@@ -390,6 +478,9 @@ def plan_changes(connection,project_id,command,timestamp,directory):
         old=original[fid]
         changes.append((old,{**copy.deepcopy(old),'lifecycle_status':'superseded','revision':command.base_revision+1,'updated_at':timestamp}))
     if not changes:raise CommandConflict('REPAIR_NO_CHANGE')
+    confirmed_feature_ids=sorted({identity for item in selected if item['candidate_id'] in verified|reviewed
+        for identity in ([source_id] if item['kind']=='spur' else item.get('merging_feature_ids',[]))})
+    for identity in confirmed_feature_ids:write_confirmation(connection,project_id,command.asset_id,identity,command.preview_id,timestamp)
     evidence={'preview_id':command.preview_id,'asset_id':command.asset_id,'source_feature_id':source_id,'candidate_ids':command.candidate_ids,'assignments':command.assignments,
               'algorithm_revision':report['algorithm_revision'],'transfers':[{**copy.deepcopy(item),'receiver_feature_id':command.assignments.get(item['candidate_id'])} for item in selected],
               'modified_feature_ids':[new['feature_id'] for old,new in changes],'preserved_line_and_text':True}
@@ -397,6 +488,7 @@ def plan_changes(connection,project_id,command,timestamp,directory):
     evidence['merging_feature_ids']=sorted(merging_ids)
     evidence['verified_protected_candidate_ids']=command.verified_protected_candidate_ids
     evidence['verified_review_candidate_ids']=command.verified_review_candidate_ids
+    evidence['manual_confirmed_feature_ids']=confirmed_feature_ids
     evidence['protected_feature_ids']=sorted({fid for item in selected for fid in item.get('protected_feature_ids',[])})
     return changes,evidence
 
@@ -421,3 +513,50 @@ def repair_history(connection,project_id,asset_id,feature_id):
                    'operation_status':row['operation_status'],'source_feature_id':feature_id,'asset_id':asset_id}
             items.append(entry)
     return {'items':items}
+
+
+def annotate_heal_residue(connection,project_id,asset_id,report,directory):
+    """Decorate normalized brush candidates using the same text assessment.
+
+    Algorithm keep is separate from a human decision. Callers must repeat the
+    kept-object check at commit because decision metadata does not bump revision.
+    """
+    from mapvector.application.text_layer_assessment import assess
+    from mapvector.application.residue_policy import is_confirmed,is_kept,related_text_ids
+    from mapvector.application.face_residue_protection import face_line_protection,effective_line_policies
+    records=report.get('candidates',[])
+    wanted={item.get('feature_id') for item in records}-{None}
+    if not wanted:return report
+    text_ids=set();local_features={}
+    for fid in wanted:
+        feature=load_feature(connection,fid)
+        for local in _scope(connection,project_id,asset_id,shape(feature['geometry']).buffer(_maximum_stroke(connection,project_id,asset_id)/2+1).bounds):
+            local_features[local['feature_id']]=local
+            if local['feature_type']=='text' and local['lifecycle_status']=='active':text_ids.add(local['feature_id'])
+    related={fid:[] for fid in wanted}
+    local=list(local_features.values())
+    protected_reasons=face_line_protection(local,wanted,line_policies=effective_line_policies(connection,project_id,asset_id,local))
+    if text_ids:
+        assessment=assess(connection,project_id,asset_id,directory,sorted(text_ids))
+        for item in assessment['items']:
+            for fid in set(item['suspected_face_ids']) & wanted:related[fid].append(item['text_feature_id'])
+            protected_reasons.update({fid:reasons for fid,reasons in item.get('protected_face_reasons',{}).items() if fid in wanted})
+    for item in records:
+        fid=item.get('feature_id');refs=sorted(set(related.get(fid,[]))|set(item.get('reference_text_ids',[])))
+        keep_refs=sorted(set(refs)|set(related_text_ids(connection,project_id,asset_id,fid)))
+        item['fragment_category']='text_residue' if refs else 'ordinary_fragment'
+        item['reference_text_ids']=sorted(refs)
+        item['algorithm_recommendation']=item.get('algorithm_recommendation',item['decision'])
+        item['human_decision']='keep' if is_kept(connection,project_id,asset_id,keep_refs,fid) else None
+        item['protected_face_reasons']=protected_reasons.get(fid,[])
+        item['manually_confirmed']=is_confirmed(connection,project_id,asset_id,fid)
+        valid_target=_valid_heal_target(connection,project_id,asset_id,item)
+        item['can_confirm']=valid_target
+        item['decision']=item['algorithm_recommendation']
+        if valid_target and (item['protected_face_reasons'] or item['decision']=='keep'):
+            item.update(decision='uncertain',reason='需人工核对残留归属后再清理')
+        if item['manually_confirmed'] and valid_target:item.update(decision='merge',reason='人工已确认清理此残留')
+        if item.get('target_feature_id') is not None and not valid_target:item.update(decision='keep',reason='没有有效共边接收面')
+        if item['human_decision']=='keep':item.update(decision='keep',reason='人工已保留残留对象')
+    report['counts']={key:sum(item['decision']==key for item in records) for key in ('merge','keep','uncertain')}
+    return report

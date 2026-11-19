@@ -16,10 +16,6 @@
 .workspace-inspector-footer{flex:none;position:sticky;bottom:0;margin-top:auto;padding:10px 14px;background:#fff;z-index:5}
 .workspace-inspector-footer .property-delete-action{display:block}
 .property-card .property-delete-footer{position:sticky;bottom:-14px;padding-top:12px;padding-bottom:4px;background:#fff;z-index:5}
-.comparison-mode .workspace-property-slot>.property-card{min-height:100%;display:flex;flex-direction:column}
-.comparison-mode .workspace-property-slot>.property-card>.ant-card-body{display:flex;flex:1;flex-direction:column}
-.comparison-mode .workspace-property-slot .object-property-content{flex:1}
-.comparison-mode .property-delete-footer{margin-top:auto}
 .property-delete-action.ant-btn:disabled{display:inline-flex}
 .property-card .object-property-content .ant-tabs-tabpane .property-actions .ant-btn,.property-card .object-property-content .ant-tabs-tabpane .property-button-grid>.ant-btn{height:32px;min-height:32px;padding-block:4px}
 .property-card{container-name:property-form;container-type:inline-size}
@@ -55,6 +51,9 @@
 .property-style-body>.property-labeled-field{width:280px;max-width:100%}
 
 .property-brush-heading{display:inline-flex;align-items:center;flex-wrap:wrap;gap:8px}.property-brush-heading .ant-tag{margin:0;font-weight:400}
+.ant-collapse>.ant-collapse-item>.ant-collapse-header{font-family:inherit;font-size:14px;font-weight:600;color:#46556a}
+.style-swatch-text{height:auto;border:0;font-size:14px;font-weight:600;line-height:1}
+.text-style-library-summary{display:block;font-size:12px;font-weight:400;color:#65758a;margin-top:4px}
 
 .property-group-heading{grid-column:1;margin:4px 0 0;font-size:12px;font-weight:600;color:#65758a}
 .property-group-heading-full{grid-column:1 / -1}

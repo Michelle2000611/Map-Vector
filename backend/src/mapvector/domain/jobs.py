@@ -22,7 +22,7 @@ class AdoptRun(BaseModel):
 
 class ReviewDecision(BaseModel):
     model_config=ConfigDict(extra='forbid')
-    operation_type:Literal['confirm_text','skip_text']
+    operation_type:Literal['confirm_text']
     asset_id:str
     base_revision:int=Field(ge=0,strict=True)
     idempotency_key:str=Field(min_length=1,max_length=128)

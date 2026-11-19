@@ -1,0 +1,6 @@
+.text-information-panel{display:flex;flex-direction:column;gap:12px;min-width:0}
+.text-information-toolbar{display:flex;align-items:center;gap:8px;flex-wrap:wrap}.text-information-toolbar>.ant-input-affix-wrapper{flex:1;min-width:180px}
+.text-information-actions{display:flex;gap:6px;flex-wrap:wrap}.text-information-table .ant-table-cell{vertical-align:top;overflow-wrap:anywhere}
+.text-information-panel>.ant-segmented{align-self:flex-start;max-width:100%;overflow-x:auto}
+.text-information-color{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}.text-information-color>i{width:12px;height:12px;flex:none;border:1px solid #d9d9d9;border-radius:2px}
+.text-information-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.text-information-fields .ant-input-number{width:100%}

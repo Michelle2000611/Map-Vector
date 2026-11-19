@@ -1002,7 +1002,11 @@ class SelectionMixin:
             elif de is not None and de <= de_merge: d, why = "merge", "same colour as neighbour"
             elif de is not None and de >= de_keep and g.area >= min_keep: d, why = "keep", "distinct colour"
             else: d, why = "uncertain", "check"
-            out.append({"id": e, "target": int(t), "target_is_candidate": t in cs, "decision": d, "reason": why, "area": float(g.area),
+            # Multiple receiving units are a semantic ambiguity even when their
+            # union would preserve polygon coverage. Require explicit review.
+            receivers=sorted(pool)
+            if len(receivers)>1 and d=="merge":d,why="uncertain","multiple receiving faces; check geological ownership"
+            out.append({"id": e, "target": int(t), "receiver_options": [int(value) for value in receivers], "target_is_candidate": t in cs, "decision": d, "reason": why, "area": float(g.area),
                         "dE": None if de is None else round(de, 1), "under_cover_share": round(u_cover, 2), "under_split_or_unknown_share": round(u_other, 2)})
         self._pid += 1; pid = f"heal-{self._pid}"
         self.previews[pid] = {"kind": "heal", "version": self.version, "candidates": out}

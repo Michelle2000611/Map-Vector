@@ -31,6 +31,7 @@ class PreviewRequest(BaseModel):
     preview_type:Literal['merge_faces','join_lines','heal_faces','split_faces','text_residue','merge_suggest','line_to_face']
     feature_ids:list[str]=Field(default_factory=list)
     complete_region:bool=False
+    face_assignments:dict[UUIDString,UUIDString]=Field(default_factory=dict)
     verified_line_feature_ids:list[UUIDString]=Field(default_factory=list)
     line_review_preview_id:UUIDString|None=None
     points:list[tuple[float,float]]=Field(default_factory=list)
@@ -42,6 +43,7 @@ class PreviewRequest(BaseModel):
 
     @model_validator(mode='after')
     def validate_line_review(self):
+        if self.face_assignments and (self.preview_type!='text_residue' or not self.complete_region):raise ValueError('Receiver choices require a complete text residue preview')
         if len(self.verified_line_feature_ids)!=len(set(self.verified_line_feature_ids)):raise ValueError('Verified lines must be unique')
         if self.verified_line_feature_ids and (self.preview_type!='text_residue' or not self.complete_region or self.line_review_preview_id is None):raise ValueError('Verified lines require a complete text residue preview and source review')
         if self.line_review_preview_id and self.preview_type!='text_residue':raise ValueError('Line review is only supported for text residue')

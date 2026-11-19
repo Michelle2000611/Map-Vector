@@ -10,13 +10,14 @@ from uuid import uuid4
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 from PIL import Image
 from shapely import STRtree, from_wkb
-from shapely.geometry import LineString, mapping
+from shapely.geometry import LineString, Polygon, mapping, shape
 
+from mapvector.application.residue_policy import candidate_is_kept, write_decision, decision_for, is_confirmed, write_confirmation, clear_confirmation
 from mapvector.application.ports import load_feature
 from mapvector.application.review import text_decision
 from mapvector.domain.commands import UUIDString
 from mapvector.domain.errors import CommandConflict
-from mapvector.geometry.line_checks import ALGORITHM_REVISION, MAX_RASTER_IMAGE_PIXELS, diagnose, digest
+from mapvector.geometry.line_checks import ALGORITHM_REVISION, MAX_CANDIDATES, MAX_RASTER_IMAGE_PIXELS, diagnose, digest
 
 
 class LineCheckRequest(BaseModel):
@@ -46,7 +47,7 @@ class LineCheckDecision(BaseModel):
     base_revision: int = Field(ge=0, le=9007199254740990, strict=True)
     preview_id: UUIDString
     candidate_ids: list[str] = Field(min_length=1, max_length=2000)
-    decision: Literal['keep', 'reopen']
+    decision: Literal['keep', 'reopen', 'confirm']
 
     @model_validator(mode='after')
     def unique_candidates(self):
@@ -66,6 +67,7 @@ class LineCheckCandidate(BaseModel):
     reference_text_ids: list[str]
     status: Literal['pending', 'kept']
     review_required: bool
+    manually_confirmed: bool = False
     allowed_action: Literal['join', 'isolate', 'group']
     connection_mode: Literal['automatic', 'manual'] = 'automatic'
     connector_kind: Literal['straight', 'smooth', 'manual'] = 'straight'
@@ -93,9 +95,22 @@ class LineCheckReport(BaseModel):
     summary: dict[str, int | bool]
 
 
+class LineCheckPage(BaseModel):
+    preview_id: str
+    asset_id: str
+    base_revision: int
+    expires_at: str
+    kind: Literal['join_gap', 'text_stroke', 'dash_group']
+    filter: Literal['pending', 'kept', 'applied', 'all']
+    offset: int
+    limit: int
+    total: int
+    items: list[LineCheckCandidate | LineCheckHistory]
+
+
 class LineCheckDecisionResult(BaseModel):
     candidate_ids: list[str]
-    decision: Literal['keep', 'reopen']
+    decision: Literal['keep', 'reopen', 'confirm']
 
 
 def _scope(connection, project_id, asset_id, revision):
@@ -131,7 +146,10 @@ def snapshot(connection, project_id, asset_id, revision):
     layer=connection.execute("SELECT default_style_id FROM layer_setting WHERE project_id=? AND asset_id=? AND layer_type='line'",(project_id,asset_id)).fetchone()
     bindings={row['feature_id']:row['style_id'] for row in connection.execute('SELECT fs.* FROM feature_style fs JOIN feature f USING(feature_id) WHERE f.project_id=? AND f.asset_id=? AND f.feature_type=?',(project_id,asset_id,'line'))}
     source, path = _raster_source(connection, asset)
-    return {'asset':asset,'lines':lines,'texts':texts,'groups':groups,'styles':styles,'style_bindings':bindings,
+    unassigned=[]
+    for row in connection.execute("SELECT candidate_id,detected_quad_px FROM ocr_candidate WHERE project_id=? AND asset_id=? AND text_feature_id IS NULL AND detected_quad_px IS NOT NULL ORDER BY candidate_id",(project_id,asset_id)):
+        value=dict(row);value['detected_quad_px']=json.loads(value['detected_quad_px']);unassigned.append(value)
+    return {'unassigned_ocr_candidates':unassigned,'asset':asset,'lines':lines,'texts':texts,'groups':groups,'styles':styles,'style_bindings':bindings,
             'default_style_id':layer['default_style_id'] if layer else None, 'raster_source':source, '_raster_path':path}
 
 
@@ -145,11 +163,8 @@ def _raster_source(connection, asset):
     if not path.is_relative_to(directory):
         return {'status':'unavailable'}, None
     try:
-        checksum = hashlib.sha256()
-        with path.open('rb') as source:
-            for chunk in iter(lambda:source.read(1024 * 1024), b''):
-                checksum.update(chunk)
-        actual = checksum.hexdigest()
+        from mapvector.application.residue_policy import raster_sha256
+        actual = raster_sha256(path)
     except OSError:
         return {'status':'unavailable'}, str(path)
     return {'status':'available' if actual == asset['raster_sha256'] else 'mismatch', 'sha256':actual}, str(path)
@@ -177,7 +192,17 @@ def _decisions(connection,project_id,asset_id):
     return {row['candidate_id']:dict(row) for row in connection.execute('SELECT * FROM line_check_decision WHERE project_id=? AND asset_id=?',(project_id,asset_id))}
 
 
+def _shared_status(connection,project_id,asset_id,candidate):
+    candidate['manually_confirmed']=candidate['kind']=='text_stroke' and bool(candidate['feature_ids']) and all(is_confirmed(connection,project_id,asset_id,fid) for fid in candidate['feature_ids'])
+    candidate['_shared_kept']=candidate_is_kept(connection,project_id,asset_id,candidate)
+    pairs=[decision_for(connection,project_id,asset_id,text_id,fid) for text_id in candidate.get('reference_text_ids',[]) for fid in candidate['feature_ids']] if candidate['kind']=='text_stroke' else []
+    candidate['_shared_reopened']=bool(pairs) and all(value=='reopen' for value in pairs)
+
+
 def _status(candidate, decisions):
+    if candidate.get("_shared_kept"):return "kept"
+    if candidate.get('manually_confirmed'):return 'pending'
+    if candidate.get("_shared_reopened"):return candidate["status"]
     decision=decisions.get(candidate['candidate_id'])
     if decision and decision['evidence_sha256']==candidate['_evidence_sha256']:
         return 'kept' if decision['decision']=='keep' else 'pending'
@@ -206,7 +231,7 @@ def create_preview(database,project_id,request):
         raise CommandConflict('SELECTION_SCOPE_INVALID')
     image = _raster_image(materialized)
     try:
-        result=diagnose(materialized,request,image)
+        result=diagnose(materialized,request,image,candidate_limit=None)
     finally:
         if image is not None:image.close()
     expires=(datetime.now(timezone.utc)+timedelta(minutes=15)).isoformat()
@@ -217,21 +242,48 @@ def create_preview(database,project_id,request):
     with database.transaction() as connection:
         _scope(connection,project_id,request.asset_id,request.base_revision)
         decisions=_decisions(connection,project_id,request.asset_id)
-        for item in stored['candidates']:item['status']=_status(item,decisions)
+        for item in stored['candidates']:_shared_status(connection,project_id,request.asset_id,item)
+        # Cache intrinsic geometry statuses. A live keep decision is valid only
+        # for its matching evidence and must not become the cached fallback.
         connection.execute('INSERT INTO edit_preview VALUES (?,?,?,?,?,?,?,?)',(stored['preview_id'],project_id,request.asset_id,request.base_revision,expires,request.model_dump_json(),json.dumps(stored,ensure_ascii=False),stored['input_sha256']))
-    return {**stored,'candidates':[_public(item) for item in stored['candidates']]}
+    visible=stored['candidates'][:MAX_CANDIDATES]
+    return {**stored,'candidates':[{**_public(item),'status':_status(item,decisions)} for item in visible],
+            'summary':{**stored['summary'],'returned_count':len(visible),
+                       'truncated':len(visible)<len(stored['candidates'])}}
 
 
-def _validated_report(connection,project_id,request):
-    _scope(connection,project_id,request.asset_id,request.base_revision)
-    row=connection.execute('SELECT * FROM edit_preview WHERE preview_id=? AND project_id=? AND asset_id=?',(request.preview_id,project_id,request.asset_id)).fetchone()
-    if row is None or row['base_revision']!=request.base_revision or datetime.fromisoformat(row['expires_at'])<=datetime.now(timezone.utc):raise CommandConflict('PREVIEW_STALE')
+def _validated_preview(connection,project_id,asset_id,base_revision,preview_id):
+    _scope(connection,project_id,asset_id,base_revision)
+    row=connection.execute('SELECT * FROM edit_preview WHERE preview_id=? AND project_id=? AND asset_id=?',(preview_id,project_id,asset_id)).fetchone()
+    if row is None or row['base_revision']!=base_revision or datetime.fromisoformat(row['expires_at'])<=datetime.now(timezone.utc):raise CommandConflict('PREVIEW_STALE')
     report=json.loads(row['result_json'])
-    if report.get('algorithm_revision')!=ALGORITHM_REVISION or report.get('asset_id')!=request.asset_id:raise CommandConflict('PREVIEW_TYPE_MISMATCH')
-    if digest(snapshot(connection,project_id,request.asset_id,request.base_revision))!=row['input_sha256']:raise CommandConflict('PREVIEW_STALE')
+    if report.get('algorithm_revision')!=ALGORITHM_REVISION or report.get('asset_id')!=asset_id:raise CommandConflict('PREVIEW_TYPE_MISMATCH')
+    if digest(snapshot(connection,project_id,asset_id,base_revision))!=row['input_sha256']:raise CommandConflict('PREVIEW_STALE')
     preview_request = LineCheckRequest.model_validate_json(row['request_json'])
     if report.get('request_sha256') != digest(preview_request.model_dump(mode='json')) or report.get('mode') != preview_request.mode:
         raise CommandConflict('PREVIEW_TYPE_MISMATCH')
+    return report,preview_request
+
+
+def candidate_page(database,project_id,asset_id,base_revision,preview_id,kind,filter,offset=0,limit=25):
+    with database.read() as connection:
+        connection.execute('BEGIN')
+        report,_=_validated_preview(connection,project_id,asset_id,base_revision,preview_id)
+        decisions=_decisions(connection,project_id,asset_id)
+        for item in report['candidates']:_shared_status(connection,project_id,asset_id,item)
+        current=sorted(report['candidates'],key=lambda item:(item['kind'],bool(item['blocked_reasons']),item['candidate_id']))
+        previous=sorted(report['history'],key=lambda item:(-item['result_revision'],item['operation_id'],item['candidate_id']))
+        rows=[{**item,'status':_status(item,decisions)} for item in current]
+        rows.extend(previous)
+        selected=[item for item in rows if item['kind']==kind and (filter=='all' or item['status']==filter)]
+        return {'preview_id':report['preview_id'],'asset_id':report['asset_id'],
+                'base_revision':report['base_revision'],'expires_at':report['expires_at'],
+                'kind':kind,'filter':filter,'offset':offset,'limit':limit,'total':len(selected),
+                'items':[_public(item) for item in selected[offset:offset+limit]]}
+
+
+def _validated_report(connection,project_id,request):
+    report,preview_request=_validated_preview(connection,project_id,request.asset_id,request.base_revision,request.preview_id)
     by_id={item['candidate_id']:item for item in report['candidates']}
     if any(identity not in by_id for identity in request.candidate_ids):raise CommandConflict('LINE_CHECK_CANDIDATE_INVALID')
     for identity in request.candidate_ids:
@@ -250,10 +302,30 @@ def _validated_report(connection,project_id,request):
 def decide(database,project_id,request):
     with database.transaction() as connection:
         _,selected=_validated_report(connection,project_id,request)
+        # Validate the whole batch before recording any manual authorization.
+        if request.decision=='confirm':
+            for candidate in selected:
+                if candidate['kind']!='text_stroke' or candidate['allowed_action']!='isolate':raise CommandConflict('LINE_CHECK_ACTION_MISMATCH')
+                if 'RASTER_SOURCE_MISMATCH' in candidate['blocked_reasons']:raise CommandConflict('LINE_CHECK_CANDIDATE_BLOCKED',{'reason_codes':['RASTER_SOURCE_MISMATCH']})
+                for fid in candidate['feature_ids']:
+                    feature=load_feature(connection,fid)
+                    if (feature['project_id'],feature['asset_id'],feature['feature_type'],feature['lifecycle_status'])!=(project_id,request.asset_id,'line','active'):raise CommandConflict('SELECTION_SCOPE_INVALID')
         timestamp=datetime.now(timezone.utc).isoformat()
         for candidate in selected:
+            if candidate['kind']=='text_stroke':
+                for fid in candidate['feature_ids']:
+                    if request.decision=='confirm':write_confirmation(connection,project_id,request.asset_id,fid,request.preview_id,timestamp)
+                    else:
+                        from mapvector.application.residue_policy import write_object_decision
+                        write_object_decision(connection,project_id,request.asset_id,fid,request.decision,request.preview_id,timestamp)
+                if request.decision!='confirm':
+                    for text_id in candidate['reference_text_ids']:
+                        for fid in candidate['feature_ids']:write_decision(connection,project_id,request.asset_id,text_id,fid,request.decision,request.preview_id,timestamp)
+            # The shared confirmation owns authorization. Reopen this entrance's
+            # previous keep using its existing keep/reopen database contract.
+            stored_decision='reopen' if request.decision=='confirm' else request.decision
             connection.execute('INSERT INTO line_check_decision VALUES (?,?,?,?,?,?,?) ON CONFLICT(project_id,asset_id,candidate_id) DO UPDATE SET evidence_sha256=excluded.evidence_sha256,decision=excluded.decision,updated_at=excluded.updated_at,preview_id=excluded.preview_id',
-                (project_id,request.asset_id,candidate['candidate_id'],candidate['_evidence_sha256'],request.decision,timestamp,request.preview_id))
+                (project_id,request.asset_id,candidate['candidate_id'],candidate['_evidence_sha256'],stored_decision,timestamp,request.preview_id))
     return {'candidate_ids':request.candidate_ids,'decision':request.decision}
 
 
@@ -283,9 +355,11 @@ def plan_changes(connection,project_id,command,timestamp):
     decisions=_decisions(connection,project_id,command.asset_id)
     seen=set()
     for candidate in selected:
+        _shared_status(connection,project_id,command.asset_id,candidate)
         if candidate['allowed_action']!=command.action:raise CommandConflict('LINE_CHECK_ACTION_MISMATCH')
-        if candidate['blocked_reasons']:raise CommandConflict('LINE_CHECK_CANDIDATE_BLOCKED',{'candidate_id':candidate['candidate_id'],'reason_codes':candidate['blocked_reasons']})
-        if _status(candidate,decisions)=='kept':raise CommandConflict('LINE_CHECK_CANDIDATE_KEPT')
+        confirmed_isolation=command.action=='isolate' and candidate['kind']=='text_stroke' and candidate['manually_confirmed']
+        if candidate['blocked_reasons'] and (not confirmed_isolation or 'RASTER_SOURCE_MISMATCH' in candidate['blocked_reasons']):raise CommandConflict('LINE_CHECK_CANDIDATE_BLOCKED',{'candidate_id':candidate['candidate_id'],'reason_codes':candidate['blocked_reasons']})
+        if candidate_is_kept(connection,project_id,command.asset_id,candidate) or _status(candidate,decisions)=='kept':raise CommandConflict('LINE_CHECK_CANDIDATE_KEPT')
         if seen.intersection(candidate['feature_ids']):raise CommandConflict('LINE_CHECK_SELECTION_OVERLAP')
         seen.update(candidate['feature_ids'])
         if command.action=='join':
@@ -301,8 +375,9 @@ def plan_changes(connection,project_id,command,timestamp):
         if (feature['project_id'],feature['asset_id'],feature['feature_type'],feature['lifecycle_status'])!=(project_id,command.asset_id,'line','active'):raise CommandConflict('SELECTION_SCOPE_INVALID')
     for candidate in selected:
         # Explicit manual continuation authorizes joining these two members only;
-        # isolation and automatic processing retain the original hard protections.
+        # Geometry protections remain mandatory for joining and grouping.
         if candidate.get('connection_mode', 'automatic') == 'manual' and command.action == 'join':continue
+        if command.action=='isolate' and candidate['kind']=='text_stroke' and candidate['manually_confirmed']:continue
         if any(originals[identity]['source_type'] == 'manual' or originals[identity]['line_role'] == 'split' for identity in candidate['feature_ids']):
             raise CommandConflict('LINE_CHECK_CANDIDATE_BLOCKED')
     if command.action == 'join':_validate_connector_batch(selected, originals)
@@ -322,10 +397,34 @@ def plan_changes(connection,project_id,command,timestamp):
             groups.append(group);relations.append(('logical_group',group['group_id'],None,group))
             for identity in identities:relations.append(('group_member',group['group_id']+':'+identity,None,{'group_id':group['group_id'],'feature_id':identity}))
         elif command.action=='isolate':
-            for identity in identities:
-                old=originals[identity];new={**copy.deepcopy(old),'lifecycle_status':'isolated','isolation_reason':'text_residue','revision':revision,'updated_at':timestamp}
-                if len(candidate['reference_text_ids'])==1:new['associated_text_feature_id']=candidate['reference_text_ids'][0]
-                changes.append((old,new))
+            regions=candidate.get('evidence',{}).get('source_regions',[])
+            region=None
+            footprints=[]
+            for evidence_region in regions:
+                try:
+                    footprint=Polygon(evidence_region['polygon_px'])
+                    if footprint.is_valid and not footprint.is_empty and footprint.area>0:footprints.append(footprint)
+                except (KeyError,ValueError,TypeError):pass
+            if footprints:
+                from shapely import union_all
+                region=union_all(footprints)
+            crossing=region is not None and any(not region.buffer(1e-6).covers(shape(originals[identity]['geometry'])) for identity in identities)
+            if crossing:
+                from mapvector.application.residue_cleanup import plan_changes as plan_residue_changes
+                display={'bounds_px':region.bounds,'region_geometry':mapping(region),'face_feature_ids':[],
+                         'line_feature_ids':identities,'protected_line_feature_ids':[]}
+                planned,split_sources=plan_residue_changes([originals[identity] for identity in identities],display,None,revision,timestamp,candidate['reference_text_ids'][0] if len(candidate['reference_text_ids'])==1 else None,identities)
+                if not planned:raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
+                changes.extend(planned)
+                for target,source in split_sources.items():
+                    lineages.append((source,target,{key:value for key,value in originals[source].items() if key!='geometry'}))
+                    binding=connection.execute('SELECT style_id FROM feature_style WHERE feature_id=?',(source,)).fetchone()
+                    if binding:relations.append(('feature_style',target,None,{'feature_id':target,'style_id':binding[0]}))
+            else:
+                for identity in identities:
+                    old=originals[identity];new={**copy.deepcopy(old),'lifecycle_status':'isolated','isolation_reason':'text_residue','revision':revision,'updated_at':timestamp}
+                    if len(candidate['reference_text_ids'])==1:new['associated_text_feature_id']=candidate['reference_text_ids'][0]
+                    changes.append((old,new))
         else:
             plan=candidate.get('_plan',{});order=plan.get('ordered_feature_ids',[])
             if set(order)!=set(identities) or len(order)!=len(identities):raise CommandConflict('PREVIEW_TYPE_MISMATCH')

@@ -7,7 +7,7 @@ from uuid import uuid4
 from shapely import from_wkb, to_wkb
 from shapely.geometry import Point, shape
 
-from mapvector.domain.commands import CreateText, EditCommand, ReviewText, UpdateText, HistoryCommand, GeometryCommand,SetRoi,GroupFeatures,UngroupFeatures,AdoptOcrCandidate
+from mapvector.domain.commands import CreateText, EditCommand, ReviewText, UpdateText, ApplyTextFormat, HistoryCommand, GeometryCommand,SetRoi,GroupFeatures,UngroupFeatures,AdoptOcrCandidate
 from mapvector.application.relations import apply_relations,restore_relation
 from mapvector.domain.commands import SetStyle,BindStyle,SetLayer,ClassifyReview,RestoreOcrLayout,DeleteStyle,RebindStyle,ClearStyleOverride
 from mapvector.domain.commands import DeleteFaces,DeleteLines,DeleteText,SetFeatureProperties,RepairFace,ApplyLineCheck,SplitSelectedFaces,ApplyFaceMerge
@@ -40,6 +40,15 @@ class CommandService:
 
     def apply(self, project_id: str, command: EditCommand, actor_id: str = 'local-user') -> dict:
         payload = command.model_dump(mode='json')
+        # New optional controls retain hashes accepted by older API clients.
+        if isinstance(command,ApplyTextFormat):
+            for name in ('copy_size','copy_color'):
+                if payload[name] is True:payload.pop(name)
+        if isinstance(command,BindStyle):
+            for name in ('text_fields','text_content'):
+                if payload[name] is None:payload.pop(name)
+        if isinstance(command,SetStyle) and command.feature_type!='text':
+            for name in ('font_size_px','text_color','rotation_deg'):payload.pop(name)
         # Preserve the digest of previously accepted repair commands that
         # predate review acknowledgements. Nonempty reviews stay hash-bound.
         if isinstance(command,RepairFace) and not command.verified_review_candidate_ids:payload.pop('verified_review_candidate_ids')
@@ -96,8 +105,8 @@ class CommandService:
                 row = connection.execute('SELECT f.*,t.* FROM feature f JOIN text_attribute t USING(feature_id) WHERE f.feature_id=? AND f.project_id=? AND f.asset_id=? AND f.lifecycle_status=char(97,99,116,105,118,101)', (feature_id, project_id, command.asset_id)).fetchone()
                 if row is None:
                     raise CommandConflict('RESOURCE_NOT_FOUND')
-                state = dict(row)
-                before.append(self._feature(connection, feature_id))
+                old=self._feature(connection, feature_id)
+                before.append(old)
                 geometry = from_wkb(row['geometry_wkb'])
                 x, y = command.x if command.x is not None else geometry.x, command.y if command.y is not None else geometry.y
                 if not (0 <= x <= asset['width_px'] and 0 <= y <= asset['height_px']):
@@ -111,25 +120,36 @@ class CommandService:
                 point = Point(x, y)
                 bbox = point.bounds
                 connection.execute('UPDATE feature SET geometry_wkb=?,bbox_min_x_px=?,bbox_min_y_px=?,bbox_max_x_px=?,bbox_max_y_px=?,revision=?,updated_at=? WHERE feature_id=?', (to_wkb(point, hex=False, output_dimension=2, byte_order=1), *bbox, command.base_revision + 1, timestamp, feature_id))
-                connection.execute('UPDATE text_attribute SET text_value=?,font_size_px=?,rotation_deg=?,text_color=?,text_content_revision=text_content_revision+?,review_status=?,review_basis=?,reviewed_content_revision=NULL,reviewed_at=NULL,reviewer_id=NULL,display_bbox_px=? WHERE feature_id=?', (text, size, rotation, color, int(content_changed), 'manual_edited' if content_changed else row['review_status'], 'manual_content_edit' if content_changed else row['review_basis'], json.dumps(display_bbox(x,y,text,size,rotation)), feature_id))
-                if any(getattr(command,k) is not None for k in ('text_value','font_size_px','rotation_deg','x','y')) and (content_changed or size!=row['font_size_px'] or rotation!=row['rotation_deg'] or x!=geometry.x or y!=geometry.y):
-                    connection.execute("UPDATE text_attribute SET layout_width_px=NULL,layout_height_px=NULL,baseline_offset_px=NULL,layout_runs='[]',layout_basis='manual' WHERE feature_id=?",(feature_id,))
-                if not content_changed and size==row['font_size_px'] and rotation==row['rotation_deg'] and x==geometry.x and y==geometry.y:
-                    connection.execute('UPDATE text_attribute SET display_bbox_px=? WHERE feature_id=?',(row['display_bbox_px'],feature_id))
-                if not content_changed:
-                    connection.execute('UPDATE text_attribute SET reviewed_content_revision=?,reviewed_at=?,reviewer_id=? WHERE feature_id=?', (row['reviewed_content_revision'], row['reviewed_at'], row['reviewer_id'], feature_id))
+                from mapvector.application.text_format import scale_layout,text_display_bbox,record_style_override,TEXT_STYLE_FIELDS
+                new={**load_feature(connection,feature_id),**scale_layout(old,size),
+                     'text_value':text,'font_size_px':size,'rotation_deg':rotation,'text_color':color}
+                if content_changed:
+                    new.update(text_content_revision=old['text_content_revision']+1,review_status='manual_edited',
+                               review_basis='manual_content_edit',reviewed_content_revision=None,reviewed_at=None,reviewer_id=None,
+                               layout_width_px=None,layout_height_px=None,baseline_offset_px=None,layout_runs=[],layout_basis='manual')
+                placement_changed=content_changed or size!=row['font_size_px'] or rotation!=row['rotation_deg'] or x!=geometry.x or y!=geometry.y
+                record_style_override(old,new,command.model_fields_set&set(TEXT_STYLE_FIELDS))
+                if placement_changed:new['display_bbox_px']=text_display_bbox(new)
+                restore_feature(connection,new)
                 update_index(connection,feature_id)
                 after.append(self._feature(connection, feature_id))
+            elif isinstance(command,ApplyTextFormat):
+                from mapvector.application.text_format import plan_changes
+                history_changes=plan_changes(connection,project_id,command,timestamp)
+                for old,new in history_changes:
+                    restore_feature(connection,new);update_index(connection,new['feature_id'])
+                    after.append(load_feature(connection,new['feature_id']))
             elif isinstance(command, HistoryCommand):
                 from mapvector.application.history import apply_history
                 target_operation_id=command.target_operation_id
                 history_changes,relation_changes,after,removed,changed_groups,changed_styles,changed_layers,roi=apply_history(connection,project_id,command,timestamp)
             elif isinstance(command,RestoreOcrLayout):
                 from mapvector.application.text_layout import repair
+                if command.all_assets and command.expected_preview_sha256:raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
                 targets=[row[0] for row in connection.execute('SELECT asset_id FROM asset WHERE project_id=?',(project_id,))] if command.all_assets else [command.asset_id]
                 skipped=[]
                 for target_asset in targets:
-                    changed,kept=repair(connection,project_id,target_asset,command.base_revision+1,timestamp,self.database.path.parents[1]);history_changes.extend(changed);skipped.extend(kept)
+                    changed,kept=repair(connection,project_id,target_asset,command.base_revision+1,timestamp,self.database.path.parents[1],command.expected_preview_sha256);history_changes.extend(changed);skipped.extend(kept)
                 after.extend(new for old,new in history_changes if new['asset_id']==command.asset_id)
                 review_summary={'ocr_layout':{'updated':len(history_changes),'skipped':len(skipped),'assets':len(targets)}}
             elif isinstance(command,ClassifyReview):
@@ -245,7 +265,7 @@ class CommandService:
                 direct_feature_edit=isinstance(command,(DeleteFaces,DeleteLines,DeleteText,SetFeatureProperties))
                 features=[] if direct_feature_edit else scoped_features if scoped_features is not None and getattr(command,'complete_region',False) else [load_feature(connection,row[0]) for row in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status IN ('active','isolated') ORDER BY feature_id",(project_id,command.asset_id))]
                 try:
-                    preview_request=None;pixels=None;complete_plan=None
+                    preview_request=None;pixels=None;complete_plan=None;heal_plan=None
                     if getattr(command,'preview_id',None):
                         row=connection.execute('SELECT * FROM edit_preview WHERE preview_id=? AND project_id=? AND asset_id=?',(command.preview_id,project_id,command.asset_id)).fetchone()
                         if row is None or row['base_revision']!=command.base_revision or datetime.fromisoformat(row['expires_at'])<=datetime.now(timezone.utc):raise CommandConflict('PREVIEW_STALE')
@@ -255,10 +275,39 @@ class CommandService:
                         if actual_digest!=row['input_sha256']:raise CommandConflict('PREVIEW_STALE')
                         expected={'heal_faces':'heal_faces','split_faces':'split_faces','cleanup_text_residue':'text_residue','merge_adjacent_faces':'merge_faces','merge_face_components':'merge_faces','join_lines':'join_lines','line_to_face':'line_to_face'}[command.operation_type]
                         if preview_request.preview_type!=expected:raise CommandConflict('PREVIEW_TYPE_MISMATCH')
+                        if expected=='text_residue':
+                            from mapvector.application.residue_context import validate_raster_binding
+                            validate_raster_binding(connection,project_id,command.asset_id,json.loads(row['result_json']))
                         if command.operation_type in ('merge_adjacent_faces','merge_face_components','join_lines','line_to_face') and set(preview_request.feature_ids)!=set(command.feature_ids):raise CommandConflict('PREVIEW_STALE')
                         if command.operation_type=='line_to_face' and (command.stroke_width_px!=preview_request.stroke_width_px or command.fill_color!=preview_request.fill_color):raise CommandConflict('PREVIEW_STALE')
+                        if command.operation_type=='heal_faces':
+                            # Keep metadata is shared across entrances and deliberately does
+                            # not bump the geometry revision; reread it on every submission.
+                            from mapvector.application.face_repairs import annotate_heal_residue
+                            frozen_heal=json.loads(row['result_json'])['legacy_report']
+                            heal_report=json.loads(json.dumps(frozen_heal))
+                            annotate_heal_residue(connection,project_id,command.asset_id,heal_report,self.database.path.parents[1])
+                            candidates={item['feature_id']:item for item in heal_report.get('candidates',[]) if item.get('feature_id')}
+                            accepted=set(command.accept_uncertain_feature_ids)
+                            if not accepted.issubset(candidates):raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
+                            for fid in accepted:
+                                item=candidates[fid]
+                                if item.get('human_decision')=='keep':raise CommandConflict('RESIDUE_KEPT',{'feature_id':fid})
+                                if item.get('protected_face_reasons') and not item.get('manually_confirmed'):raise CommandConflict('RESIDUE_FACE_PROTECTED',{'feature_id':fid})
+                                if not item.get('can_confirm'):raise CommandConflict('REPAIR_RECEIVER_REQUIRED',{'feature_id':fid})
+                            frozen_ids={item['feature_id'] for item in frozen_heal.get('candidates',[]) if item.get('feature_id') and (item['decision']=='merge' or item['feature_id'] in accepted)}
+                            for fid in frozen_ids:
+                                if candidates[fid].get('human_decision')=='keep':raise CommandConflict('RESIDUE_KEPT',{'feature_id':fid})
+                            current_ids={fid for fid,item in candidates.items() if item['decision']=='merge' or fid in accepted}
+                            if frozen_ids!=current_ids:raise CommandConflict('PREVIEW_STALE',{'reason':'人工决定已更新，请重新预览'})
+                            heal_plan={fid:item['target_feature_id'] for fid,item in candidates.items() if item.get('target_feature_id') and item.get('human_decision')!='keep' and (item['decision']=='merge' or fid in accepted)}
                         if command.operation_type=='cleanup_text_residue':
+                            from mapvector.application.residue_policy import is_confirmed
+                            frozen_display=json.loads(row['result_json']).get('text_residue_display',{})
+                            for fid in frozen_display.get('manually_confirmed_face_feature_ids',[])+frozen_display.get('manually_confirmed_line_feature_ids',[]):
+                                if not is_confirmed(connection,project_id,command.asset_id,fid):raise CommandConflict('PREVIEW_STALE',{'feature_id':fid})
                             if command.complete_region!=preview_request.complete_region:raise CommandConflict('PREVIEW_TYPE_MISMATCH')
+                            if command.complete_region and command.face_assignments!=preview_request.face_assignments:raise CommandConflict('PREVIEW_SCOPE_MISMATCH')
                             if set(command.verified_line_feature_ids)!=set(preview_request.verified_line_feature_ids):raise CommandConflict('LINE_REVIEW_MISMATCH')
                             stored_result=json.loads(row['result_json'])
                             if 'line_review_evidence' in stored_result:
@@ -283,6 +332,10 @@ class CommandService:
                     styles=[dict(row) for row in connection.execute('SELECT * FROM style WHERE project_id=?',(project_id,))]
                     inherited_memberships={};inherited_styles={}
                     if complete_plan is not None:
+                        from mapvector.application.residue_policy import is_kept,related_text_ids
+                        residue_text_id=complete_plan['complete_cleanup_target_text_id']
+                        for fid in complete_plan['text_residue_display']['cleanup_face_feature_ids']:
+                            if is_kept(connection,project_id,command.asset_id,sorted(set([residue_text_id]+related_text_ids(connection,project_id,command.asset_id,fid))),fid):raise CommandConflict('LINE_REVIEW_FORBIDDEN',{'feature_id':fid,'reason':'人工保留决定已更新，请重新预览'})
                         current_evidence={}
                         from mapvector.application.text_residue_review import validate_preview
                         # Decisions do not advance the revision; recheck metadata
@@ -303,7 +356,24 @@ class CommandService:
                     elif direct_feature_edit:
                         from mapvector.application.feature_properties import plan_feature_edit
                         changes=plan_feature_edit(connection,project_id,command,timestamp)
-                    else:changes=apply_geometry(features,asset,command,timestamp,pixels,preview_request,groups,styles,inherited_memberships)
+                    else:changes=apply_geometry(features,asset,command,timestamp,pixels,preview_request,groups,styles,inherited_memberships,**({'heal_plan':heal_plan} if heal_plan is not None else {}))
+                    if command.operation_type=='cleanup_text_residue' and complete_plan is None and stored_result.get('text_residue_display'):
+                        # Compatibility adapters cannot broaden previewed erase authority.
+                        from mapvector.application.residue_policy import is_kept,related_text_ids
+                        display=stored_result['text_residue_display']
+                        allowed_faces=set(display['cleanup_face_feature_ids'])
+                        for old,new in changes:
+                            if old is None or old['feature_type']!='face':continue
+                            changed=shape(old['geometry']).symmetric_difference(shape(new['geometry'])).area>1e-7 or new['lifecycle_status']!=old['lifecycle_status']
+                            if not changed:continue
+                            retired=new['lifecycle_status']!='active'
+                            reduced=shape(old['geometry']).difference(shape(new['geometry'])).area>1e-7
+                            if retired or reduced:
+                                fid=old['feature_id']
+                                related=related_text_ids(connection,project_id,command.asset_id,fid)
+                                if is_kept(connection,project_id,command.asset_id,related,fid):raise CommandConflict('RESIDUE_KEPT',{'feature_id':fid})
+                                if fid not in allowed_faces:raise CommandConflict('RESIDUE_FACE_PROTECTED',{'feature_id':fid})
+
                 except EditError as exc:
                     message=str(exc)
                     code='FACES_NOT_EDGE_CONNECTED' if 'edge-connected' in message or 'share an edge' in message else 'DASH_JOIN_FORBIDDEN' if 'dash' in message.lower() else 'GEOMETRY_VALIDATION_FAILED'
@@ -320,9 +390,9 @@ class CommandService:
                         after.append(load_feature(connection,new['feature_id']))
                 if complete_plan is not None:
                     from shapely.geometry import box
-                    region=box(*complete_plan['text_residue_display']['bounds_px']).buffer(-1e-6)
+                    region=(shape(complete_plan['text_residue_display']['region_geometry']) if complete_plan['text_residue_display'].get('region_geometry') else box(*complete_plan['text_residue_display']['bounds_px'])).buffer(-1e-6)
                     pending=[]
-                    for fid in complete_plan['text_residue_display']['face_feature_ids']:
+                    for fid in complete_plan['text_residue_display']['cleanup_face_feature_ids']:
                         if load_feature(connection,fid)['lifecycle_status']=='active':pending.append(fid)
                     for row_id in connection.execute("SELECT feature_id FROM feature WHERE asset_id=? AND feature_type='line' AND lifecycle_status='active' AND rowid IN (SELECT id FROM feature_index WHERE max_x>? AND min_x<? AND max_y>? AND min_y<?)",(command.asset_id,region.bounds[0],region.bounds[2],region.bounds[1],region.bounds[3])):
                         feature=load_feature(connection,row_id[0])
@@ -332,10 +402,11 @@ class CommandService:
                     for assessment in remaining['items']:
                         # Existing assessment heuristics do not include hard
                         # protection metadata. Only planned line IDs are required.
-                        pending.extend(assessment['suspected_face_ids']+[fid for fid in assessment['suspected_line_ids'] if fid in complete_plan['text_residue_display']['cleanup_line_feature_ids']])
+                        pending.extend([fid for fid in assessment['suspected_face_ids'] if fid in complete_plan['text_residue_display']['cleanup_face_feature_ids']]+[fid for fid in assessment['suspected_line_ids'] if fid in complete_plan['text_residue_display']['cleanup_line_feature_ids']])
                     if pending:raise CommandConflict('RESIDUE_CLEANUP_INCOMPLETE',{'feature_ids':sorted(set(pending))})
-                    review_summary={'residue_cleanup':{'complete':True,'face_count':len(complete_plan['text_residue_display']['face_feature_ids']),'line_count':len(complete_plan['text_residue_display']['cleanup_line_feature_ids']),'text_unchanged':True,'remaining_count':0,'protected_line_count':len(complete_plan['text_residue_display']['protected_line_feature_ids'])}}
-                    review_summary['residue_cleanup'].update(verified_line_feature_ids=preview_request.verified_line_feature_ids,kept_line_feature_ids=sorted(fid for fid,item in current_evidence.items() if item['status']=='kept'),split_sources=complete_plan.get('complete_cleanup_split_sources',{}))
+                    review_summary={'residue_cleanup':{'complete':True,'face_count':len(complete_plan['text_residue_display']['cleanup_face_feature_ids']),'line_count':len(complete_plan['text_residue_display']['cleanup_line_feature_ids']),'text_unchanged':True,'remaining_count':len(complete_plan['text_residue_display'].get('unresolved_face_feature_ids',[])),'protected_line_count':len(complete_plan['text_residue_display']['protected_line_feature_ids'])}}
+                    review_summary['residue_cleanup'].update(verified_line_feature_ids=preview_request.verified_line_feature_ids,kept_face_feature_ids=complete_plan['text_residue_display'].get('kept_face_feature_ids',[]),kept_line_feature_ids=sorted(fid for fid,item in current_evidence.items() if item['status']=='kept'),split_sources=complete_plan.get('complete_cleanup_split_sources',{}))
+                    review_summary['residue_cleanup'].update(manually_confirmed_face_feature_ids=complete_plan['text_residue_display'].get('manually_confirmed_face_feature_ids',[]),manually_confirmed_line_feature_ids=complete_plan['text_residue_display'].get('manually_confirmed_line_feature_ids',[]),resolved_face_assignments=complete_plan['text_residue_display'].get('resolved_face_assignments',{}),unresolved_face_feature_ids=complete_plan['text_residue_display'].get('unresolved_face_feature_ids',[]),completion_scope='authorized_candidates',protected_face_count=len(complete_plan['text_residue_display'].get('protected_face_feature_ids',[])))
                 for fid,gid in inherited_memberships.items():
                     member={'group_id':gid,'feature_id':fid}
                     connection.execute('INSERT INTO group_member VALUES (?,?)',(gid,fid))
@@ -366,7 +437,7 @@ class CommandService:
             connection.execute('INSERT INTO operation VALUES (?,?,?,?,?,?,?,?,?,?,?,?)', (operation_id, project_id, operation_type, command.base_revision, revision, command.idempotency_key, digest, 'applied', actor_id, target_operation_id, json.dumps(result, ensure_ascii=False), timestamp))
             if isinstance(command,(ApplyLineCheck,SplitSelectedFaces,ApplyFaceMerge)):
                 for source_id,target_id,attributes in lineages:
-                    connection.execute('INSERT INTO feature_lineage VALUES (?,?,?,?,?,?,?)',(str(uuid4()),source_id,target_id,'split_from' if isinstance(command,SplitSelectedFaces) else 'merged_from',operation_id,json.dumps(attributes,ensure_ascii=False),None))
+                    connection.execute('INSERT INTO feature_lineage VALUES (?,?,?,?,?,?,?)',(str(uuid4()),source_id,target_id,'split_from' if isinstance(command,SplitSelectedFaces) or isinstance(command,ApplyLineCheck) and command.action=='isolate' else 'merged_from',operation_id,json.dumps(attributes,ensure_ascii=False),None))
             for review_event in review_events:
                 connection.execute('INSERT INTO review VALUES (?,?,?,?,?,?,?,?,?)', (*review_event, operation_id))
             if not isinstance(command, HistoryCommand):

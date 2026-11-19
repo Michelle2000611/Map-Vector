@@ -11,8 +11,9 @@ export const FeaturePreview=memo(function FeaturePreview({features,styles,color,
  const svg=useRef<SVGSVGElement>(null),glyphs=useRef<SVGGElement>(null);
  const [outline,setOutline]=useState(false);
  const shown=useMemo(()=>features.slice(0,LIMIT),[features]);
- const [textBounds,setTextBounds]=useState<{features:Feature[];viewBox:string}>();
+ const [textBounds,setTextBounds]=useState<{features:Feature[];viewBox:string;box:{x:number;y:number;width:number;height:number}}>();
  const facesOnly=shown.length>0&&shown.every(item=>item.feature_type==='face');
+ const textsOnly=shown.length>0&&shown.every(item=>item.feature_type==='text');
  const library=useMemo(()=>new Map(styles.map(item=>[item.style_id,item])),[styles]);
  const geometryViewBox=useMemo(()=>{
   let x0=Infinity,y0=Infinity,x1=-Infinity,y1=-Infinity;
@@ -38,13 +39,15 @@ export const FeaturePreview=memo(function FeaturePreview({features,styles,color,
    if(![bounds.x,bounds.y,bounds.width,bounds.height].every(Number.isFinite))return;
    const pad=Math.max(bounds.width,bounds.height)*.06+2;
    const viewBox=[bounds.x-pad,bounds.y-pad,Math.max(1,bounds.width)+pad*2,Math.max(1,bounds.height)+pad*2].join(' ');
-   setTextBounds(previous=>previous?.features===shown&&previous.viewBox===viewBox?previous:{features:shown,viewBox});
+   const box={x:bounds.x,y:bounds.y,width:Math.max(1,bounds.width),height:Math.max(1,bounds.height)};
+   setTextBounds(previous=>previous?.features===shown&&previous.viewBox===viewBox?previous:{features:shown,viewBox,box});
   };
   measure();
   void document.fonts.ready.then(measure);
   return ()=>{active=false;};
  },[shown]);
  const viewBox=textBounds?.features===shown?textBounds.viewBox:geometryViewBox;
+ const textBox=textBounds?.features===shown?textBounds.box:undefined;
  if(!viewBox)return null;
  return <div className={'property-source-crop property-feature-preview'+(facesOnly?' property-face-preview':'')}>
   <svg ref={svg} viewBox={viewBox} preserveAspectRatio="xMidYMid meet" role="img" aria-label="所选对象外观预览">
@@ -60,8 +63,9 @@ export const FeaturePreview=memo(function FeaturePreview({features,styles,color,
     return <g key={item.feature_id}><path data-face-preview-feature={item.feature_id} d={geometryPath(item.geometry)} fill={color??item.fill_color} fillRule="evenodd" stroke={border?borderColor:'none'} strokeWidth={border?borderWidth:0} vectorEffect="non-scaling-stroke"/>{facesOnly&&outline&&<path data-face-preview-outline={item.feature_id} d={geometryPath(item.geometry)} fill="none" stroke="#1677ff" strokeWidth={1.5} strokeDasharray="3 2" strokeLinejoin="round" vectorEffect="non-scaling-stroke"/>}</g>;
    })}
    </g>
+   {textsOnly&&outline&&textBox&&<rect data-text-preview-outline="true" x={textBox.x} y={textBox.y} width={textBox.width} height={textBox.height} fill="none" stroke="#8c8c8c" strokeOpacity={.35} strokeWidth={1} strokeDasharray="3 3" vectorEffect="non-scaling-stroke"/>}
   </svg>
-  <div className={'property-face-preview-controls'+(facesOnly?'':' property-line-preview-controls')}>{facesOnly&&<Checkbox checked={outline} onChange={event=>setOutline(event.target.checked)}>显示轮廓</Checkbox>}<PreviewImageCopyButton svgRef={svg}/></div>
+  <div className={'property-face-preview-controls'+(facesOnly||textsOnly?'':' property-line-preview-controls')}>{(facesOnly||textsOnly)&&<Checkbox checked={outline} onChange={event=>setOutline(event.target.checked)}>显示轮廓</Checkbox>}<PreviewImageCopyButton svgRef={svg}/></div>
   {features.length>LIMIT&&<span className="property-preview-note">仅预览前 {LIMIT} 个对象</span>}
  </div>;
 });

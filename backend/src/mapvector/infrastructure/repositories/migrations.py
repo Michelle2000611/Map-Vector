@@ -2,6 +2,27 @@
 
 
 def migrate(connection):
+    connection.execute("""CREATE TABLE IF NOT EXISTS residue_object_decision (
+        project_id TEXT NOT NULL, asset_id TEXT NOT NULL, feature_id TEXT NOT NULL,
+        evidence_sha256 TEXT NOT NULL, decision TEXT NOT NULL CHECK(decision IN ('keep','reopen')),
+        preview_id TEXT NOT NULL, updated_at TEXT NOT NULL,
+        PRIMARY KEY(project_id,asset_id,feature_id),
+        FOREIGN KEY(project_id,asset_id) REFERENCES asset(project_id,asset_id),
+        FOREIGN KEY(feature_id) REFERENCES feature(feature_id))""")
+    connection.execute("""CREATE TABLE IF NOT EXISTS residue_confirmation (
+        project_id TEXT NOT NULL, asset_id TEXT NOT NULL, feature_id TEXT NOT NULL,
+        evidence_sha256 TEXT NOT NULL, preview_id TEXT NOT NULL, updated_at TEXT NOT NULL,
+        PRIMARY KEY(project_id,asset_id,feature_id),
+        FOREIGN KEY(project_id,asset_id) REFERENCES asset(project_id,asset_id),
+        FOREIGN KEY(feature_id) REFERENCES feature(feature_id))""")
+    connection.execute("""CREATE TABLE IF NOT EXISTS residue_decision (
+        project_id TEXT NOT NULL, asset_id TEXT NOT NULL, text_feature_id TEXT NOT NULL,
+        feature_id TEXT NOT NULL, evidence_sha256 TEXT NOT NULL,
+        decision TEXT NOT NULL CHECK(decision IN ('keep','reopen')), updated_at TEXT NOT NULL,
+        preview_id TEXT NOT NULL, PRIMARY KEY(project_id,asset_id,text_feature_id,feature_id),
+        FOREIGN KEY(project_id,asset_id) REFERENCES asset(project_id,asset_id),
+        FOREIGN KEY(text_feature_id) REFERENCES text_attribute(feature_id),
+        FOREIGN KEY(feature_id) REFERENCES feature(feature_id))""")
     connection.execute("""CREATE TABLE IF NOT EXISTS text_residue_decision (
         project_id TEXT NOT NULL, asset_id TEXT NOT NULL, text_feature_id TEXT NOT NULL,
         line_feature_id TEXT NOT NULL, evidence_sha256 TEXT NOT NULL,
@@ -43,13 +64,18 @@ def migrate(connection):
     }
     for name,declaration in columns.items():
         if name not in run_fields:connection.execute('ALTER TABLE run ADD COLUMN '+name+' '+declaration)
+    if 'scope_mode' not in {row[1] for row in connection.execute('PRAGMA table_info(roi)')}:
+        connection.execute("ALTER TABLE roi ADD COLUMN scope_mode TEXT NOT NULL DEFAULT 'clip' CHECK(scope_mode IN ('keep_crossing','clip'))")
     export_fields={row[1] for row in connection.execute('PRAGMA table_info(export)')}
     for name,declaration in {'layer_types':"TEXT NOT NULL DEFAULT '[]'",'roi_revision':'INTEGER','payload_snapshot':'TEXT','stage_name':'TEXT','started_at':'TEXT','heartbeat_at':'TEXT','elapsed_ms':'INTEGER NOT NULL DEFAULT 0','worker_pid':'INTEGER','worker_owner_id':'TEXT','cancel_requested':'INTEGER NOT NULL DEFAULT 0','error_code':'TEXT','error_detail':'TEXT'}.items():
         if name not in export_fields:connection.execute('ALTER TABLE export ADD COLUMN '+name+' '+declaration)
     text_fields={row[1] for row in connection.execute('PRAGMA table_info(text_attribute)')}
     for name,declaration in {'layout_width_px':'REAL','layout_height_px':'REAL','baseline_offset_px':'REAL','layout_basis':"TEXT NOT NULL DEFAULT 'legacy_estimate'",'layout_runs':"TEXT NOT NULL DEFAULT '[]'"}.items():
         if name not in text_fields:connection.execute('ALTER TABLE text_attribute ADD COLUMN '+name+' '+declaration)
-    for table in ('face_attribute','line_attribute'):
+    style_fields={row[1] for row in connection.execute('PRAGMA table_info(style)')}
+    for name,declaration in {'font_size_px':'REAL','text_color':'TEXT','rotation_deg':'REAL'}.items():
+        if name not in style_fields:connection.execute('ALTER TABLE style ADD COLUMN '+name+' '+declaration)
+    for table in ('face_attribute','line_attribute','text_attribute'):
         if 'style_override' not in {row[1] for row in connection.execute('PRAGMA table_info('+table+')')}:connection.execute('ALTER TABLE '+table+' ADD COLUMN style_override TEXT')
     connection.execute('CREATE INDEX IF NOT EXISTS feature_scope ON feature(project_id,asset_id,lifecycle_status,feature_id)')
     connection.execute('CREATE INDEX IF NOT EXISTS run_scope ON run(project_id,asset_id,run_status)')
@@ -102,7 +128,7 @@ def enforce_contract(connection):
     json_fields={
         'asset':{'normalization_config':'object','pixel_to_map_affine':'array'},
         'run':{'config_snapshot':'object','plugin_manifest':'object','input_region_px':'array','local_to_asset_affine':'array'},
-        'text_attribute':{'review_reason_codes':'array','display_bbox_px':'array'},
+        'text_attribute':{'review_reason_codes':'array','display_bbox_px':'array','style_override':'object'},
         'face_attribute':{'style_override':'object'},
         'line_attribute':{'style_override':'object'},
         'ocr_candidate':{'rule_suggestions':'array','detected_quad_px':'array'},

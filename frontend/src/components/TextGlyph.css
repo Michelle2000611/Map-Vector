@@ -1,0 +1,2 @@
+/* Layout and browser shaping use the same locally served, measured font. */
+@font-face{font-family:"MapVector OCR";src:url('/api/text-layout/font');font-weight:400;font-style:normal;font-display:block}

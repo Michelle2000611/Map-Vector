@@ -347,6 +347,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/face-color-searches": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Face Color Search */
+        post: operations["face_color_search_api_projects__project_id__face_color_searches_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/face-merge-previews": {
         parameters: {
             query?: never;
@@ -483,6 +500,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/heal-residue-decisions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Heal Residue Decision */
+        post: operations["heal_residue_decision_api_projects__project_id__heal_residue_decisions_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/layers": {
         parameters: {
             query?: never;
@@ -528,6 +562,23 @@ export interface paths {
         put?: never;
         /** Line Check Preview */
         post: operations["line_check_preview_api_projects__project_id__line_check_previews_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/line-check-previews/{preview_id}/candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Line Check Candidates */
+        get: operations["line_check_candidates_api_projects__project_id__line_check_previews__preview_id__candidates_get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -859,6 +910,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/projects/{project_id}/snapshots/{snapshot_id}/scope": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Snapshot Scope */
+        get: operations["snapshot_scope_api_projects__project_id__snapshots__snapshot_id__scope_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/projects/{project_id}/sources": {
         parameters: {
             query?: never;
@@ -922,6 +990,23 @@ export interface paths {
         get: operations["text_layer_assessments_api_projects__project_id__text_layer_assessments_get"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/projects/{project_id}/text-layout-previews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Preview */
+        post: operations["preview_api_projects__project_id__text_layout_previews_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1113,6 +1198,43 @@ export interface components {
             /** Verified Line Feature Ids */
             verified_line_feature_ids?: string[];
         };
+        /** ApplyTextFormat */
+        ApplyTextFormat: {
+            /** Asset Id */
+            asset_id: string;
+            /** Base Revision */
+            base_revision: number;
+            /**
+             * Copy Color
+             * @default true
+             */
+            copy_color?: boolean;
+            /**
+             * Copy Rotation
+             * @default false
+             */
+            copy_rotation?: boolean;
+            /**
+             * Copy Size
+             * @default true
+             */
+            copy_size?: boolean;
+            /**
+             * Copy Text
+             * @default false
+             */
+            copy_text?: boolean;
+            /** Feature Ids */
+            feature_ids: string[];
+            /** Idempotency Key */
+            idempotency_key: string;
+            /**
+             * @description discriminator enum property added by openapi-typescript
+             * @enum {string}
+             */
+            operation_type: "apply_text_format";
+            sample: components["schemas"]["TextFormatSample"];
+        };
         /** Asset */
         Asset: {
             /** Asset Id */
@@ -1166,6 +1288,9 @@ export interface components {
             operation_type: "bind_style";
             /** Style Id */
             style_id: string;
+            text_content?: components["schemas"]["TextFormatSample"] | null;
+            /** Text Fields */
+            text_fields?: ("font_size_px" | "text_color" | "rotation_deg")[] | null;
         };
         /** Body_import_project_api_projects_import_post */
         Body_import_project_api_projects_import_post: {
@@ -1456,6 +1581,75 @@ export interface components {
              */
             operation_type: "delete_text";
         };
+        /** DeliveryCheckResult */
+        DeliveryCheckResult: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Check Complete
+             * @default true
+             */
+            check_complete?: boolean;
+            /**
+             * Checked Pair Count
+             * @default 0
+             */
+            checked_pair_count?: number;
+            /**
+             * Coordinate Space
+             * @default pixel
+             * @constant
+             */
+            coordinate_space?: "pixel";
+            /** Issue Count */
+            issue_count: number;
+            /**
+             * Issue Count Exact
+             * @default true
+             */
+            issue_count_exact?: boolean;
+            /** Issues */
+            issues: components["schemas"]["DeliveryIssue"][];
+            /** Issues Truncated */
+            issues_truncated: boolean;
+            quality_report: components["schemas"]["GeometryQualityReport"];
+            /**
+             * Rule Version
+             * @default delivery_checks_v1
+             * @constant
+             */
+            rule_version?: "delivery_checks_v1";
+            /** Working Revision */
+            working_revision: number;
+        };
+        /** DeliveryIssue */
+        DeliveryIssue: {
+            /** Area Px2 */
+            area_px2?: number | null;
+            /** Bounds Px */
+            bounds_px: [
+                number,
+                number,
+                number,
+                number
+            ] | null;
+            /**
+             * Code
+             * @enum {string}
+             */
+            code: "INVALID_GEOMETRY" | "FACE_OVERLAP" | "FACE_BOUNDARY_MISMATCH";
+            /** Feature Ids */
+            feature_ids: string[];
+            /** Issue Id */
+            issue_id: string;
+            /** Message */
+            message: string;
+            /**
+             * Severity
+             * @enum {string}
+             */
+            severity: "error" | "review";
+        };
         /** EditEnvelope */
         EditEnvelope: {
             data: components["schemas"]["EditResult"];
@@ -1513,9 +1707,31 @@ export interface components {
              */
             schema_revision?: string;
         };
+        /** Envelope[DeliveryCheckResult] */
+        Envelope_DeliveryCheckResult_: {
+            data: components["schemas"]["DeliveryCheckResult"];
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Revision
+             * @default 1.0
+             */
+            schema_revision?: string;
+        };
         /** Envelope[Export] */
         Envelope_Export_: {
             data: components["schemas"]["Export"];
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Revision
+             * @default 1.0
+             */
+            schema_revision?: string;
+        };
+        /** Envelope[FaceColorReport] */
+        Envelope_FaceColorReport_: {
+            data: components["schemas"]["FaceColorReport"];
             /** Request Id */
             request_id: string;
             /**
@@ -1538,6 +1754,17 @@ export interface components {
         /** Envelope[LineCheckDecisionResult] */
         Envelope_LineCheckDecisionResult_: {
             data: components["schemas"]["LineCheckDecisionResult"];
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Revision
+             * @default 1.0
+             */
+            schema_revision?: string;
+        };
+        /** Envelope[LineCheckPage] */
+        Envelope_LineCheckPage_: {
+            data: components["schemas"]["LineCheckPage"];
             /** Request Id */
             request_id: string;
             /**
@@ -1700,6 +1927,28 @@ export interface components {
              */
             schema_revision?: string;
         };
+        /** Envelope[RoiAuditResult] */
+        Envelope_RoiAuditResult_: {
+            data: components["schemas"]["RoiAuditResult"];
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Revision
+             * @default 1.0
+             */
+            schema_revision?: string;
+        };
+        /** Envelope[RoiPreviewResult] */
+        Envelope_RoiPreviewResult_: {
+            data: components["schemas"]["RoiPreviewResult"];
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Revision
+             * @default 1.0
+             */
+            schema_revision?: string;
+        };
         /** Envelope[RoiResult] */
         Envelope_RoiResult_: {
             data: components["schemas"]["RoiResult"];
@@ -1725,6 +1974,17 @@ export interface components {
         /** Envelope[SelectionResult] */
         Envelope_SelectionResult_: {
             data: components["schemas"]["SelectionResult"];
+            /** Request Id */
+            request_id: string;
+            /**
+             * Schema Revision
+             * @default 1.0
+             */
+            schema_revision?: string;
+        };
+        /** Envelope[SnapshotScope] */
+        Envelope_SnapshotScope_: {
+            data: components["schemas"]["SnapshotScope"];
             /** Request Id */
             request_id: string;
             /**
@@ -1823,6 +2083,66 @@ export interface components {
             started_at?: string | null;
         } & {
             [key: string]: unknown;
+        };
+        /** FaceColorMatch */
+        FaceColorMatch: {
+            /** Delta E */
+            delta_e: number;
+            /** Feature Id */
+            feature_id: string;
+            /** Fill Color */
+            fill_color: string;
+            /**
+             * Match Type
+             * @enum {string}
+             */
+            match_type: "exact" | "similar";
+        };
+        /** FaceColorReport */
+        FaceColorReport: {
+            /** Asset Id */
+            asset_id: string;
+            /** Base Revision */
+            base_revision: number;
+            /** Invalid Color Count */
+            invalid_color_count: number;
+            /** Match Count */
+            match_count: number;
+            /** Matches */
+            matches: components["schemas"]["FaceColorMatch"][];
+            /**
+             * Mode
+             * @enum {string}
+             */
+            mode: "exact" | "similar";
+            /** Scanned Face Count */
+            scanned_face_count: number;
+            /** Source Color */
+            source_color: string;
+            /** Source Feature Id */
+            source_feature_id: string;
+            /** Tolerance */
+            tolerance: number;
+        };
+        /** FaceColorRequest */
+        FaceColorRequest: {
+            /** Asset Id */
+            asset_id: string;
+            /** Base Revision */
+            base_revision: number;
+            /**
+             * Mode
+             * @default similar
+             * @enum {string}
+             */
+            mode?: "exact" | "similar";
+            /** Source Feature Id */
+            source_feature_id: string;
+            /**
+             * Tolerance
+             * @default 15
+             */
+            tolerance?: number;
         };
         /** FaceMergeAffectedFeature */
         FaceMergeAffectedFeature: {
@@ -2245,6 +2565,40 @@ export interface components {
             /** Working Revision */
             working_revision: number;
         };
+        /** GeometryQualityReport */
+        GeometryQualityReport: {
+            /** Area Statistics Complete */
+            area_statistics_complete: boolean;
+            /** Coverage Is Valid */
+            coverage_is_valid: boolean | null;
+            /** Covered Area Px2 */
+            covered_area_px2: number;
+            /** Face Count */
+            face_count: number;
+            /** Geometry Count */
+            geometry_count: number;
+            /** Invalid Geometry Count */
+            invalid_geometry_count: number;
+            /** Note */
+            note: string;
+            /** Overlap Area Px2 */
+            overlap_area_px2: number;
+            /** Recognition Accuracy */
+            recognition_accuracy?: number | null;
+            /**
+             * Target
+             * @constant
+             */
+            target: "full_asset_pixel_extent";
+            /** Target Area Px2 */
+            target_area_px2: number;
+            /** Tolerance Px2 */
+            tolerance_px2: number;
+            /** Uncovered Area Px2 */
+            uncovered_area_px2: number;
+            /** Valid Geometry Count */
+            valid_geometry_count: number;
+        };
         /** GroupFeatures */
         GroupFeatures: {
             /** Asset Id */
@@ -2262,6 +2616,22 @@ export interface components {
              * @enum {string}
              */
             operation_type: "group_features";
+        };
+        /** HealResidueDecision */
+        HealResidueDecision: {
+            /** Asset Id */
+            asset_id: string;
+            /** Base Revision */
+            base_revision: number;
+            /**
+             * Decision
+             * @enum {string}
+             */
+            decision: "confirm" | "keep" | "reopen";
+            /** Feature Ids */
+            feature_ids: string[];
+            /** Preview Id */
+            preview_id: string;
         };
         /** HistoryCommand */
         HistoryCommand: {
@@ -2405,6 +2775,11 @@ export interface components {
              * @enum {string}
              */
             kind: "join_gap" | "text_stroke" | "dash_group";
+            /**
+             * Manually Confirmed
+             * @default false
+             */
+            manually_confirmed?: boolean;
             /** Metrics */
             metrics: {
                 [key: string]: number;
@@ -2433,7 +2808,7 @@ export interface components {
              * Decision
              * @enum {string}
              */
-            decision: "keep" | "reopen";
+            decision: "keep" | "reopen" | "confirm";
             /** Preview Id */
             preview_id: string;
         };
@@ -2445,7 +2820,7 @@ export interface components {
              * Decision
              * @enum {string}
              */
-            decision: "keep" | "reopen";
+            decision: "keep" | "reopen" | "confirm";
         };
         /** LineCheckHistory */
         LineCheckHistory: {
@@ -2493,6 +2868,11 @@ export interface components {
              * @enum {string}
              */
             kind: "join_gap" | "text_stroke" | "dash_group";
+            /**
+             * Manually Confirmed
+             * @default false
+             */
+            manually_confirmed?: boolean;
             /** Metrics */
             metrics: {
                 [key: string]: number;
@@ -2512,6 +2892,35 @@ export interface components {
              * @constant
              */
             status: "applied";
+        };
+        /** LineCheckPage */
+        LineCheckPage: {
+            /** Asset Id */
+            asset_id: string;
+            /** Base Revision */
+            base_revision: number;
+            /** Expires At */
+            expires_at: string;
+            /**
+             * Filter
+             * @enum {string}
+             */
+            filter: "pending" | "kept" | "applied" | "all";
+            /** Items */
+            items: (components["schemas"]["LineCheckCandidate"] | components["schemas"]["LineCheckHistory"])[];
+            /**
+             * Kind
+             * @enum {string}
+             */
+            kind: "join_gap" | "text_stroke" | "dash_group";
+            /** Limit */
+            limit: number;
+            /** Offset */
+            offset: number;
+            /** Preview Id */
+            preview_id: string;
+            /** Total */
+            total: number;
         };
         /** LineCheckReport */
         LineCheckReport: {
@@ -2761,6 +3170,19 @@ export interface components {
             /** Preview Id */
             preview_id?: string | null;
         };
+        /** MultiLineGeometry */
+        MultiLineGeometry: {
+            /** Coordinates */
+            coordinates: [
+                number,
+                number
+            ][][];
+            /**
+             * Type
+             * @constant
+             */
+            type: "MultiLineString";
+        };
         /** MultiPolygonGeometry */
         MultiPolygonGeometry: {
             /** Coordinates */
@@ -2910,6 +3332,7 @@ export interface components {
             affected_feature_ids: string[];
             /** Base Revision */
             base_revision: number;
+            cleanup_preview?: components["schemas"]["ResidueCleanupPreview"] | null;
             /** Expires At */
             expires_at: string;
             /** Feature Ids */
@@ -2925,6 +3348,92 @@ export interface components {
             text_residue_display?: components["schemas"]["TextResidueDisplay"] | null;
             /** Warnings */
             warnings: unknown[];
+        } & {
+            [key: string]: unknown;
+        };
+        /** PreviewLineResponse */
+        PreviewLineResponse: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Associated Text Feature Id */
+            associated_text_feature_id: string | null;
+            /** Bbox Max X Px */
+            bbox_max_x_px: number;
+            /** Bbox Max Y Px */
+            bbox_max_y_px: number;
+            /** Bbox Min X Px */
+            bbox_min_x_px: number;
+            /** Bbox Min Y Px */
+            bbox_min_y_px: number;
+            /**
+             * Coordinate Space
+             * @default pixel
+             * @constant
+             */
+            coordinate_space?: "pixel";
+            /** Created At */
+            created_at: string | null;
+            /** Draw Order */
+            draw_order: number;
+            /**
+             * Feature Id
+             * Format: uuid
+             */
+            feature_id: string;
+            /**
+             * Feature Type
+             * @constant
+             */
+            feature_type: "line";
+            /** Geometry */
+            geometry: components["schemas"]["LineGeometry"] | components["schemas"]["MultiLineGeometry"];
+            /**
+             * Geometry Type
+             * @enum {string}
+             */
+            geometry_type: "Point" | "LineString" | "Polygon" | "MultiPolygon" | "MultiLineString";
+            /** Isolation Reason */
+            isolation_reason: string | null;
+            /** Length Px */
+            length_px: number;
+            /**
+             * Lifecycle Status
+             * @enum {string}
+             */
+            lifecycle_status: "active" | "isolated" | "deleted" | "superseded";
+            /** Line Pattern */
+            line_pattern: string;
+            /** Line Role */
+            line_role: string;
+            /** Origin Run Id */
+            origin_run_id: string | null;
+            /**
+             * Project Id
+             * Format: uuid
+             */
+            project_id: string;
+            /** Revision */
+            revision: number;
+            /**
+             * Source Type
+             * @enum {string}
+             */
+            source_type: "algorithm" | "manual" | "legacy_import" | "unknown";
+            /** Stroke Color */
+            stroke_color: string;
+            /** Stroke Width Px */
+            stroke_width_px: number;
+            /** Style Id */
+            style_id: string | null;
+            /** Style Override */
+            style_override?: {
+                [key: string]: string | number;
+            } | null;
+            /** Updated At */
+            updated_at: string;
         } & {
             [key: string]: unknown;
         };
@@ -2946,6 +3455,10 @@ export interface components {
              * @default false
              */
             complete_region?: boolean;
+            /** Face Assignments */
+            face_assignments?: {
+                [key: string]: string;
+            };
             /** Feature Ids */
             feature_ids?: string[];
             /** Fill Color */
@@ -3032,7 +3545,7 @@ export interface components {
              * Feature Type
              * @enum {string}
              */
-            feature_type: "face" | "line";
+            feature_type: "face" | "line" | "text";
             /** From Style Id */
             from_style_id: string;
             /** Idempotency Key */
@@ -3075,6 +3588,15 @@ export interface components {
             /** Verified Review Candidate Ids */
             verified_review_candidate_ids?: string[];
         };
+        /** ResidueCleanupPreview */
+        ResidueCleanupPreview: {
+            /** Features */
+            features: (components["schemas"]["FaceResponse"] | components["schemas"]["LineResponse"] | components["schemas"]["TextResponse"])[];
+            /** Has Changes */
+            has_changes: boolean;
+            /** Styles */
+            styles: components["schemas"]["Style"][];
+        };
         /** ResidueReviewGroup */
         ResidueReviewGroup: {
             /** Bounds Px */
@@ -3090,10 +3612,15 @@ export interface components {
             /** Reason Codes */
             reason_codes: string[];
             /**
+             * Requires Confirmation
+             * @default false
+             */
+            requires_confirmation?: boolean;
+            /**
              * Status
              * @enum {string}
              */
-            status: "pending" | "kept";
+            status: "pending" | "kept" | "confirmed";
         };
         /** RestoreLines */
         RestoreLines: {
@@ -3122,6 +3649,8 @@ export interface components {
             asset_id: string;
             /** Base Revision */
             base_revision: number;
+            /** Expected Preview Sha256 */
+            expected_preview_sha256?: string | null;
             /** Feature Ids */
             feature_ids?: string[];
             /** Idempotency Key */
@@ -3164,7 +3693,7 @@ export interface components {
              * @description discriminator enum property added by openapi-typescript
              * @enum {string}
              */
-            operation_type: "confirm_text" | "skip_text";
+            operation_type: "confirm_text";
         };
         /** Roi */
         Roi: {
@@ -3178,6 +3707,12 @@ export interface components {
             revision: number;
             /** Roi Id */
             roi_id: string;
+            /**
+             * Scope Mode
+             * @default clip
+             * @enum {string}
+             */
+            scope_mode?: "keep_crossing" | "clip";
         } & {
             [key: string]: unknown;
         };
@@ -3188,8 +3723,72 @@ export interface components {
              * Format: uuid
              */
             asset_id: string;
+            /** Base Revision */
+            base_revision?: number | null;
             /** Roi Id */
             roi_id?: string | null;
+        };
+        /** RoiAuditCounts */
+        RoiAuditCounts: {
+            /** Crossing */
+            crossing: number;
+            /** Inside */
+            inside: number;
+            /** Outside */
+            outside: number;
+        };
+        /** RoiAuditResult */
+        RoiAuditResult: {
+            /** Asset Id */
+            asset_id: string;
+            /**
+             * Coordinate Space
+             * @default pixel
+             * @constant
+             */
+            coordinate_space?: "pixel";
+            /** Counts */
+            counts: {
+                [key: string]: components["schemas"]["RoiAuditCounts"];
+            };
+            roi: components["schemas"]["Roi"];
+            /** Roi Revision */
+            roi_revision: number;
+            /**
+             * Rule Version
+             * @default delivery_scope_v1
+             * @constant
+             */
+            rule_version?: "delivery_scope_v1";
+            /** Working Revision */
+            working_revision: number;
+        };
+        /** RoiPreviewResult */
+        RoiPreviewResult: {
+            /** Asset Id */
+            asset_id: string;
+            /** Clip */
+            clip: (components["schemas"]["FaceResponse"] | components["schemas"]["PreviewLineResponse"] | components["schemas"]["TextResponse"])[];
+            /**
+             * Coordinate Space
+             * @default pixel
+             * @constant
+             */
+            coordinate_space?: "pixel";
+            /** Keep Crossing */
+            keep_crossing: (components["schemas"]["FaceResponse"] | components["schemas"]["PreviewLineResponse"] | components["schemas"]["TextResponse"])[];
+            /** Roi Id */
+            roi_id: string;
+            /** Roi Revision */
+            roi_revision: number;
+            /**
+             * Rule Version
+             * @default delivery_scope_v1
+             * @constant
+             */
+            rule_version?: "delivery_scope_v1";
+            /** Working Revision */
+            working_revision: number;
         };
         /** RoiResult */
         RoiResult: {
@@ -3409,6 +4008,12 @@ export interface components {
              * @enum {string}
              */
             operation_type: "set_roi";
+            /**
+             * Scope Mode
+             * @default clip
+             * @enum {string}
+             */
+            scope_mode?: "keep_crossing" | "clip";
         };
         /** SetStyle */
         SetStyle: {
@@ -3424,9 +4029,11 @@ export interface components {
              * Feature Type
              * @enum {string}
              */
-            feature_type: "face" | "line";
+            feature_type: "face" | "line" | "text";
             /** Fill Color */
             fill_color?: string | null;
+            /** Font Size Px */
+            font_size_px?: number | null;
             /** Idempotency Key */
             idempotency_key: string;
             /** Line Pattern */
@@ -3436,6 +4043,8 @@ export interface components {
              * @enum {string}
              */
             operation_type: "set_style";
+            /** Rotation Deg */
+            rotation_deg?: number | null;
             /** Stroke Color */
             stroke_color?: string | null;
             /** Stroke Width Px */
@@ -3444,6 +4053,8 @@ export interface components {
             style_id?: string | null;
             /** Style Name */
             style_name: string;
+            /** Text Color */
+            text_color?: string | null;
             /** Tooth Height Px */
             tooth_height_px?: number | null;
             /** Tooth Side */
@@ -3467,6 +4078,22 @@ export interface components {
             working_revision: number;
         } & {
             [key: string]: unknown;
+        };
+        /** SnapshotScope */
+        SnapshotScope: {
+            /** Asset Id */
+            asset_id: string | null;
+            /**
+             * Coordinate Space
+             * @default pixel
+             * @constant
+             */
+            coordinate_space?: "pixel";
+            roi: components["schemas"]["Roi"] | null;
+            /** Snapshot Id */
+            snapshot_id: string;
+            /** Working Revision */
+            working_revision: number;
         };
         /** Source */
         Source: {
@@ -3563,15 +4190,19 @@ export interface components {
              * Feature Type
              * @enum {string}
              */
-            feature_type: "face" | "line";
+            feature_type: "face" | "line" | "text";
             /** Fill Color */
             fill_color: string | null;
+            /** Font Size Px */
+            font_size_px?: number | null;
             /** Line Pattern */
             line_pattern: string | null;
             /** Project Id */
             project_id: string;
             /** Revision */
             revision: number;
+            /** Rotation Deg */
+            rotation_deg?: number | null;
             /** Stroke Color */
             stroke_color: string | null;
             /** Stroke Width Px */
@@ -3580,6 +4211,8 @@ export interface components {
             style_id: string;
             /** Style Name */
             style_name: string;
+            /** Text Color */
+            text_color?: string | null;
             /** Tooth Height Px */
             tooth_height_px: number | null;
             /** Tooth Side */
@@ -3588,6 +4221,54 @@ export interface components {
             tooth_spacing_px: number | null;
         } & {
             [key: string]: unknown;
+        };
+        /** TextFormatRun */
+        TextFormatRun: {
+            /** Baseline Offset Px */
+            baseline_offset_px: number;
+            /** Font Size Px */
+            font_size_px: number;
+            /** Ink Bbox Px */
+            ink_bbox_px?: [
+                number,
+                number,
+                number,
+                number
+            ] | null;
+            /** Quality Reasons */
+            quality_reasons?: string[];
+            /**
+             * Script
+             * @enum {string}
+             */
+            script: "normal" | "subscript" | "superscript";
+            /** Text */
+            text: string;
+            /** Width Px */
+            width_px: number;
+            /** X Offset Px */
+            x_offset_px: number;
+        };
+        /** TextFormatSample */
+        TextFormatSample: {
+            /** Baseline Offset Px */
+            baseline_offset_px?: number | null;
+            /** Font Size Px */
+            font_size_px: number;
+            /** Layout Basis */
+            layout_basis?: string | null;
+            /** Layout Height Px */
+            layout_height_px?: number | null;
+            /** Layout Runs */
+            layout_runs?: components["schemas"]["TextFormatRun"][];
+            /** Layout Width Px */
+            layout_width_px?: number | null;
+            /** Rotation Deg */
+            rotation_deg: number;
+            /** Text Color */
+            text_color: string;
+            /** Text Value */
+            text_value: string;
         };
         /** TextLayerAssessment */
         TextLayerAssessment: {
@@ -3601,8 +4282,22 @@ export interface components {
             content_status: string;
             /** Evidence */
             evidence: components["schemas"]["TextLayerEvidence"][];
+            /** Kept Face Ids */
+            kept_face_ids?: string[];
+            /** Kept Line Ids */
+            kept_line_ids?: string[];
+            /** Manually Confirmed Face Ids */
+            manually_confirmed_face_ids?: string[];
+            /** Manually Confirmed Line Ids */
+            manually_confirmed_line_ids?: string[];
             /** Ocr Score */
             ocr_score: number | null;
+            /** Protected Face Ids */
+            protected_face_ids?: string[];
+            /** Protected Face Reasons */
+            protected_face_reasons?: {
+                [key: string]: Record<string, never>[];
+            };
             /** Protected Line Ids */
             protected_line_ids: string[];
             /** Reasons */
@@ -3654,6 +4349,16 @@ export interface components {
             /** Source Ink Share */
             source_ink_share?: number | null;
         };
+        /** TextLayoutPreviewRequest */
+        TextLayoutPreviewRequest: {
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Base Revision */
+            base_revision: number;
+        };
         /** TextLayoutRun */
         TextLayoutRun: {
             /** Baseline Offset Px */
@@ -3665,6 +4370,10 @@ export interface components {
             basis?: string;
             /** Font Size Px */
             font_size_px: number;
+            /** Ink Bbox Px */
+            ink_bbox_px?: number[] | null;
+            /** Quality Reasons */
+            quality_reasons?: string[];
             /**
              * Review Required
              * @default false
@@ -3697,7 +4406,7 @@ export interface components {
              * Decision
              * @enum {string}
              */
-            decision: "keep" | "reopen";
+            decision: "keep" | "reopen" | "confirm";
             /** Feature Ids */
             feature_ids: string[];
             /** Preview Id */
@@ -3709,7 +4418,7 @@ export interface components {
              * Decision
              * @enum {string}
              */
-            decision: "keep" | "reopen";
+            decision: "keep" | "reopen" | "confirm";
             /** Feature Ids */
             feature_ids: string[];
         };
@@ -3737,14 +4446,36 @@ export interface components {
             complete_region_available?: boolean;
             /** Face Feature Ids */
             face_feature_ids: string[];
+            /** Kept Face Feature Ids */
+            kept_face_feature_ids?: string[];
             /** Line Feature Ids */
             line_feature_ids: string[];
+            /** Manually Confirmed Face Feature Ids */
+            manually_confirmed_face_feature_ids?: string[];
+            /** Manually Confirmed Line Feature Ids */
+            manually_confirmed_line_feature_ids?: string[];
             /** Preserves Existing Text */
             preserves_existing_text: boolean;
+            /** Protected Face Feature Ids */
+            protected_face_feature_ids?: string[];
+            /** Protected Face Reasons */
+            protected_face_reasons?: {
+                [key: string]: Record<string, never>[];
+            };
             /** Protected Line Feature Ids */
             protected_line_feature_ids: string[];
+            /** Region Geometry */
+            region_geometry?: Record<string, never> | null;
+            /** Region Source */
+            region_source?: string | null;
+            /** Resolved Face Assignments */
+            resolved_face_assignments?: {
+                [key: string]: string;
+            };
             /** Review Groups */
             review_groups?: components["schemas"]["ResidueReviewGroup"][];
+            /** Unresolved Face Feature Ids */
+            unresolved_face_feature_ids?: string[];
             /**
              * Verification Pending Feature Ids
              * @default []
@@ -3861,6 +4592,10 @@ export interface components {
             source_type: "algorithm" | "manual" | "legacy_import" | "unknown";
             /** Style Id */
             style_id: string | null;
+            /** Style Override */
+            style_override?: {
+                [key: string]: string | number;
+            } | null;
             /** Text Anchor */
             text_anchor: string;
             /** Text Color */
@@ -5267,7 +6002,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateText"] | components["schemas"]["UpdateText"] | components["schemas"]["ReviewText"] | components["schemas"]["HistoryCommand"] | components["schemas"]["MergeFaces"] | components["schemas"]["CreateLine"] | components["schemas"]["SplitLine"] | components["schemas"]["JoinLines"] | components["schemas"]["FeatureColor"] | components["schemas"]["SetFeatureProperties"] | components["schemas"]["DeleteFaces"] | components["schemas"]["LineWidth"] | components["schemas"]["LineRole"] | components["schemas"]["DeleteLines"] | components["schemas"]["IsolateLines"] | components["schemas"]["ApplyPreview"] | components["schemas"]["LineToFace"] | components["schemas"]["RestoreLines"] | components["schemas"]["DeleteText"] | components["schemas"]["RepairFace"] | components["schemas"]["ApplyLineCheck"] | components["schemas"]["SplitSelectedFaces"] | components["schemas"]["ApplyFaceMerge"] | components["schemas"]["SetRoi"] | components["schemas"]["GroupFeatures"] | components["schemas"]["UngroupFeatures"] | components["schemas"]["AdoptOcrCandidate"] | components["schemas"]["SetStyle"] | components["schemas"]["BindStyle"] | components["schemas"]["SetLayer"] | components["schemas"]["ClassifyReview"] | components["schemas"]["RestoreOcrLayout"] | components["schemas"]["DeleteStyle"] | components["schemas"]["RebindStyle"] | components["schemas"]["ClearStyleOverride"];
+                "application/json": components["schemas"]["CreateText"] | components["schemas"]["UpdateText"] | components["schemas"]["ApplyTextFormat"] | components["schemas"]["ReviewText"] | components["schemas"]["HistoryCommand"] | components["schemas"]["MergeFaces"] | components["schemas"]["CreateLine"] | components["schemas"]["SplitLine"] | components["schemas"]["JoinLines"] | components["schemas"]["FeatureColor"] | components["schemas"]["SetFeatureProperties"] | components["schemas"]["DeleteFaces"] | components["schemas"]["LineWidth"] | components["schemas"]["LineRole"] | components["schemas"]["DeleteLines"] | components["schemas"]["IsolateLines"] | components["schemas"]["ApplyPreview"] | components["schemas"]["LineToFace"] | components["schemas"]["RestoreLines"] | components["schemas"]["DeleteText"] | components["schemas"]["RepairFace"] | components["schemas"]["ApplyLineCheck"] | components["schemas"]["SplitSelectedFaces"] | components["schemas"]["ApplyFaceMerge"] | components["schemas"]["SetRoi"] | components["schemas"]["GroupFeatures"] | components["schemas"]["UngroupFeatures"] | components["schemas"]["AdoptOcrCandidate"] | components["schemas"]["SetStyle"] | components["schemas"]["BindStyle"] | components["schemas"]["SetLayer"] | components["schemas"]["ClassifyReview"] | components["schemas"]["RestoreOcrLayout"] | components["schemas"]["DeleteStyle"] | components["schemas"]["RebindStyle"] | components["schemas"]["ClearStyleOverride"];
             };
         };
         responses: {
@@ -6122,6 +6857,104 @@ export interface operations {
             };
         };
     };
+    face_color_search_api_projects__project_id__face_color_searches_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FaceColorRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_FaceColorReport_"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gateway Timeout */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     preview_api_projects__project_id__face_merge_previews_post: {
         parameters: {
             query?: never;
@@ -6419,6 +7252,8 @@ export interface operations {
         parameters: {
             query: {
                 asset_id: string;
+                cursor?: string | null;
+                base_revision?: number | null;
             };
             header?: never;
             path: {
@@ -6902,6 +7737,104 @@ export interface operations {
             };
         };
     };
+    heal_residue_decision_api_projects__project_id__heal_residue_decisions_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["HealResidueDecision"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gateway Timeout */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_layers_api_projects__project_id__layers_get: {
         parameters: {
             query: {
@@ -7118,6 +8051,108 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_LineCheckReport_"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gateway Timeout */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    line_check_candidates_api_projects__project_id__line_check_previews__preview_id__candidates_get: {
+        parameters: {
+            query: {
+                asset_id: string;
+                base_revision: number;
+                kind: "join_gap" | "text_stroke" | "dash_group";
+                filter?: "pending" | "kept" | "applied" | "all";
+                offset?: number;
+                limit?: number;
+            };
+            header?: never;
+            path: {
+                project_id: string;
+                preview_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_LineCheckPage_"];
                 };
             };
             /** @description Bad Request */
@@ -7489,6 +8524,7 @@ export interface operations {
         parameters: {
             query: {
                 asset_id: string;
+                base_revision?: number | null;
             };
             header?: never;
             path: {
@@ -7504,7 +8540,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Envelope_DeliveryCheckResult_"];
                 };
             };
             /** @description Bad Request */
@@ -7895,7 +8931,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Envelope_RoiAuditResult_"];
                 };
             };
             /** @description Bad Request */
@@ -7993,7 +9029,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": unknown;
+                    "application/json": components["schemas"]["Envelope_RoiPreviewResult_"];
                 };
             };
             /** @description Bad Request */
@@ -9228,6 +10264,101 @@ export interface operations {
             };
         };
     };
+    snapshot_scope_api_projects__project_id__snapshots__snapshot_id__scope_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+                snapshot_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Envelope_SnapshotScope_"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gateway Timeout */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
     list_sources_api_projects__project_id__sources_get: {
         parameters: {
             query?: never;
@@ -9629,6 +10760,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["Envelope_TextLayerAssessmentReport_"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Forbidden */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Unprocessable Entity */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Internal Server Error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Service Unavailable */
+            503: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+            /** @description Gateway Timeout */
+            504: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorResponse"];
+                };
+            };
+        };
+    };
+    preview_api_projects__project_id__text_layout_previews_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                project_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TextLayoutPreviewRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Bad Request */

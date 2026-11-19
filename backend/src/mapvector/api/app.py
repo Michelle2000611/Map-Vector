@@ -31,7 +31,7 @@ from mapvector.infrastructure.storage.raster import MAX_BYTES
 from mapvector.domain.errors import CommandConflict
 from PIL import Image, UnidentifiedImageError
 from mapvector.api.schemas import WorkflowStage
-from mapvector.api.resource_schemas import TextLayerAssessmentReport
+from mapvector.api.resource_schemas import TextLayerAssessmentReport,DeliveryCheckResult,RoiAuditResult,RoiPreviewResult,SnapshotScope
 
 
 def create_app(settings: Settings | None = None) -> FastAPI:
@@ -390,41 +390,53 @@ def create_app(settings: Settings | None = None) -> FastAPI:
             row=connection.execute('SELECT * FROM roi WHERE project_id=? AND asset_id=?',(str(project_id),str(asset_id))).fetchone()
         return envelope(request,{'roi':roi_state(row) if row else None})
 
-    @app.post('/api/projects/{project_id}/roi-audits')
+    @app.post('/api/projects/{project_id}/roi-audits',response_model=Envelope[RoiAuditResult])
     def roi_audit(project_id:UUID,request:Request,body:RoiAudit):
         from mapvector.geometry.scope import audit
         from mapvector.application.relations import roi_state
+        from mapvector.application.delivery_checks import SCOPE_RULE_VERSION
         asset_id=str(body.asset_id)
         with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
+            connection.execute('BEGIN')
+            revision=connection.execute('SELECT working_revision FROM project WHERE project_id=?',(str(project_id),)).fetchone()[0]
+            if body.base_revision is not None and body.base_revision!=revision:raise CommandConflict('REVISION_CONFLICT')
             row=connection.execute('SELECT * FROM roi WHERE project_id=? AND asset_id=?',(str(project_id),asset_id)).fetchone()
             if row is None:raise CommandConflict('EXPORT_SCOPE_INVALID')
             if body.roi_id and str(body.roi_id)!=row['roi_id']:raise CommandConflict('EXPORT_SCOPE_INVALID')
             features=[CommandService._feature(connection,item[0]) for item in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status IN ('active','isolated')",(str(project_id),asset_id))]
             result={kind:audit([f for f in features if f['feature_type']==kind],dict(row)) for kind in ('face','line','text')}
-        return envelope(request,{'roi':roi_state(row),'counts':result})
+        return envelope(request,{'asset_id':asset_id,'coordinate_space':'pixel','working_revision':revision,'rule_version':SCOPE_RULE_VERSION,
+                                 'roi':roi_state(row),'roi_revision':row['revision'],'counts':result})
 
-    @app.get('/api/projects/{project_id}/quality')
-    def quality(project_id:UUID,asset_id:UUID,request:Request):
-        from shapely.geometry import shape,box
-        from shapely import union_all,coverage_is_valid
+    @app.get('/api/projects/{project_id}/quality',response_model=Envelope[DeliveryCheckResult])
+    def quality(project_id:UUID,asset_id:UUID,request:Request,base_revision:int|None=Query(None,ge=0)):
+        from mapvector.application.delivery_checks import RULE_VERSION,inspect_geometry
         with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
+            connection.execute('BEGIN')
             asset=connection.execute('SELECT * FROM asset WHERE project_id=? AND asset_id=?',(str(project_id),str(asset_id))).fetchone()
             if asset is None:raise KeyError(str(asset_id))
-            features=[CommandService._feature(connection,row[0]) for row in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status='active'",(str(project_id),str(asset_id)))]
             revision=connection.execute('SELECT working_revision FROM project WHERE project_id=?',(str(project_id),)).fetchone()[0]
+            if base_revision is not None and base_revision!=revision:raise CommandConflict('REVISION_CONFLICT')
+            features=[CommandService._feature(connection,row[0]) for row in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status='active' ORDER BY feature_id",(str(project_id),str(asset_id)))]
         from mapvector.geometry.raster_mask import valid_region
-        faces=[shape(f['geometry']) for f in features if f['feature_type']=='face'];region=valid_region(project_directory(str(project_id))/asset['raster_rel_path']);union=union_all(faces)
-        return envelope(request,{'working_revision':revision,'quality_report':{'target':'full_asset_pixel_extent','target_area_px2':region.area,'face_count':len(faces),'valid_geometry_count':sum(shape(f['geometry']).is_valid for f in features),'coverage_is_valid':bool(coverage_is_valid(faces)) if faces else None,'covered_area_px2':union.intersection(region).area,'uncovered_area_px2':region.difference(union).area,'overlap_area_px2':max(0,sum(g.area for g in faces)-union.area),'recognition_accuracy':None,'tolerance_px2':max(1e-6,region.area*1e-12),'note':'Geometric coverage only; true holes and image correctness require visual review'}})
+        region=valid_region(project_directory(str(project_id))/asset['raster_rel_path'])
+        return envelope(request,{'asset_id':str(asset_id),'working_revision':revision,'coordinate_space':'pixel','rule_version':RULE_VERSION,
+                                 **inspect_geometry(features,region)})
 
-    @app.post('/api/projects/{project_id}/roi-previews')
+    @app.post('/api/projects/{project_id}/roi-previews',response_model=Envelope[RoiPreviewResult])
     def roi_preview(project_id:UUID,body:RoiAudit,request:Request):
         from mapvector.geometry.scope import scoped_features
+        from mapvector.application.delivery_checks import SCOPE_RULE_VERSION
         with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
+            connection.execute('BEGIN')
+            revision=connection.execute('SELECT working_revision FROM project WHERE project_id=?',(str(project_id),)).fetchone()[0]
+            if body.base_revision is not None and body.base_revision!=revision:raise CommandConflict('REVISION_CONFLICT')
             roi=connection.execute('SELECT * FROM roi WHERE project_id=? AND asset_id=?',(str(project_id),str(body.asset_id))).fetchone()
             if roi is None or body.roi_id and str(body.roi_id)!=roi['roi_id']:raise CommandConflict('EXPORT_SCOPE_INVALID')
             features=[CommandService._feature(connection,row[0]) for row in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status IN ('active','isolated')",(str(project_id),str(body.asset_id)))]
-            revision=connection.execute('SELECT working_revision FROM project WHERE project_id=?',(str(project_id),)).fetchone()[0]
-        return envelope(request,{'working_revision':revision,'coordinate_space':'pixel','roi_id':roi['roi_id'],'roi_revision':roi['revision'],'keep_crossing':scoped_features(features,'keep_crossing',dict(roi)),'clip':scoped_features(features,'clip',dict(roi))})
+        return envelope(request,{'asset_id':str(body.asset_id),'working_revision':revision,'coordinate_space':'pixel','rule_version':SCOPE_RULE_VERSION,
+                                 'roi_id':roi['roi_id'],'roi_revision':roi['revision'],'keep_crossing':scoped_features(features,'keep_crossing',dict(roi)),
+                                 'clip':scoped_features(features,'clip',dict(roi))})
 
     @app.get('/api/projects/{project_id}/rasters/{raster_type}')
     def raster(project_id:UUID,raster_type:str,asset_id:UUID,request:Request,threshold:int|None=Query(None,ge=0,le=255),run_id:UUID|None=None,layer:str|None=None):
@@ -461,6 +473,10 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         with ProjectDatabase(directory / 'state/project.sqlite').read() as connection:
             rows = connection.execute("SELECT * FROM snapshot WHERE snapshot_status='committed' ORDER BY snapshot_sequence DESC").fetchall()
         return envelope(request, {'items':[decode_record(row) for row in rows], 'next_cursor':None})
+
+    @app.get('/api/projects/{project_id}/snapshots/{snapshot_id}/scope',response_model=Envelope[SnapshotScope])
+    def snapshot_scope(project_id:UUID,snapshot_id:UUID,request:Request):
+        return envelope(request,SnapshotService(project_directory(str(project_id))).scope(str(project_id),str(snapshot_id)))
 
     @app.post('/api/projects/{project_id}/snapshots/{snapshot_id}/restore')
     def restore_snapshot(project_id: UUID, snapshot_id: UUID, body: RestoreSnapshot, request: Request):
@@ -603,8 +619,12 @@ def create_app(settings: Settings | None = None) -> FastAPI:
     register_face_repairs(app,project_directory,envelope,error)
     from mapvector.api.line_checks import register as register_line_checks
     register_line_checks(app,project_directory,envelope)
+    from mapvector.api.face_colors import register as register_face_colors
+    register_face_colors(app,project_directory,envelope)
     from mapvector.api.text_residue_review import register as register_text_residue_review
     register_text_residue_review(app,project_directory,envelope)
+    from mapvector.api.text_layout import register as register_text_layout
+    register_text_layout(app,project_directory,envelope)
     from mapvector.api.face_splits import register as register_face_splits
     register_face_splits(app,project_directory,envelope,error)
     from mapvector.api.face_merges import register as register_face_merges

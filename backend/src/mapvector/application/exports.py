@@ -59,7 +59,6 @@ class ExportService:
             }
             features=[CommandService._feature(frozen,row[0]) for row in frozen.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND lifecycle_status IN ('active','isolated')",(project_id,snapshot['asset_id']))]
             roi=frozen.execute('SELECT * FROM roi WHERE roi_id=? AND project_id=? AND asset_id=?',(payload['roi_id'],project_id,snapshot['asset_id'])).fetchone() if payload['roi_id'] else None
-            declared_roi=frozen.execute('SELECT * FROM roi WHERE project_id=? AND asset_id=?',(project_id,snapshot['asset_id'])).fetchone()
             if payload['roi_id'] and roi is None:raise CommandConflict('EXPORT_SCOPE_INVALID')
             if payload['scope_mode']=='full' and payload['roi_id'] is not None:raise CommandConflict('EXPORT_SCOPE_INVALID')
             if payload['scope_mode']!='full' and payload['roi_id'] is None:raise CommandConflict('EXPORT_SCOPE_INVALID')
@@ -70,10 +69,19 @@ class ExportService:
             if feature['feature_type']=='text':counts[feature['review_status']]=counts.get(feature['review_status'],0)+1
         if payload['export_mode']=='formal' and any(not text_released(f,payload['policy_id']) for f in features if f['feature_type']=='text'):
             raise CommandConflict('FORMAL_REVIEW_INCOMPLETE',{'status_counts':counts})
-        if payload['export_mode']=='formal' and payload['scope_mode']=='full' and declared_roi:
-            from mapvector.geometry.scope import audit
-            outside=audit([f for f in features if f['lifecycle_status']=='active'],dict(declared_roi))['outside']
-            if outside:raise CommandConflict('FORMAL_OUTSIDE_ROI',{'outside_count':outside,'available_choices':['draft','keep_crossing','clip','clear_roi']})
+        from mapvector.application.relations import roi_state
+        from mapvector.application.delivery_checks import SCOPE_RULE_VERSION,RULE_VERSION,inspect_geometry
+        from mapvector.geometry.raster_mask import valid_region
+        geometry_check={'asset_id':snapshot['asset_id'],'working_revision':snapshot['working_revision'],
+                        'coordinate_space':'pixel','rule_version':RULE_VERSION,
+                        **inspect_geometry([feature for feature in features if feature['lifecycle_status']=='active'],
+                                           valid_region(self.project_dir/asset['raster_rel_path']))}
+        scope_snapshot={'snapshot_id':snapshot['snapshot_id'],'asset_id':snapshot['asset_id'],'working_revision':snapshot['working_revision'],
+                        'coordinate_space':'pixel','scope_mode':payload['scope_mode'],'roi':roi_state(roi) if roi else None,
+                        'rule_version':SCOPE_RULE_VERSION,'text_scope_rule':'anchor_point',
+                        'source_feature_ids_preserved':True,'quality_target':'full_asset_pixel_extent',
+                        'coordinate_mode':asset['coordinate_mode'],'crs_wkt':asset['crs_wkt'],
+                        'pixel_to_map_affine':json.loads(asset['pixel_to_map_affine']) if asset['pixel_to_map_affine'] else None}
         features=scoped_features(features,payload['scope_mode'],dict(roi) if roi else None)
         selected=[]
         for feature in features:
@@ -83,7 +91,7 @@ class ExportService:
         policy={'policy_id':payload['policy_id'],'policy_revision':'1.0','deliverable_statuses':['confirmed'] if payload['policy_id']=='strict_review' else sorted(DELIVERABLE),'human_confirmation_required':payload['policy_id']=='strict_review','status_counts':counts}
         export_id=export_id or str(uuid4());now=datetime.now(timezone.utc).isoformat();out_dir=self.project_dir/'exports'/export_id;out_dir.mkdir(parents=True,exist_ok=reserved)
         if payload['export_format']=='pixel_json':
-            output=out_dir/'vectors.json';document={'schema_revision':'1.0','coordinate_space':'pixel','asset_id':snapshot['asset_id'],'width_px':asset['width_px'],'height_px':asset['height_px'],'crs_wkt':asset['crs_wkt'],'pixel_to_map_affine':json.loads(asset['pixel_to_map_affine']) if asset['pixel_to_map_affine'] else None,'policy_snapshot':policy,'features':[{'type':'Feature','id':f['feature_id'],'geometry':f['geometry'],'properties':{key:value for key,value in f.items() if key!='geometry'}} for f in selected]}
+            output=out_dir/'vectors.json';document={'schema_revision':'1.0','coordinate_space':'pixel','asset_id':snapshot['asset_id'],'width_px':asset['width_px'],'height_px':asset['height_px'],'crs_wkt':asset['crs_wkt'],'pixel_to_map_affine':json.loads(asset['pixel_to_map_affine']) if asset['pixel_to_map_affine'] else None,'policy_snapshot':policy,'scope_snapshot':scope_snapshot,'geometry_check':geometry_check,'features':[{'type':'Feature','id':f['feature_id'],'geometry':f['geometry'],'properties':{key:value for key,value in f.items() if key!='geometry'}} for f in selected]}
             atomic_json(output,document);readback=json.loads(output.read_text(encoding='utf-8'))
             if readback!=document:raise CommandConflict('EXPORT_READBACK_FAILED')
             report={'feature_count':len(readback['features']),'coordinate_space':document['coordinate_space'],'scope_mode':payload['scope_mode'],'attributes_match':True,'geometry_match':True,'tolerance':0}
@@ -98,14 +106,14 @@ class ExportService:
             report['scope_mode']=payload['scope_mode']
         relative=output.relative_to(self.project_dir).as_posix();digest=sha256_file(output)
         stage('write_associations')
-        association_document={'schema_revision':'1.0','project_id':project_id,'asset_id':snapshot['asset_id'],'snapshot_id':snapshot['snapshot_id'],'policy_snapshot':policy,**associations}
+        association_document={'schema_revision':'1.0','project_id':project_id,'asset_id':snapshot['asset_id'],'snapshot_id':snapshot['snapshot_id'],'policy_snapshot':policy,'scope_snapshot':scope_snapshot,'geometry_check':geometry_check,**associations}
         if payload['export_format']=='shp':
             association_document.update(property_manifest_file='property_manifest.json',field_mapping_file='field_mapping.json',shapefile_manifest_file='shapefile_manifest.json')
         atomic_json(out_dir/'associations.json',association_document)
         if json.loads((out_dir/'associations.json').read_text(encoding='utf-8'))!=association_document:
             raise CommandConflict('EXPORT_READBACK_FAILED',{'artifact':'associations.json'})
         if payload['export_format']=='gpkg':
-            embedded={**associations,'policy':policy,'source':{key:association_document[key] for key in ('schema_revision','project_id','asset_id','snapshot_id')}}
+            embedded={**associations,'scope_snapshot':scope_snapshot,'geometry_check':geometry_check,'policy':policy,'source':{key:association_document[key] for key in ('schema_revision','project_id','asset_id','snapshot_id')}}
             with get_ports().archives.open(output) as derived:
                 derived.execute('CREATE TABLE mapvector_manifest (manifest_type TEXT PRIMARY KEY,manifest TEXT NOT NULL)')
                 for kind,value in embedded.items():derived.execute('INSERT INTO mapvector_manifest VALUES (?,?)',(kind,json.dumps(value,ensure_ascii=False)))
@@ -122,9 +130,11 @@ class ExportService:
             document['associations']=associations;atomic_json(output,document)
             if json.loads(output.read_text(encoding='utf-8'))!=document:raise CommandConflict('EXPORT_READBACK_FAILED')
         else:
-            document=json.loads(output.read_text(encoding='utf-8'));document['mapvector_associations']=associations;atomic_json(output,document)
+            document=json.loads(output.read_text(encoding='utf-8'));document['mapvector_associations']=associations;document['scope_snapshot']=scope_snapshot;document['geometry_check']=geometry_check;atomic_json(output,document)
             if json.loads(output.read_text(encoding='utf-8'))!=document:raise CommandConflict('EXPORT_READBACK_FAILED')
         report['associations_match']=True
+        report['scope_snapshot']=scope_snapshot
+        report['geometry_check']=geometry_check
         digest=sha256_file(output)
         stage('commit')
         finished_at=datetime.now(timezone.utc).isoformat()

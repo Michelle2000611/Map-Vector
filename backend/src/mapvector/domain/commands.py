@@ -1,6 +1,7 @@
 from typing import Annotated, Literal
 from pydantic import BaseModel, ConfigDict, Field,AfterValidator,model_validator
 from uuid import UUID
+import unicodedata
 
 
 def canonical_uuid(value:str):return str(UUID(value))
@@ -53,8 +54,70 @@ class UpdateText(CommandBase):
         return self
 
 
+def text_format_glyph(char):
+    """Decode Unicode script notation without normalizing unrelated typography."""
+    name=unicodedata.name(char,'')
+    script='subscript' if 'SUBSCRIPT' in name else 'superscript' if 'SUPERSCRIPT' in name or name.startswith(('MODIFIER LETTER SMALL','MODIFIER LETTER CAPITAL')) else 'normal'
+    return (unicodedata.normalize('NFKC',char) if script!='normal' else char),script
+
+
+class TextFormatRun(BaseModel):
+    model_config=ConfigDict(extra='forbid',allow_inf_nan=False,frozen=True)
+    text:str=Field(min_length=1,max_length=200)
+    script:Literal['normal','subscript','superscript']
+    font_size_px:float=Field(gt=0,le=40000,strict=True)
+    x_offset_px:float=Field(ge=-1000000,le=1000000,strict=True)
+    baseline_offset_px:float=Field(ge=-1000000,le=1000000,strict=True)
+    width_px:float=Field(ge=0,le=1000000,strict=True)
+    ink_bbox_px:tuple[float,float,float,float]|None=None
+    quality_reasons:tuple[Annotated[str,Field(min_length=1,max_length=100)],...]=Field(default_factory=tuple,max_length=30)
+
+    @model_validator(mode='after')
+    def validate_ink_bounds(self):
+        if self.ink_bbox_px is not None:
+            left,top,right,bottom=self.ink_bbox_px
+            if any(abs(value)>1000000 for value in self.ink_bbox_px) or left>=right or top>=bottom:
+                raise ValueError('Run ink bounds must be a finite, nonempty rectangle')
+        return self
+
+
+class TextFormatSample(BaseModel):
+    model_config=ConfigDict(extra='forbid',allow_inf_nan=False,frozen=True)
+    font_size_px:float=Field(ge=1,le=200,strict=True)
+    text_color:str=Field(pattern='^#[0-9a-fA-F]{6}$')
+    rotation_deg:float=Field(strict=True)
+    text_value:str=Field(min_length=1,max_length=200)
+    layout_runs:tuple[TextFormatRun,...]=Field(default_factory=tuple,max_length=200)
+    layout_width_px:float|None=Field(default=None,gt=0,le=1000000,strict=True)
+    layout_height_px:float|None=Field(default=None,gt=0,le=1000000,strict=True)
+    baseline_offset_px:float|None=Field(default=None,ge=-1000000,le=1000000,strict=True)
+    layout_basis:str|None=Field(default=None,max_length=100)
+
+    @model_validator(mode='after')
+    def validate_layout_text(self):
+        if not self.text_value.strip():raise ValueError('Text snapshot requires nonempty text')
+        if self.layout_runs:
+            source=''.join(text_format_glyph(ch)[0] for ch in self.text_value)
+            runs=''.join(text_format_glyph(ch)[0] for run in self.layout_runs for ch in run.text)
+            # OCR ink and vertical layouts both omit whitespace glyph boxes.
+            if (self.layout_basis or '').startswith('ocr_'):
+                source=''.join(source.split());runs=''.join(runs.split())
+            if source!=runs:raise ValueError('Layout run text must match snapshot text')
+        return self
+
+
+class ApplyTextFormat(CommandBase):
+    operation_type:Literal['apply_text_format']
+    feature_ids:list[UUIDString]=Field(min_length=1,max_length=2000)
+    sample:TextFormatSample
+    copy_size:bool=True
+    copy_color:bool=True
+    copy_rotation:bool=False
+    copy_text:bool=False
+
+
 class ReviewText(CommandBase):
-    operation_type: Literal['confirm_text', 'skip_text']
+    operation_type: Literal['confirm_text']
     feature_ids: list[str] = Field(min_length=1)
 
 
@@ -148,6 +211,7 @@ class IsolateLines(CommandBase):
 class SetRoi(CommandBase):
     operation_type:Literal['set_roi']
     bounds_px:tuple[float,float,float,float] | None
+    scope_mode:Literal['keep_crossing','clip']='clip'
 
 
 class GroupFeatures(CommandBase):
@@ -211,7 +275,7 @@ class DeleteText(CommandBase):
 class SetStyle(CommandBase):
     operation_type:Literal['set_style']
     style_id:str|None=None
-    feature_type:Literal['face','line']
+    feature_type:Literal['face','line','text']
     style_name:str=Field(min_length=1,max_length=200)
     fill_color:str|None=Field(default=None,pattern='^#[0-9a-fA-F]{6}$')
     stroke_color:str|None=Field(default=None,pattern='^#[0-9a-fA-F]{6}$')
@@ -221,12 +285,26 @@ class SetStyle(CommandBase):
     tooth_spacing_px:float|None=Field(default=None,ge=2,le=200)
     tooth_height_px:float|None=Field(default=None,ge=.5,le=50)
     tooth_side:Literal['left','right']|None=None
+    font_size_px:float|None=Field(default=None,ge=1,le=200)
+    text_color:str|None=Field(default=None,pattern='^#[0-9a-fA-F]{6}$')
+    rotation_deg:float|None=None
+
+    @model_validator(mode='after')
+    def validate_text_style(self):
+        text_fields={'font_size_px','text_color','rotation_deg'}
+        if self.feature_type=='text':
+            if not any(getattr(self,name) is not None for name in text_fields):raise ValueError('Text styles require at least one format property')
+            if self.model_fields_set&{'fill_color','stroke_color','stroke_width_px','line_pattern','dash_pattern_px','tooth_spacing_px','tooth_height_px','tooth_side'}:raise ValueError('Text styles only accept text format properties')
+        elif any(getattr(self,name) is not None for name in text_fields):raise ValueError('Text format properties require a text style')
+        return self
 
 
 class BindStyle(CommandBase):
     operation_type:Literal['bind_style']
     style_id:str
     feature_ids:list[str]=Field(min_length=1)
+    text_fields:list[Literal['font_size_px','text_color','rotation_deg']]|None=None
+    text_content:TextFormatSample|None=None
 
 
 class DeleteStyle(CommandBase):
@@ -238,7 +316,7 @@ class RebindStyle(CommandBase):
     operation_type:Literal['rebind_style']
     from_style_id:str
     to_style_id:str
-    feature_type:Literal['face','line']
+    feature_type:Literal['face','line','text']
 
 
 class ClearStyleOverride(CommandBase):
@@ -257,6 +335,7 @@ class SetLayer(CommandBase):
 class RestoreOcrLayout(CommandBase):
     operation_type:Literal['restore_ocr_layout']
     all_assets:bool=False
+    expected_preview_sha256:str|None=Field(default=None,pattern='^[0-9a-f]{64}$')
 
 
 class ClassifyReview(CommandBase):
@@ -334,4 +413,4 @@ class ApplyLineCheck(CommandBase):
 
 
 GeometryCommand = MergeFaces | CreateLine | SplitLine | JoinLines | FeatureColor | SetFeatureProperties | DeleteFaces | LineWidth | LineRole | DeleteLines | IsolateLines | ApplyPreview | LineToFace | RestoreLines | DeleteText | RepairFace | ApplyLineCheck | SplitSelectedFaces | ApplyFaceMerge
-EditCommand = Annotated[CreateText | UpdateText | ReviewText | HistoryCommand | GeometryCommand | SetRoi | GroupFeatures | UngroupFeatures | AdoptOcrCandidate | SetStyle | BindStyle | SetLayer | ClassifyReview | RestoreOcrLayout | DeleteStyle | RebindStyle | ClearStyleOverride, Field(discriminator='operation_type')]
+EditCommand = Annotated[CreateText | UpdateText | ApplyTextFormat | ReviewText | HistoryCommand | GeometryCommand | SetRoi | GroupFeatures | UngroupFeatures | AdoptOcrCandidate | SetStyle | BindStyle | SetLayer | ClassifyReview | RestoreOcrLayout | DeleteStyle | RebindStyle | ClearStyleOverride, Field(discriminator='operation_type')]

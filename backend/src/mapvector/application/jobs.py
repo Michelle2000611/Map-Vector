@@ -288,8 +288,8 @@ class JobService:
         data=json.loads(path.read_text(encoding='utf-8'));items=data['items'];now=utcnow()
         from mapvector.application.ocr_fusion import fuse_results
         # Keep all scale/engine evidence inside each representative candidate.
-        items=fuse_results([{'items':items}])['items']
-        data.update(items=items,deduplication_revision='spatial_exact_text_v2')
+        merged=fuse_results([{'items':items}]);items=merged['items']
+        data.update(merged,deduplication_revision='spatial_ambiguity_v3')
         atomic_json(path,data)
         with self.database.transaction() as connection:
             for item in items:
@@ -393,20 +393,30 @@ class JobService:
                     update_index(connection,fid);after.append(load_feature(connection,fid))
             if run['pipeline_id'].startswith('legacy_b2c_'):
                 from mapvector.geometry.text import display_bbox,ocr_layout
-                from mapvector.application.ocr_fusion import same_location,default_candidate_text
+                from mapvector.application.ocr_fusion import same_location,default_candidate_text,spatial_conflicts,spatial_conflict_suggestions
                 adopted_boxes=[]
                 candidates=connection.execute('SELECT * FROM ocr_candidate WHERE project_id=? AND asset_id=? AND run_id=? AND text_feature_id IS NULL',(project_id,run['asset_id'],run_id)).fetchall()
-                candidates=[c for c in candidates if not any('OCR_ENGINE_DISAGREEMENT' in rule.get('reason_codes',[]) for rule in json.loads(c['rule_suggestions']))]
                 # Historical runs may predate fusion metadata. Check their
-                # actual readings again at the adoption boundary. Equivalence
-                # here is comparison-only (confusable glyphs, script-aware);
-                # the text actually stored below is always the raw reading.
+                # complete engine/scale evidence at the adoption boundary.
+                # A large line and its fragments are alternatives even when
+                # strict duplicate identity deliberately does not match them.
+                # Include already flagged candidates in this check so a peer
+                # does not slip through simply because its metadata is older.
                 from mapvector.application.ocr_fusion import same_reading
-                conflicts=set()
-                for index,left in enumerate(candidates):
-                    for right in candidates[index+1:]:
-                        if not same_reading(left['raw_text'],right['raw_text']) and same_location({'detected_quad_px':json.loads(left['detected_quad_px'])},{'detected_quad_px':json.loads(right['detected_quad_px'])}):
-                            conflicts.update((left['candidate_id'],right['candidate_id']))
+                evidence=[{**dict(candidate),'detected_quad_px':json.loads(candidate['detected_quad_px']),
+                           'rule_suggestions':json.loads(candidate['rule_suggestions'])} for candidate in candidates]
+                conflicts={candidate['candidate_id'] for candidate in evidence
+                           if any(set(rule.get('reason_codes',[])) & {'OCR_ENGINE_DISAGREEMENT','OCR_SPATIAL_CONFLICT'}
+                                  for rule in candidate['rule_suggestions'])}
+                edges=spatial_conflicts(evidence)
+                for edge in edges:
+                    conflicts.update(candidates[index]['candidate_id'] for index in (edge['left_index'],edge['right_index']))
+                for index,suggestion in spatial_conflict_suggestions(evidence,edges).items():
+                    rules=[rule for rule in evidence[index]['rule_suggestions']
+                           if not ('spatial_conflicts' in rule and rule.get('reason_codes')==['OCR_SPATIAL_CONFLICT'])]
+                    rules.append(suggestion)
+                    connection.execute('UPDATE ocr_candidate SET rule_suggestions=? WHERE candidate_id=?',
+                                       (json.dumps(rules,ensure_ascii=False),candidates[index]['candidate_id']))
                 for candidate in candidates:
                     if candidate['candidate_id'] in conflicts:continue
                     quad=json.loads(candidate['detected_quad_px'])

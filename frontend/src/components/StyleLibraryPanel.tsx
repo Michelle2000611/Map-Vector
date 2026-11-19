@@ -5,10 +5,11 @@ import {useWorkspace} from '../stores/workspace';
 import {feedback} from '../services/feedback';
 import type {Command,Feature,Page,Style} from '../services/models';
 import {StyleSwatch} from './ObjectAppearanceProperties';
+import {textStyleSummary} from '../services/textStyles';
 import {StyleReplacementPanel} from './StyleReplacementPanel';
 
 type Props={projectId:string;assetId:string;features:Feature[];guard:()=>Promise<boolean>;onLocate:(featureId:string)=>Promise<boolean>;styles:Style[];busy:boolean;command:Command;onStylesChanged:(styles:Style[])=>void;onSelectByStyle:(styleId:string)=>void;onUseAsBrush?:(styleId:string)=>void};
-type Kind='face'|'line';
+type Kind='face'|'line'|'text';
 
 export function StyleLibraryPanel({projectId,assetId,features,guard,onLocate,styles,busy,command,onStylesChanged,onSelectByStyle,onUseAsBrush}:Props){
  const prefix='/projects/'+projectId;
@@ -31,7 +32,7 @@ export function StyleLibraryPanel({projectId,assetId,features,guard,onLocate,sty
   let name=style.style_name;
   Modal.confirm({title:'重命名样式',content:<input defaultValue={style.style_name} style={{width:'100%'}} onChange={event=>{name=event.target.value;}}/>,okText:'保存',cancelText:'取消',onOk:async()=>{
    if(!name.trim()||name.trim()===style.style_name)return;
-   const body=style.feature_type==='face'?{operation_type:'set_style' as const,style_id:style.style_id,feature_type:'face' as const,style_name:name.trim(),fill_color:style.fill_color!,stroke_color:style.stroke_color??undefined,stroke_width_px:style.stroke_width_px??undefined}:{operation_type:'set_style' as const,style_id:style.style_id,feature_type:'line' as const,style_name:name.trim(),stroke_color:style.stroke_color!,stroke_width_px:style.stroke_width_px!,line_pattern:style.line_pattern as 'solid'|'dashed'|'teeth',dash_pattern_px:style.dash_pattern_px,tooth_spacing_px:style.tooth_spacing_px??undefined,tooth_height_px:style.tooth_height_px??undefined,tooth_side:style.tooth_side as 'left'|'right'|undefined};
+   const body=style.feature_type==='text'?{operation_type:'set_style' as const,style_id:style.style_id,feature_type:'text' as const,style_name:name.trim(),font_size_px:style.font_size_px??undefined,text_color:style.text_color??undefined,rotation_deg:style.rotation_deg??undefined}:style.feature_type==='face'?{operation_type:'set_style' as const,style_id:style.style_id,feature_type:'face' as const,style_name:name.trim(),fill_color:style.fill_color!,stroke_color:style.stroke_color??undefined,stroke_width_px:style.stroke_width_px??undefined}:{operation_type:'set_style' as const,style_id:style.style_id,feature_type:'line' as const,style_name:name.trim(),stroke_color:style.stroke_color!,stroke_width_px:style.stroke_width_px!,line_pattern:style.line_pattern as 'solid'|'dashed'|'teeth',dash_pattern_px:style.dash_pattern_px,tooth_spacing_px:style.tooth_spacing_px??undefined,tooth_height_px:style.tooth_height_px??undefined,tooth_side:style.tooth_side as 'left'|'right'|undefined};
    const result=await command(body);
    if(result)await refreshStyles();
   }});
@@ -54,14 +55,14 @@ export function StyleLibraryPanel({projectId,assetId,features,guard,onLocate,sty
   }catch(error){if(currentContext.current===expected){const message=error instanceof Error?error.message:String(error);setDeleteError(message);feedback.error(message);}}
   finally{deleteInFlight.current=false;if(currentContext.current===expected)setDeletePending(false);}
  }
- const label=kind==='face'?'面样式':'线样式',items=styles.filter(item=>item.feature_type===kind);
+ const label=kind==='face'?'面样式':kind==='text'?'文字样式':'线样式',items=styles.filter(item=>item.feature_type===kind);
  return <div className="style-library-panel" aria-label="样式库">
-  <Tabs activeKey={kind} onChange={value=>{setKind(value as Kind);}} items={[{key:'face',label:'面样式'},{key:'line',label:'线样式'}]}/>
+  <Tabs activeKey={kind} onChange={value=>{setKind(value as Kind);}} items={[{key:'face',label:'面样式'},{key:'line',label:'线样式'},{key:'text',label:'文字样式'}]}/>
   <div className="style-library-group">
    {!items.length&&<p className="review-note">暂无{label}。</p>}
    {items.map(style=><div key={style.style_id} className="style-library-row">
     <StyleSwatch style={style}/>
-    <span className="style-library-name">{style.style_name}</span>
+    <span className="style-library-name">{style.style_name}{style.feature_type==='text'&&<small className="text-style-library-summary">{textStyleSummary(style)}</small>}</span>
     <Tag>引用 {usage[style.style_id]??0}</Tag>
     <Space size={6}>
      <Button disabled={busy} onClick={()=>onSelectByStyle(style.style_id)}>选中使用对象</Button>

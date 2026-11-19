@@ -14,7 +14,8 @@ def text_decision(feature,candidate,threshold=.90,risk_reasons=None,geometry_rea
     elif score<threshold:reasons.append('low_ocr_score')
     if not text.strip():reasons.append('empty_text')
     reasons.extend(geometry_reasons or [])
-    if any(run.get('review_required') for run in feature.get('layout_runs',[])):reasons.append('script_position_uncertain')
+    if any(run.get('review_required') and (not run.get('quality_reasons') or run.get('script') in ('subscript','superscript') or any('script' in reason for reason in run.get('quality_reasons',[]))) for run in feature.get('layout_runs',[])):reasons.append('script_position_uncertain')
+    if any(run.get('quality_reasons') for run in feature.get('layout_runs',[])):reasons.append('layout_fit_uncertain')
     if any(run.get('script') in ('subscript','superscript') for run in feature.get('layout_runs',[])) or any(char in '⁰¹²³⁴⁵⁶⁷⁸⁹₀₁₂₃₄₅₆₇₈₉' for char in text) or re.search(r'[A-Za-zЄϵ][0-9]|[0-9][A-Za-z]',text):reasons.append('sub_or_superscript')
     code_prefix=re.match(r'^(?:Ar|Pt|Pz|Mz|Kz|Cmb|[ЄϵOSDCPTJKNZQEЯƐγδλνπξβμρσφχψωατ])',text)
     code_shaped=bool(re.fullmatch(r"[A-Za-zЄϵЯƐγδλνπξβμρσφχψωατ0-9₀-₉′'−—-]{1,8}",text))
@@ -26,6 +27,7 @@ def text_decision(feature,candidate,threshold=.90,risk_reasons=None,geometry_rea
     if abs(feature.get('rotation_deg',0))>15:reasons.append('soft:rotated_or_vertical')
     rules=json.loads(candidate['rule_suggestions']) if candidate and isinstance(candidate['rule_suggestions'],str) else candidate.get('rule_suggestions',[]) if candidate else []
     if any('OCR_ENGINE_DISAGREEMENT' in rule.get('reason_codes',[]) for rule in rules):reasons.append('ocr_engine_disagreement')
+    if any('OCR_SPATIAL_CONFLICT' in rule.get('reason_codes',[]) for rule in rules) or any('ocr_spatial_conflict' in run.get('quality_reasons',[]) for run in feature.get('layout_runs',[])):reasons.append('ocr_spatial_conflict')
     if candidate and feature['text_value'].strip()!=candidate['raw_text'].strip():reasons.append('text_changed_from_ocr')
     reasons=list(dict.fromkeys(reasons))
     required=any(not reason.startswith('soft:') for reason in reasons)

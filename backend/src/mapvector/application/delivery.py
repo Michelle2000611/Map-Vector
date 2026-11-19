@@ -41,9 +41,18 @@ def delivery_package(directory,project_id,export_id):
     def layer(f):return ('text_confirmed' if text_released(f,policy['policy_id']) else 'text_unconfirmed') if f['feature_type']=='text' else 'isolated_line' if f['lifecycle_status']=='isolated' else f['feature_type']
     selected=[f for f in features if layer(f) in layers]
     manifest={'schema_revision':'1.0','project_id':project_id,'snapshot_id':snapshot['snapshot_id'],'working_revision':snapshot['working_revision'],'asset_id':asset['asset_id'],'coordinate_space':asset['coordinate_mode'],'crs_wkt':asset['crs_wkt'],'pixel_to_map_affine':json.loads(asset['pixel_to_map_affine']) if asset['pixel_to_map_affine'] else None,'raster_sha256':asset['raster_sha256'],'export_file':output.name,'export_sha256':export['output_sha256'],'format':export['export_format'],'policy':policy,'layers':layers,'styles':styles,'text_features':[f for f in selected if f['feature_type']=='text'],'line_styles':[effective_style(f,styles) for f in selected if f['feature_type']=='line'],'face_styles':[effective_style(f,styles) for f in selected if f['feature_type']=='face'],'units':{'geometry':'source_pixel' if asset['coordinate_mode']=='pixel' else 'CRS_units (GeoJSON is WGS84 degrees)','font_size_px':'source_pixel','stroke_width_px':'source_pixel','rotation_deg':'degrees_counterclockwise_in_source_image','layout_runs':'source_pixel_offsets'},'arcgis_validation':{'status':'not_run','reason':'Run the included script in a licensed ArcGIS Pro Python environment; GDAL readback is not ArcGIS visual acceptance'}}
+    from mapvector.application.relations import roi_state
+    from mapvector.application.delivery_checks import SCOPE_RULE_VERSION
+    manifest['scope_snapshot']=json.loads(export['readback_report']).get('scope_snapshot') or {
+        'snapshot_id':snapshot['snapshot_id'],'asset_id':asset['asset_id'],'working_revision':snapshot['working_revision'],
+        'coordinate_space':'pixel','scope_mode':export['scope_mode'],'roi':roi_state(roi) if roi else None,
+        'rule_version':SCOPE_RULE_VERSION,'text_scope_rule':'anchor_point','source_feature_ids_preserved':True,
+        'quality_target':'full_asset_pixel_extent'}
+    manifest['geometry_check']=json.loads(export['readback_report']).get('geometry_check')
     manifest['feature_ids_by_layer']={name:[f['feature_id'] for f in selected if layer(f)==name] for name in {layer(f) for f in selected}}
     readme='''Map-Vector GIS 交付包
 推荐使用 GPKG 保存完整字段。Shapefile 长字段截断请同时读取 property_manifest.json 和 field_mapping.json。
+delivery.json 的 scope_snapshot 记录原图像素范围、保留跨界或裁切方式及固定版本；文字按定位点保留，不裁切字形。
 delivery.json 记录固定快照、审核政策、字号角度、逐字上下标/竖排、图例和原图仿射。文字是点加属性，不能把导入后未显示标签当文字丢失。
 字号、线宽、文字排版偏移都是原图像素，不是地图单位；不能直接填入 ArcGIS 的点值字号。逐字上下标和竖排需根据 layout_runs 创建标注或注记。
 在 ArcGIS Pro 自带 Python 中运行：python ArcGIS_验收.py 交付包目录

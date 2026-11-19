@@ -14,7 +14,7 @@ groups=[
  ('split_face_preview split_face_apply','edit-previews / split_faces','预览沿线切面 / 确认本次编辑','test_advanced_geometry.py','代码入口核对'),
  ('text_preview text_apply text_residue','runs OCR / edit-previews / cleanup_text_residue','局部 OCR / 文字残影 / 确认本次编辑','test_ocr_jobs.py; test_advanced_apply.py; test_text_residue.py','代码入口核对'),
  ('text_edit text_pick text_add text_delete','update_text / selections / create_text / delete_text','文字属性 / 点位补字 / 删除所选','test_commands.py','workflow.spec.ts; interaction.spec.ts'),
- ('review_classify review_queue review_decide','classify_review / reviews / confirm_text / skip_text','文字审核 / 按基线风险分流','test_review_routing.py; test_ocr.py','interaction.spec.ts'),
+ ('review_classify review_queue review_decide','classify_review / reviews / confirm_text','文字审核 / 按基线风险分流','test_review_routing.py; test_ocr.py','interaction.spec.ts'),
  ('undo redo save','undo / redo / snapshots','撤销 / 重做 / 保存工作快照','test_commands.py; test_snapshots.py','workflow.spec.ts'),
 ]
 mapping={operation:(api,ui,unit,browser) for operations,api,ui,unit,browser in groups for operation in operations.split()}

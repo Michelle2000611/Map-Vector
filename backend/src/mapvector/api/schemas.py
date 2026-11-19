@@ -70,6 +70,7 @@ class RoiAudit(BaseModel):
     model_config=ConfigDict(extra='forbid')
     asset_id:UUID
     roi_id:UUID|None=None
+    base_revision:int|None=Field(default=None,ge=0)
 
 
 class Geometry(BaseModel):
@@ -149,9 +150,13 @@ class TextLayoutRun(BaseModel):
     source_index:int=0
     basis:str='source_ink'
     review_required:bool=False
+    # Glyph origin/advance and tight ink geometry are different measurements.
+    ink_bbox_px:list[float]|None=None
+    quality_reasons:list[str]=Field(default_factory=list)
 
 
 class TextResponse(FeatureResponse):
+    style_override:dict[str,str|float]|None=None
     ocr_score:float|None=None
     ocr_engine_id:str|None=None
     feature_type:Literal['text']

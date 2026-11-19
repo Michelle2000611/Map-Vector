@@ -1,4 +1,5 @@
 import type {components} from './generated';
+import {residueCompatibilityMessage} from './residueCompatibility';
 import {projectRequestSignal} from './session';
 import {beginLoading,requestLoadingLabel} from './loading';
 export type EditCommand=import('./generated').paths['/api/projects/{project_id}/edit-commands']['post']['requestBody']['content']['application/json'];
@@ -35,7 +36,8 @@ export async function request<T=unknown>(path:string,body?:unknown,signal?:Abort
   const fallback=response.status>=500?'后端服务暂时不可用，请确认服务已启动后重试。':'请求失败，请稍后重试。';
   const message=messages[code]??(typeof result?.message==='string'?result.message:fallback);
   const detail=result?.detail&&typeof result.detail==='object'&&!Array.isArray(result.detail)?result.detail as Record<string,unknown>:{status:response.status,path};
-  throw new ApiError(code,message+' ('+code+')',detail,response.status);
+  const compatibility=residueCompatibilityMessage(path,body,code,detail);
+  throw new ApiError(compatibility?'BACKEND_RELOAD_REQUIRED':code,(compatibility??message)+' ('+(compatibility?'BACKEND_RELOAD_REQUIRED':code)+')',detail,response.status);
  }
  if(!text.trim())throw new ApiError('API_EMPTY_RESPONSE','服务返回了空响应，请刷新重试；若仍失败，请检查后端服务。',{status:response.status,path});
  if(!result||!Object.prototype.hasOwnProperty.call(result,'data'))throw new ApiError('API_INVALID_RESPONSE','服务返回的数据格式异常，请刷新重试；若仍失败，请检查后端服务。',{status:response.status,path});

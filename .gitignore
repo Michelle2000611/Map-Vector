@@ -51,3 +51,5 @@ test-results/
 /scripts/test_*.py
 /scripts/*_test.py
 
+# Local verification scripts and screenshots (never committed).
+/.verification/

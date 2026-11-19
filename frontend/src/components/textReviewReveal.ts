@@ -1,12 +1,20 @@
 import {useEffect,useRef,useState} from 'react';
 import type {RefObject} from 'react';
-import type {TextFeature} from '../services/models';
+import type {TextFeature,TextLayerAssessment} from '../services/models';
 
 export type TextReviewRevealRequest={feature_id:string;ticket:number};
-export type TextReviewFilter='required'|'skipped'|'confirmed'|'all';
-export const needsTextReview=(feature:TextFeature)=>feature.review_status==='required'||feature.review_status==='manual_edited';
-export const matchesTextReviewFilter=(feature:TextFeature,filter:TextReviewFilter)=>filter==='all'||(filter==='required'?needsTextReview(feature):feature.review_status===filter);
-
+export const TEXT_REVIEW_PAGE_SIZE=10;
+export type TextReviewFilter='required'|'kept'|'none'|'all';
+// Content confirmation never implies that the associated residues have been reviewed.
+export function residueState(item:TextLayerAssessment|undefined):Exclude<TextReviewFilter,'all'>{
+ if(!item||item.region_source==='missing'||String(item.region_source)==='source_uncertain')return 'required';
+ const faces=new Set([...(item.suspected_face_ids??[]),...(item.protected_face_ids??[])]),lines=new Set([...(item.suspected_line_ids??[]),...(item.protected_line_ids??[])]);
+ const keptFaces=new Set(item.kept_face_ids??[]),keptLines=new Set(item.kept_line_ids??[]);
+ if([...faces].some(id=>!keptFaces.has(id))||[...lines].some(id=>!keptLines.has(id)))return 'required';
+ if(keptFaces.size||keptLines.size)return 'kept';
+ return item.cleanup_status==='no_suspects'?'none':'required';
+}
+export const matchesResidueFilter=(item:TextLayerAssessment|undefined,filter:TextReviewFilter)=>filter==='all'||residueState(item)===filter;
 /** A mounted queue may live inside a hidden layer or a collapsed review panel. */
 export function useReviewPanelVisible(panel:RefObject<HTMLDivElement>){
  const [visible,setVisible]=useState(false);
@@ -21,7 +29,7 @@ export function useReviewPanelVisible(panel:RefObject<HTMLDivElement>){
  return visible;
 }
 
-export function useTextReviewReveal({request,ticket,rows,loadedTicket,visible,panel,filter,setFilter,setOnlySuspects,setPage}:{request:TextReviewRevealRequest|undefined;ticket:string;rows:TextFeature[];loadedTicket:string|null;visible:boolean;panel:RefObject<HTMLDivElement>;filter:TextReviewFilter;setFilter:(filter:TextReviewFilter)=>void;setOnlySuspects:(value:boolean)=>void;setPage:(page:number)=>void}){
+export function useTextReviewReveal({request,ticket,rows,loadedTicket,visible,panel,filter,setFilter,setPage,matches}:{request:TextReviewRevealRequest|undefined;ticket:string;rows:TextFeature[];loadedTicket:string|null;visible:boolean;panel:RefObject<HTMLDivElement>;filter:TextReviewFilter;setFilter:(filter:TextReviewFilter)=>void;matches:(feature:TextFeature,filter:TextReviewFilter)=>boolean;setPage:(page:number)=>void}){
  const [highlight,setHighlight]=useState<{ticket:string;id:string}|null>(null);
  const active=useRef<{key:string;ticket:string;handled:boolean}|null>(null);
  const requestKey=request?JSON.stringify([request.feature_id,request.ticket]):null;
@@ -36,11 +44,11 @@ export function useTextReviewReveal({request,ticket,rows,loadedTicket,visible,pa
   current.handled=true;
   const target=rows.find(row=>row.feature_id===request.feature_id);
   if(!target){setHighlight(null);return;}
-  const nextFilter=matchesTextReviewFilter(target,filter)?filter:'all';
-  const eligible=rows.filter(row=>matchesTextReviewFilter(row,nextFilter));
-  setOnlySuspects(false);setFilter(nextFilter);setPage(Math.floor(eligible.findIndex(row=>row.feature_id===target.feature_id)/8)+1);
+  const nextFilter=matches(target,filter)?filter:'all';
+  const eligible=rows.filter(row=>matches(row,nextFilter));
+  setFilter(nextFilter);setPage(Math.floor(eligible.findIndex(row=>row.feature_id===target.feature_id)/TEXT_REVIEW_PAGE_SIZE)+1);
   setHighlight({ticket,id:target.feature_id});
- },[requestKey,request,ticket,rows,loadedTicket,visible,filter,setFilter,setOnlySuspects,setPage]);
+ },[requestKey,request,ticket,rows,loadedTicket,visible,filter,setFilter,setPage,matches]);
  const highlightedId=highlight?.ticket===ticket?highlight.id:null;
  useEffect(()=>{
   if(!highlightedId||!visible)return;

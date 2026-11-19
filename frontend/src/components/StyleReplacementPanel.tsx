@@ -8,7 +8,7 @@ import {PropertyField} from './PropertyField';
 import {StyleSwatch} from './ObjectAppearanceProperties';
 import './StyleReplacementPanel.css';
 
-type Props={kind:'face'|'line';projectId:string;assetId:string;features:Feature[];styles:Style[];busy:boolean;command:Command;guard:()=>Promise<boolean>;onLocate:(featureId:string)=>Promise<boolean>;onReplaced:()=>Promise<void>};
+type Props={kind:'face'|'line'|'text';projectId:string;assetId:string;features:Feature[];styles:Style[];busy:boolean;command:Command;guard:()=>Promise<boolean>;onLocate:(featureId:string)=>Promise<boolean>;onReplaced:()=>Promise<void>};
 export function StyleReplacementPanel({kind,projectId,assetId,features,styles,busy,command,guard,onLocate,onReplaced}:Props){
  const session=useWorkspace(state=>state.session),revision=useWorkspace(state=>state.project?.working_revision);
  const context=JSON.stringify([projectId,assetId,session,kind]);
@@ -37,13 +37,13 @@ export function StyleReplacementPanel({kind,projectId,assetId,features,styles,bu
  }
  async function locate(id:string){const expected=key;if(disabled||!allowed.has(id)||!await guard()||!same(expected))return;if(await onLocate(id)&&same(expected))setLocated(id);}
  const columns:TableColumnsType<Feature>=[
-  {title:'对象',render:(_,feature)=><span title={feature.feature_id}>{kind==='face'?'面':'线'} {feature.feature_id.slice(0,8)}</span>},
+  {title:'对象',render:(_,feature)=><span title={feature.feature_id}>{kind==='face'?'面':kind==='text'?'文字':'线'} {feature.feature_id.slice(0,8)}</span>},
   {title:'状态',width:90,render:(_,feature)=><Tag>{feature.lifecycle_status==='isolated'?'已隔离':'使用中'}</Tag>},
   {title:'单独调整',width:100,render:(_,feature)=>feature.style_override&&Object.keys(feature.style_override).length?'有':'—'},
   {title:'操作',width:80,render:(_,feature)=><Button size="small" disabled={disabled} onClick={()=>void locate(feature.feature_id)}>定位</Button>}
  ];
  const options=(list:Style[])=>list.map(style=>({value:style.style_id,label:<span className="style-option"><StyleSwatch style={style}/>{style.style_name}</span>,title:style.style_name}));
- return <Collapse ghost className="line-edit-groups style-library-rebind" defaultActiveKey={['replace']} items={[{key:'replace',label:'批量替换'+(kind==='face'?'面':'线')+'样式',children:<div className="style-replacement-body">
+ return <Collapse ghost className="line-edit-groups style-library-rebind" items={[{key:'replace',label:'批量替换'+(kind==='face'?'面':kind==='text'?'文字':'线')+'样式',children:<div className="style-replacement-body">
   <div className="style-replacement-fields"><PropertyField label="原样式"><Select aria-label="原样式" value={source?.style_id} disabled={disabled||!items.length} placeholder="选择样式" options={options(items)} onChange={value=>{setFrom(value);setTo(undefined);setSelected([]);setLocated(undefined);}}/></PropertyField><PropertyField label="替换为"><Select aria-label="替换为" value={target?.style_id} disabled={disabled||!source} placeholder="选择样式" options={options(items.filter(style=>style.style_id!==from))} onChange={value=>{setTo(value);setError('');}}/></PropertyField></div>
   {error&&<Alert type="error" showIcon message={error}/>}
   {source&&<Table className="style-replacement-table" aria-label="使用原样式的对象" rowKey="feature_id" size="small" dataSource={rows} columns={columns} rowClassName={feature=>feature.feature_id===located?'style-replacement-located':''} onRow={feature=>({'aria-selected':feature.feature_id===located})} rowSelection={{selectedRowKeys:checked,onChange:ids=>setSelected(ids.map(String).filter(id=>allowed.has(id))),getCheckboxProps:()=>({disabled}),columnWidth:40}} pagination={{current:page,pageSize:10,showSizeChanger:false,total:rows.length,onChange:setPage}} scroll={{x:480}} locale={{emptyText:'没有使用此样式的对象'}}/>}
