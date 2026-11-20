@@ -38,7 +38,8 @@ def evidence(connection, project_id, asset_id, text_id, feature_id):
     style_ids={feature.get("style_id"),binding[0] if binding else None,layer[0] if layer else None}-{None}
     styles=[_stable(dict(row)) for sid in sorted(style_ids) if (row:=connection.execute("SELECT * FROM style WHERE project_id=? AND style_id=?",(project_id,sid)).fetchone())]
     geom=shape(feature['geometry']);overlaps=[]
-    for row in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type='text' AND lifecycle_status='active' AND feature_id!=? ORDER BY feature_id",(project_id,asset_id,text_id)):
+    x0,y0,x1,y1=geom.bounds
+    for row in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type='text' AND lifecycle_status='active' AND feature_id!=? AND rowid IN (SELECT id FROM text_ocr_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=? UNION SELECT id FROM text_display_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=?) ORDER BY feature_id",(project_id,asset_id,text_id,x0,x1,y0,y1,x0,x1,y0,y1)):
         other=load_feature(connection,row[0]);ocr=connection.execute("SELECT detected_quad_px FROM ocr_candidate WHERE candidate_id=?",(other.get('primary_candidate_id'),)).fetchone()
         quad=json.loads(ocr[0]) if ocr and ocr[0] else None
         region=Polygon(quad) if quad else box(*other['display_bbox_px']) if other.get('display_bbox_px') else None

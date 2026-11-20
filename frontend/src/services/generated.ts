@@ -1678,6 +1678,7 @@ export interface components {
             operation_id: string;
             /** Removed Feature Ids */
             removed_feature_ids: string[];
+            residue_update?: components["schemas"]["ResidueUpdate"] | null;
             /** Result Revision */
             result_revision: number;
             /** Review Summary */
@@ -3622,6 +3623,21 @@ export interface components {
              */
             status: "pending" | "kept" | "confirmed";
         };
+        /** ResidueUpdate */
+        ResidueUpdate: {
+            assessment: components["schemas"]["TextLayerAssessmentReport"];
+            /**
+             * Asset Id
+             * Format: uuid
+             */
+            asset_id: string;
+            /** Base Revision */
+            base_revision: number;
+            /** Result Revision */
+            result_revision: number;
+            /** Text Feature Ids */
+            text_feature_ids: string[];
+        };
         /** RestoreLines */
         RestoreLines: {
             /** Asset Id */
@@ -4308,7 +4324,7 @@ export interface components {
              * Region Source
              * @enum {string}
              */
-            region_source: "ocr_quad" | "display_bbox" | "missing";
+            region_source: "ocr_quad" | "display_bbox" | "missing" | "source_uncertain";
             /** Suspected Face Ids */
             suspected_face_ids: string[];
             /** Suspected Line Ids */
@@ -10744,6 +10760,7 @@ export interface operations {
         parameters: {
             query: {
                 asset_id: string;
+                text_feature_ids?: string[] | null;
             };
             header?: never;
             path: {

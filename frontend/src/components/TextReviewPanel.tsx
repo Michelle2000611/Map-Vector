@@ -1,3 +1,4 @@
+import {mergeResidueAssessment,publishResidueUpdate,replaceResidueAssessments,residueRevisionCovered} from '../services/residueUpdates';
 import {ReasonList} from './ReasonList';
 import {useEffect,useId,useRef,useState} from 'react';
 import type {TextResidueReview} from './GlobalResidueTools';
@@ -7,7 +8,7 @@ import {InspectionStatus} from './InspectionStatus';
 import type {TableColumnsType} from 'antd';
 import {request} from '../services/client';
 import {useWorkspace} from '../stores/workspace';
-import type {Asset,Candidate,Command,CommandInput,Page,Project,TextFeature,TextLayerAssessment as Assessment,TextLayerAssessmentReport as Report,Work} from '../services/models';
+import type {Asset,Candidate,Command,CommandInput,EditResult,Page,Project,TextFeature,TextLayerAssessment as Assessment,TextLayerAssessmentReport as Report,Work} from '../services/models';
 import './TextReviewPanel.css';
 import {matchesResidueFilter,residueState,TEXT_REVIEW_PAGE_SIZE,useReviewPanelVisible,useTextReviewReveal} from './textReviewReveal';
 import type {TextReviewFilter,TextReviewRevealRequest} from './textReviewReveal';
@@ -48,6 +49,8 @@ function residueEvidence(item:Assessment|undefined){
 
 export function TextReviewPanel({project,asset,busy,work,command,focus,revealRequest,onReviewResidue,residueReview}:Props){
  const session=useWorkspace(state=>state.session),detailsId=useId();
+ const residueUpdates=useWorkspace(state=>state.residueUpdates);
+ const relevantUpdates=residueUpdates.filter(item=>item.projectId===project.project_id&&item.session===session&&item.asset_id===asset.asset_id);
  const [filter,setFilter]=useState<Filter>('required'),[rows,setRows]=useState<TextFeature[]>([]),[candidates,setCandidates]=useState<Candidate[]>([]),[threshold,setThreshold]=useState(90),[moreOpen,setMoreOpen]=useState(false),[page,setPage]=useState(1),[inspection,setInspection]=useState<Inspection|null>(null),[selected,setSelected]=useState<string[]>([]),[error,setError]=useState(''),[inspectionError,setInspectionError]=useState('');
  const [category,setCategory]=useState<'residue'|'information'>('residue');
  const [batch,setBatch]=useState<CleanupBatch|null>(null),[batchPhase,setBatchPhase]=useState<'idle'|'preparing'|'confirming'|'cleaning'>('idle'),[batchProgress,setBatchProgress]=useState(0),[batchTotal,setBatchTotal]=useState(0),[batchMessage,setBatchMessage]=useState('');
@@ -56,6 +59,7 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
  const [layoutPreview,setLayoutPreview]=useState<LayoutPreview|null>(null),[layoutChecking,setLayoutChecking]=useState(false);
  const prefix='/projects/'+project.project_id,scope=JSON.stringify([project.project_id,asset.asset_id,session]),ticket=JSON.stringify([scope,project.working_revision]);
  const panel=useRef<HTMLDivElement>(null),visible=useReviewPanelVisible(panel);
+ const loadedRevision=useRef<{scope:string;revision:number}|null>(null);
  const [loadedTicket,setLoadedTicket]=useState<string|null>(null),[showOriginal,setShowOriginal]=useState(false),[showScore,setShowScore]=useState(false);
  const [checkAttempted,setCheckAttempted]=useState(false),[checking,setChecking]=useState(false);
  const currentScope=useRef(scope),currentTicket=useRef(ticket),currentRevision=useRef(project.working_revision),queueRequest=useRef(0),inspectionRequest=useRef(0),mounted=useRef(false);currentScope.current=scope;currentTicket.current=ticket;currentRevision.current=project.working_revision;
@@ -68,10 +72,18 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
   if(!mounted.current||currentTicket.current!==requestedTicket||queueRequest.current!==serial)return;
   if(queue.working_revision!==undefined&&queue.working_revision!==requestedRevision){setRows([]);setCandidates([]);setLoadedTicket(null);setError('文字核对列表已过期，请刷新。');return;}
   setError('');
-  setRows(queue.items);setCandidates(ocr.items);setLoadedTicket(requestedTicket);
+  loadedRevision.current={scope,revision:requestedRevision};setRows(queue.items);setCandidates(ocr.items);setLoadedTicket(requestedTicket);
  }
- useEffect(()=>{let active=true;setError('');void load().catch(e=>{if(active&&e.name!=='AbortError')setError(String(e));});return()=>{active=false;queueRequest.current+=1;};},[ticket]);
- useEffect(()=>{setLayoutPreview(null);setLayoutChecking(false);if(!batchBusy.current)setInspection(null);setInspectionError('');setChecking(false);if(!batchBusy.current)setSelected([]);setMoreOpen(false);inspectionRequest.current+=1;},[ticket]);
+ const incremental=!!loadedRevision.current&&loadedRevision.current.scope===scope&&loadedRevision.current.revision<project.working_revision&&residueRevisionCovered(loadedRevision.current.revision,relevantUpdates,asset.asset_id,project.working_revision);
+ useEffect(()=>{let active=true;setError('');
+  if(incremental){loadedRevision.current={scope,revision:project.working_revision};setLoadedTicket(ticket);}
+  else void load().catch(e=>{if(active&&e.name!=='AbortError')setError(String(e));});
+  return()=>{active=false;queueRequest.current+=1;};},[ticket]);
+ useEffect(()=>{setLayoutPreview(null);setLayoutChecking(false);
+  if(incremental)setInspection(previous=>{if(!previous)return null;const merged=mergeResidueAssessment(previous.report,relevantUpdates,asset.asset_id,project.working_revision);return merged?{ticket,report:merged}:null;});
+  else if(!batchBusy.current)setInspection(null);
+  setInspectionError('');setChecking(false);if(!incremental&&!batchBusy.current){setSelected([]);setMoreOpen(false);}inspectionRequest.current+=1;
+ },[ticket]);
  async function runCommand(input:CommandInput,propagateError=false){
   const expectedScope=scope;let failure:unknown;
   const result=await work(async()=>{
@@ -127,16 +139,25 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
   return {projectId:project.project_id,assetId:asset.asset_id,revision:()=>useWorkspace.getState().project?.working_revision??-1,
    current:()=>{const state=useWorkspace.getState();return mounted.current&&currentScope.current===expectedScope&&state.session===expectedSession&&state.project?.project_id===project.project_id&&state.asset?.asset_id===asset.asset_id;}};
  }
- async function refreshBatchAssessment(context:ResidueBatchContext){
-  await load();const revision=context.revision();
-  const result=await request<Report>(prefix+'/text-layer-assessments?asset_id='+asset.asset_id,undefined,undefined,{quiet:true});
-  if(context.current()&&context.revision()===revision&&result.working_revision===revision){setInspection({ticket:JSON.stringify([scope,revision]),report:result});setInspectionError('');}
+ async function refreshBatchAssessment(context:ResidueBatchContext,action:'confirm'|'cleanup',items:ResidueBatchItem[]){
+  if(action==='cleanup')return;
+  const original=inspection?.report;if(!original||original.working_revision!==context.revision())return;
+  const objectIds=new Set(items.flatMap(item=>item.approvedIds));
+  const affected=original.items.filter(item=>items.some(value=>value.textId===item.text_feature_id)||[...item.suspected_face_ids,...item.suspected_line_ids,...item.protected_line_ids,...(item.protected_face_ids??[])].some(id=>objectIds.has(id))).map(item=>item.text_feature_id);
+  let latest=original;const revision=context.revision();
+  for(let offset=0;offset<affected.length;offset+=100){
+   const query=new URLSearchParams({asset_id:asset.asset_id});affected.slice(offset,offset+100).forEach(id=>query.append('text_feature_ids',id));
+   const patch=await request<Report>(prefix+'/text-layer-assessments?'+query,undefined,undefined,{quiet:true});
+   if(!context.current()||context.revision()!==revision)return;
+   const merged=replaceResidueAssessments(latest,patch);if(!merged)return;latest=merged;
+  }
+  if(context.current())setInspection({ticket:JSON.stringify([scope,revision]),report:latest});
  }
  async function runResidueBatch(action:'confirm'|'cleanup',ids=selected){
   if(locked||batchBusy.current||!resultsReady)return;
   const texts=rows.filter(row=>ids.includes(row.feature_id)).map(row=>({textId:row.feature_id,textValue:row.text_value}));
   if(!texts.length)return;
-  closeResidue();const context=batchContext(),serial=++batchGeneration.current;
+  const context=batchContext(),serial=++batchGeneration.current;let lastChanged:EditResult|undefined;
   batchBusy.current=true;setBatchPhase('preparing');setBatchProgress(0);setBatchTotal(texts.length);setBatchMessage('');
   setBatch({scope,revision:context.revision(),stage:'review',items:[]});
   const publish=(items:ResidueBatchItem[],stage:CleanupBatch['stage'])=>{if(context.current()&&serial===batchGeneration.current)setBatch({scope,revision:context.revision(),stage,items});};
@@ -145,17 +166,42 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
     const items=await prepareResidueBatch(context,texts,index=>setBatchProgress(index+1));
     if(!context.current()||serial!==batchGeneration.current)return;
     publish(items,'review');setBatchProgress(0);setBatchPhase(action==='confirm'?'confirming':'cleaning');
-    const result=action==='confirm'?await confirmResidueBatch(context,items,index=>setBatchProgress(index+1)):await cleanupResidueBatch(context,items,command,index=>setBatchProgress(index+1));
+    const result=action==='confirm'?await confirmResidueBatch(context,items,index=>setBatchProgress(index+1)):await cleanupResidueBatch(context,items,async(input,options)=>{const changed=await command(input,options);if(changed){publishResidueUpdate(changed);lastChanged=changed;}return changed;},index=>setBatchProgress(index+1));
     if(!context.current()||serial!==batchGeneration.current)return;
     publish(result,action==='confirm'?'confirmed':'done');
-    await refreshBatchAssessment(context);
+    await refreshBatchAssessment(context,action,result);
    }catch(error){if(context.current()&&serial===batchGeneration.current)setBatchMessage(error instanceof Error?error.message:String(error));}
-   finally{if(context.current()&&serial===batchGeneration.current){batchBusy.current=false;setBatchPhase('idle');}}
+   finally{if(context.current()&&serial===batchGeneration.current){
+    try{if(residueReview?.targetId){if(lastChanged)await residueReview.applyResult(lastChanged);else if(action==='confirm')await residueReview.refresh();}}
+    finally{if(context.current()&&serial===batchGeneration.current){batchBusy.current=false;setBatchPhase('idle');}}
+   }}
   },{quiet:true});
  }
- useEffect(()=>{const latest=residueReview?.report;if(latest?.working_revision===project.working_revision)setInspection({ticket,report:latest});},[residueReview?.report,ticket]);
- const report=inspection&&(batchPending||inspection.ticket===ticket&&inspection.report.working_revision===project.working_revision)?inspection.report:null;
- const resultsReady=!!report&&(batchPending||loadedTicket===ticket);
+
+ useEffect(()=>{
+  const patch=residueReview?.report;
+  if(!patch||patch.working_revision!==project.working_revision)return;
+  const original=inspection?.report;
+  setInspection(previous=>{if(!previous)return previous;const base=mergeResidueAssessment(previous.report,relevantUpdates,asset.asset_id,project.working_revision);const merged=base&&replaceResidueAssessments(base,patch);return merged?{ticket,report:merged}:previous;});
+  // A shared keep/confirm decision does not advance geometry revision. Refresh
+  // other rows that reference the same objects without scanning the full layer.
+  if(!original||original.working_revision!==patch.working_revision||relevantUpdates.some(update=>update.result_revision===patch.working_revision&&update.assessment===patch))return;
+  const patched=new Set(patch.items.map(item=>item.text_feature_id));
+  const touched=new Set(original.items.filter(item=>patched.has(item.text_feature_id)).flatMap(item=>[...item.suspected_face_ids,...item.suspected_line_ids,...item.protected_line_ids,...(item.protected_face_ids??[])]));
+  const related=original.items.filter(item=>!patched.has(item.text_feature_id)&&[...item.suspected_face_ids,...item.suspected_line_ids,...item.protected_line_ids,...(item.protected_face_ids??[])].some(id=>touched.has(id))).map(item=>item.text_feature_id);
+  if(!related.length)return;
+  const controller=new AbortController(),expected=ticket;
+  void (async()=>{for(let offset=0;offset<related.length;offset+=100){
+   const query=new URLSearchParams({asset_id:asset.asset_id});related.slice(offset,offset+100).forEach(id=>query.append('text_feature_ids',id));
+   const result=await request<Report>(prefix+'/text-layer-assessments?'+query,undefined,controller.signal,{quiet:true});
+   if(controller.signal.aborted||currentTicket.current!==expected)return;
+   setInspection(previous=>{const merged=previous&&replaceResidueAssessments(previous.report,result);return merged?{ticket:expected,report:merged}:previous;});
+  }})().catch(error=>{if(!controller.signal.aborted&&currentTicket.current===expected){setInspection(null);setInspectionError('残影检查失败：'+String(error));}});
+  return()=>controller.abort();
+ },[residueReview?.report,ticket]);
+ const advancedReport=inspection&&inspection.ticket!==ticket?mergeResidueAssessment(inspection.report,relevantUpdates,asset.asset_id,project.working_revision):null;
+ const report=advancedReport??(inspection&&(batchPending||inspection.ticket===ticket&&inspection.report.working_revision===project.working_revision)?inspection.report:null);
+ const resultsReady=!!report&&(batchPending||loadedTicket===ticket||incremental);
  const assessments=new Map(report?.items.map(item=>[item.text_feature_id,item]));
  const matches=(feature:TextFeature,value:Filter)=>matchesResidueFilter(assessments.get(feature.feature_id),value);
  const counts:Record<Filter,number>={required:rows.filter(f=>matches(f,'required')).length,kept:rows.filter(f=>matches(f,'kept')).length,none:rows.filter(f=>matches(f,'none')).length,all:rows.length};
@@ -163,16 +209,16 @@ export function TextReviewPanel({project,asset,busy,work,command,focus,revealReq
  const currentBatch=batch?.scope===scope&&(batchPending||batch.revision===project.working_revision)?batch:null;
  const batchResults=new Map(currentBatch?.items.map(item=>[item.textId,item]));
  const visibleRows=rows.filter(f=>matches(f,filter)||f.feature_id===residueReview?.targetId||batchResults.has(f.feature_id));
- const visiblePageKey=JSON.stringify(visibleRows.slice((page-1)*TEXT_REVIEW_PAGE_SIZE,page*TEXT_REVIEW_PAGE_SIZE).map(row=>row.feature_id));
+ const visiblePageKey=JSON.stringify(visibleRows.slice((page-1)*TEXT_REVIEW_PAGE_SIZE,page*TEXT_REVIEW_PAGE_SIZE).filter(row=>residueState(assessments.get(row.feature_id))!=='none').map(row=>row.feature_id));
  useEffect(()=>{const available=new Set<string>(JSON.parse(visiblePageKey));setSelected(current=>current.filter(id=>available.has(id)));},[visiblePageKey]);
  useEffect(()=>{setPage(current=>Math.min(current,Math.max(1,Math.ceil(visibleRows.length/TEXT_REVIEW_PAGE_SIZE))));},[visibleRows.length]);
  const externalInspection=useRef('');
  useEffect(()=>{
   const targetId=residueReview?.targetId??revealRequest?.feature_id;
   const key=targetId?JSON.stringify([targetId,revealRequest?.ticket,ticket]):'';
-  if(category!=='residue'||!key||externalInspection.current===key||report||checking||busy||!visible||loadedTicket!==ticket)return;
+  if(category!=='residue'||!key||externalInspection.current===key||report||checking||inspectionError||busy||!visible||loadedTicket!==ticket)return;
   externalInspection.current=key;setCheckAttempted(true);void work(inspectReport);
- },[category,revealRequest?.ticket,residueReview?.targetId,ticket,loadedTicket,visible,!!report,checking,busy]);
+ },[category,revealRequest?.ticket,residueReview?.targetId,ticket,loadedTicket,visible,!!report,checking,inspectionError,busy]);
  useEffect(()=>{if(loadedTicket===ticket&&residueReview?.targetId&&!rows.some(row=>row.feature_id===residueReview.targetId))residueReview.close();},[loadedTicket,ticket,rows,residueReview?.targetId]);
  const revealedId=useTextReviewReveal({request:revealRequest,ticket,rows,loadedTicket,visible:category==='residue'&&visible&&resultsReady,panel,filter,setFilter,setPage,matches});
  const [located,setLocated]=useState<{ticket:string;id:string;revealTicket?:number}|null>(null);

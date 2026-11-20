@@ -76,17 +76,27 @@ def inferred_dash_members(lines,geometries,patterns,request):
             if min(gaps)>0 and max(gaps)<=getattr(request,"max_gap_px",8) and max(gaps)<=min(gaps)*1.2:members.update(j for _,j in trio)
     return members
 
-def scan_text_strokes(snapshot,request,pixels,lines,geometries,patterns,dash_members):
+def scan_text_strokes(snapshot,request,pixels,lines,geometries,patterns,dash_members,*,text_feature_ids=None):
     dash_members=set(dash_members)|inferred_dash_members(lines,geometries,patterns,request)
-    return _scan_region_strokes(snapshot,request,pixels,lines,geometries,patterns,dash_members,text_residue_regions(snapshot["texts"]))
+    return _scan_region_strokes(snapshot,request,pixels,lines,geometries,patterns,dash_members,text_residue_regions(snapshot["texts"]),text_feature_ids=text_feature_ids)
 
 
-def _scan_region_strokes(snapshot,request,pixels,lines,geometries,patterns,dash_members,regions):
+def _scan_region_strokes(snapshot,request,pixels,lines,geometries,patterns,dash_members,regions,*,text_feature_ids=None):
     from shapely import STRtree
     from shapely.ops import unary_union
     if not regions:return []
     tree=STRtree([item["geometry"] for item in regions]);result=[]
-    for index,line in enumerate(lines):
+    indices=range(len(lines))
+    if text_feature_ids is not None:
+        wanted=set(text_feature_ids)
+        targets=[item['geometry'] for item in regions if item['text']['feature_id'] in wanted]
+        if not targets:return []
+        # Keep every source region in the ownership tree. A local assessment
+        # must still see shared/geological neighbors and independent dash runs.
+        line_tree=STRtree(geometries)
+        indices=sorted({int(index) for region in targets for index in line_tree.query(region,predicate='dwithin',distance=3.)})
+    for index in indices:
+        line=lines[index]
         geometry=geometries[index]
         if geometry.is_empty or geometry.length<=1e-7:continue
         appearance=effective_line_appearance(line,snapshot)

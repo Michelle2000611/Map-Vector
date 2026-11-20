@@ -3,12 +3,13 @@ import {geometryPath,TextGlyph} from './FeatureGlyph';
 import {LineGlyph} from './LineGlyph';
 import type {ResidueCleanupPlan} from '../hooks/useResidueCleanupPlan';
 import type {Style} from '../services/models';
+import type {ResidueScene} from '../services/residueComparison';
 
-type Props={plan:ResidueCleanupPlan;viewBox:string};
-export function ResidueCleanupResult({plan,viewBox}:Props){
- const scene=plan.plan?.cleanup_preview,styles=new Map<string,Style>((scene?.styles??[]).map(item=>[item.style_id,item]));
+type Props={plan:ResidueCleanupPlan;viewBox:string;scene?:ResidueScene};
+export function ResidueCleanupResult({plan,viewBox,scene:actualScene}:Props){
+ const scene=actualScene??plan.plan?.cleanup_preview,styles=new Map<string,Style>((scene?.styles??[]).map(item=>[item.style_id,item]));
  return <figure className="residue-cleanup-result"><figcaption>清理残影后预览</figcaption>
-  {plan.status==='ready'&&scene?<>
+  {scene&&(actualScene||plan.status==='ready')?<>
    <svg className="residue-after-canvas" viewBox={viewBox} preserveAspectRatio="xMidYMid meet" role="img" aria-label="清理残影后预览">
     {scene.features.map(item=>{
      const style=item.style_id?styles.get(item.style_id):undefined;

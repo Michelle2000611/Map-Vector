@@ -79,6 +79,7 @@ class CommandService:
             after = []
             removed = []
             review_summary = {}
+            residue_update = None
             history_changes = []
             review_events = []
             target_operation_id = None
@@ -398,8 +399,15 @@ class CommandService:
                         feature=load_feature(connection,row_id[0])
                         if row_id[0] in complete_plan['text_residue_display']['cleanup_line_feature_ids'] and shape(feature['geometry']).intersection(region).length>1e-7:pending.append(row_id[0])
                     from mapvector.application.text_layer_assessment import assess
-                    remaining=assess(connection,project_id,command.asset_id,self.database.path.parents[1],[complete_plan['complete_cleanup_target_text_id']])
+                    from mapvector.application.residue_incremental import affected_text_ids
+                    affected=affected_text_ids(connection,project_id,command.asset_id,changes,[complete_plan['complete_cleanup_target_text_id']])
+                    remaining=assess(connection,project_id,command.asset_id,self.database.path.parents[1],affected)
+                    # Geometry is already restored in this transaction; project
+                    # revision advances after the operation log is persisted.
+                    remaining['working_revision']=command.base_revision+1
+                    residue_update={'asset_id':command.asset_id,'base_revision':command.base_revision,'result_revision':command.base_revision+1,'text_feature_ids':affected,'assessment':remaining}
                     for assessment in remaining['items']:
+                        if assessment['text_feature_id']!=complete_plan['complete_cleanup_target_text_id']:continue
                         # Existing assessment heuristics do not include hard
                         # protection metadata. Only planned line IDs are required.
                         pending.extend([fid for fid in assessment['suspected_face_ids'] if fid in complete_plan['text_residue_display']['cleanup_face_feature_ids']]+[fid for fid in assessment['suspected_line_ids'] if fid in complete_plan['text_residue_display']['cleanup_line_feature_ids']])
@@ -429,6 +437,7 @@ class CommandService:
             operation_id = str(uuid4())
             operation_type = command.operation_type
             result = {'operation_id': operation_id, 'result_revision': revision, 'upserted_features': after, 'removed_feature_ids': removed, 'changed_groups':changed_groups,'changed_styles':changed_styles,'changed_layers':changed_layers,'roi':roi, 'review_summary': review_summary, 'warnings': []}
+            if residue_update is not None:result['residue_update']=residue_update
             current_asset=connection.execute('SELECT current_asset_id FROM project WHERE project_id=?',(project_id,)).fetchone()[0]
             result['current_asset_id']=current_asset
             result['roi_changed']=any(kind=='roi' for kind,identity,left,right in relation_changes)

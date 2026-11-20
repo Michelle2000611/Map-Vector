@@ -1,3 +1,4 @@
+import {publishResidueUpdate} from '../services/residueUpdates';
 import {RecognitionStep} from '../components/RecognitionStep';
 import {ImportStep} from '../components/ImportStep';
 import {useShallow} from 'zustand/react/shallow';
@@ -79,6 +80,7 @@ const [allReviews,setAllReviews]=useState(false),[reviewCounts,setReviewCounts]=
    // Keep newer workspace state rather than rolling it backwards.
    const latest=useWorkspace.getState().project!;
    if(result.result_revision>=latest.working_revision){
+    publishResidueUpdate(result);
     setProject(old=>old?.project_id===target.projectId?{...old,working_revision:result.result_revision}:old);
     setFeatures(old=>{const map=new Map(old.map(feature=>[feature.feature_id,feature]));for(const id of result.removed_feature_ids??[])map.delete(id);for(const feature of result.upserted_features??[])map.set(feature.feature_id,feature);return [...map.values()];});
     const removed=new Set(result.removed_feature_ids??[]);useWorkspace.getState().setSelected(old=>old.filter(id=>!removed.has(id)));

@@ -23,7 +23,8 @@ export function ResidueLineReview({features={},preview,cleanupDisplay,projectId,
  const [cleanupHost,setCleanupHost]=useState<HTMLDivElement|null>(null);
  // Global review places this same action in the owning row; local review keeps it here.
  useLayoutEffect(()=>{setCleanupHost(cleanupActionRef?.current??null);},[cleanupActionRef,scope]);
- useEffect(()=>{generation.current++;setError('');setPending(false);setExpanded(null);return()=>{generation.current++;};},[scope]);
+ useEffect(()=>{generation.current++;setError('');setPending(false);return()=>{generation.current++;};},[scope]);
+ useEffect(()=>{setExpanded(null);},[projectId,assetId,JSON.stringify(preview.feature_ids),preview.feature_ids.length?undefined:JSON.stringify(display?.bounds_px)]);
  const visibleLines=new Set(display?.line_feature_ids??[]),protectedLines=new Set(display?.protected_line_feature_ids??[]);
  const faceIds=new Set(display?.face_feature_ids??[]),lineIds=new Set([...visibleLines,...protectedLines]);
  const confirmed=new Set([...(display?.manually_confirmed_face_feature_ids??[]),...(display?.manually_confirmed_line_feature_ids??[]),...verified]);

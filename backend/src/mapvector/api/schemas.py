@@ -1,6 +1,7 @@
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_serializer
 from uuid import UUID
 from typing import Literal
+from mapvector.api.assessment_schemas import ResidueUpdate
 
 
 class CreateProject(BaseModel):
@@ -203,6 +204,7 @@ class EditResult(BaseModel):
     model_config=ConfigDict(extra='allow')
     operation_id:UUID
     result_revision:int
+    residue_update:ResidueUpdate|None=None
     upserted_features:list[FaceResponse|LineResponse|TextResponse]
     current_asset_id:UUID|None=None
     roi_changed:bool=False
@@ -213,6 +215,12 @@ class EditResult(BaseModel):
     roi:dict[str,object]|None=None
     review_summary:dict[str,object]=Field(default_factory=dict)
     warnings:list=Field(default_factory=list)
+
+    @model_serializer(mode='wrap')
+    def omit_absent_residue_update(self,handler):
+        result=handler(self)
+        if self.residue_update is None:result.pop('residue_update',None)
+        return result
 
 
 class EditEnvelope(BaseModel):

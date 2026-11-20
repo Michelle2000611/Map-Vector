@@ -8,9 +8,12 @@ node_modules/
 frontend/dist/
 runtime/
 workspaces/
+# Model resources are versioned only for the two deployed OCR engines.
 models/**
 !models/**/
 !models/**/manifest.json
+!models/rapid/**
+!models/paddle/**
 *.log
 .env
 

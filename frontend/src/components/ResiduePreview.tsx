@@ -3,6 +3,7 @@ import {Checkbox} from 'antd';
 import {TextGlyph,geometryPath} from './FeatureGlyph';
 import {ResidueCleanupResult} from './ResidueCleanupResult';
 import type {ResidueCleanupPlan} from '../hooks/useResidueCleanupPlan';
+import type {ResidueScene} from '../services/residueComparison';
 import './ResiduePreview.css';
 import {TextResidueOverlay} from './TextResidueOverlay';
 import {PreviewImageCopyButton} from './PreviewImageCopyButton';
@@ -10,9 +11,9 @@ import type {Feature,TextFeature,TextResidueDisplay} from '../services/models';
 
 type Visibility={faces:boolean;lines:boolean;protected:boolean;text:boolean};
 type SourceImage={url:string;bounds:number[];onLoad:()=>void;onError:()=>void};
-type Props={display:TextResidueDisplay;features:Record<string,Feature>;textFeatureIds:string[];focused?:string[];sourceImage?:SourceImage;cleanupPlan?:ResidueCleanupPlan};
+type Props={display:TextResidueDisplay;features:Record<string,Feature>;textFeatureIds:string[];focused?:string[];sourceImage?:SourceImage;cleanupPlan?:ResidueCleanupPlan;actualScene?:ResidueScene};
 
-export const ResiduePreview=memo(function ResiduePreview({display,features,textFeatureIds,focused=[],sourceImage,cleanupPlan}:Props){
+export const ResiduePreview=memo(function ResiduePreview({display,features,textFeatureIds,focused=[],sourceImage,cleanupPlan,actualScene}:Props){
  const svg=useRef<SVGSVGElement>(null);
  const [shown,setShown]=useState<Visibility>({faces:true,lines:true,protected:true,text:true});
  const [showRegion,setShowRegion]=useState(false),[sourceError,setSourceError]=useState<string|null>(null);
@@ -47,7 +48,7 @@ export const ResiduePreview=memo(function ResiduePreview({display,features,textF
   {sourceImage?<div className="global-residue-comparison" aria-label="原图与残影对照">
    <figure><figcaption>原图</figcaption><svg className="residue-source-canvas" viewBox={viewBox} preserveAspectRatio="xMidYMid meet" role="img" aria-label="当前文字残影原图"><image href={sourceImage.url} x={sourceImage.bounds[0]} y={sourceImage.bounds[1]} width={sourceImage.bounds[2]-sourceImage.bounds[0]} height={sourceImage.bounds[3]-sourceImage.bounds[1]} preserveAspectRatio="none" onLoad={()=>{setSourceError(null);sourceImage.onLoad();}} onError={()=>{setSourceError(sourceImage.url);sourceImage.onError();}}/></svg>{sourceError===sourceImage.url&&<small className="residue-after-note">原图加载失败，请重新检查</small>}</figure>
    <figure><figcaption>残影预览</figcaption>{result}{controls}</figure>
-   {cleanupPlan&&<ResidueCleanupResult plan={cleanupPlan} viewBox={viewBox}/>}
+   {cleanupPlan&&<ResidueCleanupResult plan={cleanupPlan} scene={actualScene} viewBox={viewBox}/>}
   </div>:<>{result}{controls}</>}
   <div className="residue-display-controls" role="group" aria-label="预览图层">
    <span className="residue-preview-label">预览显示</span>

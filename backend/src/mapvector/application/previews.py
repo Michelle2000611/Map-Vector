@@ -179,7 +179,7 @@ def prepare_preview(connection,project_id,request,project_dir):
     if request.preview_type=='text_residue':
         from mapvector.application.residue_context import materialize,raster_binding
         if len(request.feature_ids)==1:
-            residue_context=materialize(connection,project_id,request.asset_id,request.base_revision)
+            residue_context=materialize(connection,project_id,request.asset_id,request.base_revision,text_feature_ids=request.feature_ids)
             residue_raster_source=residue_context['source']['raster_source']
         else:residue_raster_source=raster_binding(connection,project_id,request.asset_id)
         asset=connection.execute('SELECT width_px,height_px FROM asset WHERE project_id=? AND asset_id=?',(project_id,request.asset_id)).fetchone()

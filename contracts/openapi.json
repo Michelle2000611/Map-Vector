@@ -1627,6 +1627,16 @@
             "title": "Removed Feature Ids",
             "type": "array"
           },
+          "residue_update": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResidueUpdate"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "result_revision": {
             "title": "Result Revision",
             "type": "integer"
@@ -6879,6 +6889,43 @@
         "title": "ResidueReviewGroup",
         "type": "object"
       },
+      "ResidueUpdate": {
+        "properties": {
+          "assessment": {
+            "$ref": "#/components/schemas/TextLayerAssessmentReport"
+          },
+          "asset_id": {
+            "format": "uuid",
+            "title": "Asset Id",
+            "type": "string"
+          },
+          "base_revision": {
+            "title": "Base Revision",
+            "type": "integer"
+          },
+          "result_revision": {
+            "title": "Result Revision",
+            "type": "integer"
+          },
+          "text_feature_ids": {
+            "items": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "title": "Text Feature Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "asset_id",
+          "base_revision",
+          "result_revision",
+          "text_feature_ids",
+          "assessment"
+        ],
+        "title": "ResidueUpdate",
+        "type": "object"
+      },
       "RestoreLines": {
         "additionalProperties": false,
         "properties": {
@@ -8952,7 +8999,8 @@
             "enum": [
               "ocr_quad",
               "display_bbox",
-              "missing"
+              "missing",
+              "source_uncertain"
             ],
             "title": "Region Source",
             "type": "string"
@@ -17826,6 +17874,28 @@
               "format": "uuid",
               "title": "Asset Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "text_feature_ids",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "items": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "maxItems": 100,
+                  "minItems": 1,
+                  "type": "array"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Text Feature Ids"
             }
           }
         ],

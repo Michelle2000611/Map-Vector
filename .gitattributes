@@ -1,0 +1,8 @@
+# Model manifests verify exact bytes, including dictionaries and configuration.
+# Preserve those bytes on Windows and Linux instead of applying core.autocrlf.
+/models/rapid/** -text
+/models/paddle/** -text
+
+# Store OCR weights in Git LFS; keep manifests and support files in normal Git.
+/models/rapid/**/*.onnx filter=lfs diff=lfs merge=lfs -text
+/models/paddle/**/*.pdiparams filter=lfs diff=lfs merge=lfs -text

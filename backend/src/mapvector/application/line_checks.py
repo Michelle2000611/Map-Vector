@@ -123,8 +123,10 @@ def _scope(connection, project_id, asset_id, revision):
     return dict(asset)
 
 
-def snapshot(connection, project_id, asset_id, revision):
+def snapshot(connection, project_id, asset_id, revision,*,text_feature_ids=None):
     asset = _scope(connection,project_id,asset_id,revision)
+    if text_feature_ids is not None:
+        return _residue_snapshot(connection,project_id,asset_id,asset,text_feature_ids)
     # Materialize references only; image decoding and candidate work happen after closing the read.
     lines = []
     for row in connection.execute("SELECT f.*,l.* FROM feature f JOIN line_attribute l USING(feature_id) WHERE f.project_id=? AND f.asset_id=? AND f.lifecycle_status='active' ORDER BY f.feature_id",(project_id,asset_id)):
@@ -151,6 +153,68 @@ def snapshot(connection, project_id, asset_id, revision):
         value=dict(row);value['detected_quad_px']=json.loads(value['detected_quad_px']);unassigned.append(value)
     return {'unassigned_ocr_candidates':unassigned,'asset':asset,'lines':lines,'texts':texts,'groups':groups,'styles':styles,'style_bindings':bindings,
             'default_style_id':layer['default_style_id'] if layer else None, 'raster_source':source, '_raster_path':path}
+
+
+def _residue_snapshot(connection,project_id,asset_id,asset,text_feature_ids):
+    """Load indexed local sources plus their ownership/protection neighbors."""
+    from mapvector.geometry.text_residue import text_residue_regions
+    texts={};lines={}
+    def text(identity):
+        if identity not in texts:
+            value=load_feature(connection,identity)
+            if value['project_id']!=project_id or value['asset_id']!=asset_id or value['feature_type']!='text' or value['lifecycle_status']!='active':raise CommandConflict('SELECTION_SCOPE_INVALID')
+            candidate=connection.execute('SELECT * FROM ocr_candidate WHERE candidate_id=? AND project_id=? AND asset_id=?',(value.get('primary_candidate_id'),project_id,asset_id)).fetchone()
+            candidate=dict(candidate) if candidate else None
+            value['detected_quad_px']=json.loads(candidate['detected_quad_px']) if candidate and candidate['detected_quad_px'] else None
+            value['geological_symbol']=bool(set(text_decision(value,candidate)['review_reason_codes']) & {'stratigraphic_or_lithology_code','orientation_measurement','numeric_or_short'})
+            texts[identity]=value
+        return texts[identity]
+    regions=text_residue_regions([text(identity) for identity in text_feature_ids])
+    def nearby_lines(geometry,margin,short_only=False):
+        x0,y0,x1,y1=geometry.buffer(margin).bounds
+        query="SELECT f.feature_id FROM feature f JOIN line_attribute l USING(feature_id) WHERE f.project_id=? AND f.asset_id=? AND f.lifecycle_status='active' AND f.rowid IN (SELECT id FROM feature_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=?)"
+        if short_only:query+=' AND l.length_px<=12'
+        selected=[]
+        for row in connection.execute(query,(project_id,asset_id,x0,x1,y0,y1)):
+            identity=row[0]
+            if identity not in lines:lines[identity]=load_feature(connection,identity)
+            if shape(lines[identity]['geometry']).distance(geometry)<=margin:selected.append(identity)
+        return selected
+    # Stroke margins are capped at three; independent wide strokes can still
+    # protect a face. Aggregate widths without decoding unrelated geometries.
+    width=connection.execute("SELECT MAX(MAX(l.stroke_width_px,COALESCE(json_extract(l.style_override,'$.stroke_width_px'),0))) FROM line_attribute l JOIN feature f USING(feature_id) WHERE f.project_id=? AND f.asset_id=? AND f.lifecycle_status='active'",(project_id,asset_id)).fetchone()[0] or 1
+    style_width=connection.execute("SELECT MAX(stroke_width_px) FROM style WHERE project_id=? AND feature_type='line'",(project_id,)).fetchone()[0] or 1
+    margin=max(3.,float(width)/2,float(style_width)/2)
+    discovery=set()
+    for region in regions:
+        geometry=region['geometry'];discovery.update(nearby_lines(geometry,3.))
+        nearby_lines(geometry,margin)
+        x0,y0,x1,y1=geometry.bounds
+        for row in connection.execute("SELECT f.geometry_wkb FROM feature f WHERE f.project_id=? AND f.asset_id=? AND f.feature_type='face' AND f.lifecycle_status='active' AND f.rowid IN (SELECT id FROM feature_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=?)",(project_id,asset_id,x0,x1,y0,y1)):
+            face=from_wkb(row[0])
+            height=region['character_height_px'] if region['text'].get('detected_quad_px') else max(1,float(region['text'].get('font_size_px',12))/.8)
+            if face.area<geometry.area*.8 and face.area<=max(120,height**2*2) and face.intersects(geometry):nearby_lines(face,margin)
+    # Dash inference compares short runs within at most 40 pixels. Two such
+    # neighborhoods retain every trio that could mark a local stroke semantic.
+    for identity in discovery:
+        geometry=shape(lines[identity]['geometry'])
+        if geometry.length<=12:nearby_lines(geometry,80.,True)
+    # Shared owners may lie at another end of a long source. Keep their exact
+    # source footprints for ambiguous ownership and geological symbol guards.
+    for identity in discovery:
+        geometry=shape(lines[identity]['geometry']).buffer(3.);x0,y0,x1,y1=geometry.bounds
+        for row in connection.execute("SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type='text' AND lifecycle_status='active' AND rowid IN (SELECT id FROM text_ocr_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=? UNION SELECT id FROM text_display_index WHERE max_x>=? AND min_x<=? AND max_y>=? AND min_y<=?)",(project_id,asset_id,x0,x1,y0,y1,x0,x1,y0,y1)):
+            text(row[0])
+            # Indexed bounds overselect safely; source polygon filtering happens
+            # in the shared stroke ownership tree.
+    styles={row['style_id']:dict(row) for row in connection.execute("SELECT * FROM style WHERE project_id=? AND feature_type='line' ORDER BY style_id",(project_id,))}
+    layer=connection.execute("SELECT default_style_id FROM layer_setting WHERE project_id=? AND asset_id=? AND layer_type='line'",(project_id,asset_id)).fetchone()
+    bindings={}
+    for identity in lines:
+        row=connection.execute('SELECT style_id FROM feature_style WHERE feature_id=?',(identity,)).fetchone()
+        if row:bindings[identity]=row[0]
+    source,path=_raster_source(connection,asset)
+    return {'unassigned_ocr_candidates':[],'asset':asset,'lines':[lines[identity] for identity in sorted(lines)],'texts':[texts[identity] for identity in sorted(texts)],'groups':[],'styles':styles,'style_bindings':bindings,'default_style_id':layer[0] if layer else None,'raster_source':source,'_raster_path':path}
 
 
 def _raster_source(connection, asset):

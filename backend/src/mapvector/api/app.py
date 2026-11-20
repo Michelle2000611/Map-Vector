@@ -353,11 +353,16 @@ def create_app(settings: Settings | None = None) -> FastAPI:
         return envelope(request,{'items':features if include_all else [f for f in features if f['review_status'] not in DELIVERABLE],'status_counts':counts,'policy_id':'baseline_compatible','next_cursor':None})
 
     @app.get('/api/projects/{project_id}/text-layer-assessments',response_model=Envelope[TextLayerAssessmentReport])
-    def text_layer_assessments(project_id:UUID,asset_id:UUID,request:Request):
+    def text_layer_assessments(project_id:UUID,asset_id:UUID,request:Request,text_feature_ids:list[UUID]|None=Query(default=None,min_length=1,max_length=100)):
         from mapvector.application.text_layer_assessment import assess
         with ProjectDatabase(project_directory(str(project_id))/'state/project.sqlite').read() as connection:
             connection.execute('BEGIN')
-            result=assess(connection,str(project_id),str(asset_id),project_directory(str(project_id)))
+            identities=[str(identity) for identity in text_feature_ids] if text_feature_ids is not None else None
+            if identities is not None:
+                if len(identities)!=len(set(identities)):raise StarletteHTTPException(status_code=422,detail='Text identities must be unique')
+                for identity in identities:
+                    if connection.execute("SELECT 1 FROM feature WHERE feature_id=? AND project_id=? AND asset_id=? AND feature_type='text' AND lifecycle_status='active'",(identity,str(project_id),str(asset_id))).fetchone() is None:raise KeyError(identity)
+            result=assess(connection,str(project_id),str(asset_id),project_directory(str(project_id)),identities)
         return envelope(request,result)
 
     @app.get('/api/projects/{project_id}/styles',response_model=Envelope[Page[Style]])

@@ -17,7 +17,7 @@ def assess(connection,project_id,asset_id,project_dir=None,text_feature_ids=None
     revision=connection.execute('SELECT working_revision FROM project WHERE project_id=?',(project_id,)).fetchone()[0]
     items=[];pixels=None
     from mapvector.application.residue_context import materialize,checked
-    shared=materialize(connection,project_id,asset_id,revision,project_dir is not None) if residue_context is None else checked(residue_context,project_id,asset_id,revision,project_dir is not None)
+    shared=materialize(connection,project_id,asset_id,revision,project_dir is not None,text_feature_ids=text_feature_ids) if residue_context is None else checked(residue_context,project_id,asset_id,revision,project_dir is not None,text_feature_ids)
     context=shared['source'];line_geometries=shared['geometries'];line_candidates_by_text=shared['by_text']
     query="SELECT feature_id FROM feature WHERE project_id=? AND asset_id=? AND feature_type='text' AND lifecycle_status='active'"
     params=[project_id,asset_id]
@@ -41,7 +41,8 @@ def assess(connection,project_id,asset_id,project_dir=None,text_feature_ids=None
         if pixels is not None or project_dir is not None:
             cx0,cy0=max(0,math.floor(x0)),max(0,math.floor(y0));cx1,cy1=min(asset['width_px'],math.ceil(x1)),min(asset['height_px'],math.ceil(y1))
             if cx1>cx0 and cy1>cy0:
-                if pixels is not None:patch=pixels[cy0:cy1,cx0:cx1]
+                if text['feature_id'] in shared.get('raster_patches',{}):patch=shared['raster_patches'][text['feature_id']]
+                elif pixels is not None:patch=pixels[cy0:cy1,cx0:cx1]
                 else:
                     if (cx1-cx0)*(cy1-cy0)>262144:patch=np.empty((0,0,3),dtype=np.uint8)
                     else:

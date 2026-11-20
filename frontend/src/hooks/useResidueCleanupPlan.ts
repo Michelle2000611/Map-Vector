@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import {ApiError,request} from '../services/client';
 import type {Preview} from '../services/models';
+import {reusableResiduePlan} from '../services/residuePlan';
 
 type Options={projectId:string;assetId:string;revision:number;session:number;review:Preview|null;verified:string[];assignments:Record<string,string>;enabled:boolean;refreshReview?:()=>Promise<void>};
 type State={key:string;status:'loading'|'ready'|'error';plan?:Preview;message?:string};
@@ -12,9 +13,12 @@ export function useResidueCleanupPlan({projectId,assetId,revision,session,review
  const key=JSON.stringify([source,revision,enabled,[...verified].sort(),Object.entries(assignments).sort(),retry]);
  const current=useRef(key);current.current=key;
  const active=enabled&&review?.preview_type==='text_residue'&&!!review.text_residue_display&&review.base_revision===revision;
+ const reusable=active&&reusableResiduePlan(review,revision,verified,assignments);
+ const expired=!!review?.expires_at&&Date.parse(review.expires_at)<=Date.now();
  useEffect(()=>{
   if(!active||!review){setState(null);return;}
   if(review.expires_at&&Date.parse(review.expires_at)<=Date.now()){setState({key,status:'error',message:'检查已过期，请重新检查。'});return;}
+  if(reusable){setState({key,status:'ready',plan:review});return;}
   const controller=new AbortController(),expected=key;
   setState({key,status:'loading'});
   const display=review.text_residue_display!;
@@ -34,7 +38,7 @@ export function useResidueCleanupPlan({projectId,assetId,revision,session,review
   });
   return()=>controller.abort();
  },[key]);
- const selected=state?.key===key?state:null;
+ const selected:State|null=state?.key===key?state:reusable&&review&&!expired?{key,status:'ready',plan:review}:null;
  useEffect(()=>{
   const expiries=[review?.expires_at,selected?.plan?.expires_at].filter((value):value is string=>!!value).map(value=>Date.parse(value)).filter(Number.isFinite);if(!active||!expiries.length)return;
   const remaining=Math.min(...expiries)-Date.now();if(remaining>2147483647)return;

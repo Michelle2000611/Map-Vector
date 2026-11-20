@@ -1,4 +1,6 @@
-import {residueCleanupMessage} from '../services/residueBatch';
+import {actualResidueScene,captureResidueComparison} from '../services/residueComparison';
+import type {ResidueComparison,ResidueScene} from '../services/residueComparison';
+import {publishResidueUpdate} from '../services/residueUpdates';
 import {ReasonList} from './ReasonList';
 import {LoadingImage,LoadingSvgImage} from './LoadingImage';
 import {TextResidueOverlay} from './TextResidueOverlay';
@@ -88,6 +90,9 @@ export function Workbench({project,asset,features,focus,stage,initialTextLayer=f
  const [residueCheckAttempted,setResidueCheckAttempted]=useState(false),[residueChecking,setResidueChecking]=useState(false);
  const residueCheckSerial=useRef(0),residueCheckInFlight=useRef(false);
  const residueRegionOwner=useRef<{previewId:string;scope:string}|null>(null);
+ const [residueComparison,setResidueComparison]=useState<ResidueComparison|null>(null),residueComparisonRef=useRef<ResidueComparison|null>(null);
+ const [residueActualScene,setResidueActualScene]=useState<ResidueScene>();
+ const ownResidueRevision=useRef<number|null>(null);
  const [previewError,setPreviewError]=useState(''),[previewPending,setPreviewPending]=useState(false),[historyOpen,setHistoryOpen]=useState(false);
  const [activeGlobalTool,setActiveGlobalTool]=useState<'style_library'|'line_check'|'face_check'|'text_check'|null>(null);
  function clearObjectPreview(){setInspectionFocus(null);previewTicket.current+=1;setPreview(null);setPreviewPending(false);setPreviewError('');setVerifiedResidueLines([]);setResidueFocusLines([]);if(useWorkspace.getState().layer==='text'&&tool==='residue_lines')setTool('pick');}
@@ -226,9 +231,10 @@ export function Workbench({project,asset,features,focus,stage,initialTextLayer=f
  const unavailableDrafts=draftScopes.filter(scope=>!draftAvailable(scope)).length;
  const visible=useMemo(()=>features.map(f=>autosave.previewFeature?.feature_id===f.feature_id?autosave.previewFeature:f).filter(f=>shown[itemLayer(f) as keyof typeof shown]).sort((a,b)=>(a.feature_type==='face'?0:a.feature_type==='line'?1:2)-(b.feature_type==='face'?0:b.feature_type==='line'?1:2)),[features,shown,autosave.previewFeature]);
  const residueOwnerScope=JSON.stringify([project.project_id,asset.asset_id,workspaceSession,layer,[...selected].sort()]);
+ useEffect(()=>{residueComparisonRef.current=null;setResidueComparison(null);setResidueActualScene(undefined);ownResidueRevision.current=null;},[residueOwnerScope]);
  const residuePreviewCurrent=preview?.preview_type==='text_residue'&&preview.base_revision===project.working_revision&&(!preview.expires_at||Date.parse(preview.expires_at)>Date.now())&&(preview.feature_ids.length===0?residueRegionOwner.current?.previewId===preview.preview_id&&residueRegionOwner.current.scope===residueOwnerScope:preview.feature_ids.length===1&&selected.length===1&&preview.feature_ids[0]===selected[0]);
  const residueDisplay=residuePreviewCurrent?preview.text_residue_display:null;
- const residueCleanupPlan=useResidueCleanupPlan({projectId:project.project_id,assetId:asset.asset_id,revision:project.working_revision,session:workspaceSession,review:preview?.preview_type==='text_residue'?preview:null,verified:verifiedResidueLines,assignments:{},enabled:layer==='text'&&!activeGlobalTool&&activePropertySection==='text_residue'&&!!residueDisplay,refreshReview:refreshResiduePreview});
+ const residueCleanupPlan=useResidueCleanupPlan({projectId:project.project_id,assetId:asset.asset_id,revision:project.working_revision,session:workspaceSession,review:preview?.preview_type==='text_residue'?preview:null,verified:verifiedResidueLines,assignments:{},enabled:layer==='text'&&!activeGlobalTool&&activePropertySection==='text_residue'&&!!residueDisplay,refreshReview:()=>refreshResiduePreview(false)});
 
  const sceneFeatures=useMemo(()=>residueDisplay?[]:visible,[visible,residueDisplay]);
  const counts=useMemo(()=>({face:features.filter(f=>f.feature_type==='face').length,line:features.filter(f=>f.feature_type==='line'&&f.lifecycle_status==='active').length,text:features.filter(f=>f.feature_type==='text').length}),[features]);
@@ -261,7 +267,7 @@ export function Workbench({project,asset,features,focus,stage,initialTextLayer=f
  async function reloadHistory(){const ticket=++metadataSession.current;const history=await request<Page<Operation>>(prefix+'/operations?include_results=false&asset_id='+asset.asset_id);if(ticket===metadataSession.current){setOperations(history.items);if(['set_style','bind_style','clear_style_override','set_layer','undo','redo'].includes(history.items[0]?.operation_type)){const [library,settings]=await Promise.all([request<Page<Style>>(prefix+'/styles'),request<Page<Layer>>(prefix+'/layers?asset_id='+asset.asset_id)]);if(ticket===metadataSession.current){setStyles(library.items);setLayers(settings.items);}}}}
  useEffect(()=>{let active=true;void Promise.all([request<Page<Style>>(prefix+'/styles'),request<Page<Layer>>(prefix+'/layers?asset_id='+asset.asset_id)]).then(([library,settings])=>{if(active){setStyles(library.items);setLayers(settings.items);}}).catch(error=>info(String(error)));return()=>{active=false;};},[project.project_id,asset.asset_id]);
  useEffect(()=>{const draft=draftScopes.find(scope=>draftAvailable(scope)&&(!initialTextLayer||scope.layer==='text'));if(draft){setLayer(draft.layer);setSelected(draft.featureIds);}else{setSelected([]);if(initialTextLayer)setLayer('text');}setPreview(null);setScroll({left:0,top:0});},[project.project_id,asset.asset_id]);
- useEffect(()=>{setPreview(null);void reloadHistory().catch(error=>info(String(error)));},[project.project_id,asset.asset_id,project.working_revision]);
+ useEffect(()=>{if(!cleanupInFlight.current&&ownResidueRevision.current!==project.working_revision)setPreview(null);void reloadHistory().catch(error=>info(String(error)));},[project.project_id,asset.asset_id,project.working_revision]);
  useCanvasScroll(left,right,comparison,zoom,asset.asset_id);
  useEffect(()=>{if(!focus)return;setPreview(null);setPreviewError('');const f=featuresById[focus.feature_id];if(!f||f.feature_type!=='text')return;setLayer('text');setShown(old=>({...old,text:true}));setSelected([focus.feature_id]);focusInspection([focus.feature_id],'文字 '+f.text_value,inspectionOwner);setTool('pick');const panel=right.current;if(panel&&f.geometry.type==='Point'){const bbox=f.display_bbox_px;const next=Math.min(12,Math.max(zoom,Math.min(panel.clientWidth/Math.max(160,bbox?bbox[2]-bbox[0]+80:200),panel.clientHeight/Math.max(120,bbox?bbox[3]-bbox[1]+60:160))));const x=bbox?(bbox[0]+bbox[2])/2:f.geometry.coordinates[0],y=bbox?(bbox[1]+bbox[3])/2:f.geometry.coordinates[1];setZoom(next);setScroll({left:Math.max(0,x*next-panel.clientWidth/2),top:Math.max(0,y*next-panel.clientHeight/2)});}if(!focus.residue)previewTicket.current+=1;setPreviewPending(false);if(focus.residue)void work(()=>makePreview('text_residue',{feature_ids:[f.feature_id]}));},[focus]);
  const submit=(body:CommandInput)=>work(async()=>{const result=await propertyCommand(body);if(result)clearObjectPreview();return result;});
@@ -369,24 +375,25 @@ export function Workbench({project,asset,features,focus,stage,initialTextLayer=f
   return latest.working_revision;
  }
  const healRequest=useRef<{previewId:string;body:Record<string,unknown>}|null>(null);
- async function makePreview(kind:string,extra:Record<string,unknown>={},options:{reveal?:boolean}={}){
+ async function makePreview(kind:string,extra:Record<string,unknown>={},options:{reveal?:boolean;preserveComparison?:boolean}={}){
   if(!await autosave.flush())return;
   const ticket=++previewTicket.current,start=useWorkspace.getState(),session=start.session,sectionAtStart=propertySectionRef.current;
   const ids=Array.isArray(extra.feature_ids)?extra.feature_ids as string[]:[...start.selected];
-  const selection=kind==='text_residue'&&ids.length?[...ids]:[...start.selected];setPreviewError('');setPreviewPending(true);setPreview(null);
+  const selection=kind==='text_residue'&&ids.length?[...ids]:[...start.selected];setPreviewError('');setPreviewPending(true);if(!options.preserveComparison)setPreview(null);
   try{
    let revision=start.project?.working_revision??project.working_revision;let result:Preview|undefined;
    for(let attempt=0;attempt<2;attempt++){
     const state=useWorkspace.getState();
     if(ticket!==previewTicket.current||state.session!==session||state.asset?.asset_id!==asset.asset_id)return;
     for(const id of ids)if(!state.featuresById[id])throw Error('所选对象已不在当前结果中，请重新选择文字。');
-    try{result=await request<Preview>(prefix+'/edit-previews',{asset_id:asset.asset_id,base_revision:revision,preview_type:kind,feature_ids:ids,...extra});break;}
+    try{result=await request<Preview>(prefix+'/edit-previews',{asset_id:asset.asset_id,base_revision:revision,preview_type:kind,feature_ids:ids,...(kind==='text_residue'&&ids.length?{complete_region:true,face_assignments:{}}:{}),...extra});break;}
     catch(error){if(attempt===0&&error instanceof ApiError&&error.code==='REVISION_CONFLICT'){revision=await syncPreviewRevision(session);continue;}throw error;}
    }
    const state=useWorkspace.getState();
    if(!result||ticket!==previewTicket.current||state.session!==session||state.asset?.asset_id!==asset.asset_id||state.project?.working_revision!==revision||selection.length!==state.selected.length||selection.some((id,index)=>id!==state.selected[index]))return;
    if(result.preview_type==='text_residue'&&result.feature_ids.length===0)residueRegionOwner.current={previewId:result.preview_id,scope:JSON.stringify([project.project_id,asset.asset_id,state.session,state.layer,[...state.selected].sort()])};
    if(kind==='heal_faces')healRequest.current={previewId:result.preview_id,body:{asset_id:asset.asset_id,base_revision:revision,preview_type:kind,feature_ids:ids,...extra}};
+   if(kind==='text_residue'&&result.text_residue_display&&(!options.preserveComparison||!residueComparisonRef.current)){const snapshot=captureResidueComparison(result,state.featuresById,residueSourceCrop(project.project_id,asset,result));residueComparisonRef.current=snapshot;setResidueComparison(snapshot);setResidueActualScene(undefined);}
    setPreview(result);setRiskLines([]);setVerifiedResidueLines([]);setResidueFocusLines([]);setRiskFaces([]);setFaceAssignments({});setPropertyOpen(true);
    if(result.text_residue_display){if(!ids.length)setPropertyReveal({key:'text_residue',ticket:++textReviewTicket.current,identity:JSON.stringify([project.project_id,asset.asset_id,state.layer,[...state.selected].sort()])});changeBackground('right','source');focusInspection(ids,'文字残影范围',activeGlobalTool==='text_check'?'text_check':ids.length?inspectionOwner:'residue',result.text_residue_display.bounds_px);}
    if(kind!=='text_residue'&&options.reveal!==false&&propertySectionRef.current===sectionAtStart)setPropertyReveal({key:kind.startsWith('merge_')?'face_merge':kind==='heal_faces'?'face_repair':'line_edit',ticket:++textReviewTicket.current,identity:JSON.stringify([project.project_id,asset.asset_id,state.layer,[...state.selected].sort()])});
@@ -425,7 +432,7 @@ export function Workbench({project,asset,features,focus,stage,initialTextLayer=f
   if(state.preview?.preview_id!==plan.preview_id||state.project?.working_revision!==plan.base_revision||(plan.expires_at&&Date.parse(plan.expires_at)<=Date.now())){clearObjectPreview();info('残影检查已更新，请重新查看。');return false;}
   return true;
  }
- async function refreshResiduePreview(){const state=useWorkspace.getState(),plan=state.preview;if(plan?.preview_type==='text_residue'&&plan.feature_ids.length===0&&plan.text_residue_display?.preserves_existing_text)await makePreview('text_residue',{feature_ids:[],bounds_px:plan.text_residue_display.bounds_px});else if(state.selected.length===1&&state.featuresById[state.selected[0]]?.feature_type==='text')await makePreview('text_residue',{feature_ids:[state.selected[0]]});}
+ async function refreshResiduePreview(preserveComparison=true){const state=useWorkspace.getState(),plan=state.preview;if(plan?.preview_type==='text_residue'&&plan.feature_ids.length===0&&plan.text_residue_display?.preserves_existing_text)await makePreview('text_residue',{feature_ids:[],bounds_px:plan.text_residue_display.bounds_px},{preserveComparison});else if(state.selected.length===1&&state.featuresById[state.selected[0]]?.feature_type==='text')await makePreview('text_residue',{feature_ids:[state.selected[0]]},{preserveComparison});}
  async function cleanupResidue(){
   if(busy||cleanupInFlight.current||!residueCleanupPlan.plan)return;
   const context=objectContext(),state=useWorkspace.getState(),feature=state.featuresById[context.selected[0]],reviewPlan=state.preview?.preview_type==='text_residue'?state.preview:null,range=reviewPlan?.text_residue_display,verified=[...verifiedResidueLines];
@@ -440,8 +447,15 @@ export function Workbench({project,asset,features,focus,stage,initialTextLayer=f
    const display=plan.text_residue_display;
    if(!display?.complete_region||!display.preserves_existing_text)throw Error('无法确定对应文字，请缩小范围后重试。');
    if(display.cleanup_face_feature_ids.length+display.cleanup_line_feature_ids.length===0){info('未发现可清理的残影。');return;}
-   const result=await command({operation_type:'cleanup_text_residue',preview_id:plan.preview_id,complete_region:true,face_assignments:{},...(verified.length?{verified_line_feature_ids:verified}:{})});
-   if(result&&sameObject(context)){clearObjectPreview();info((residueCleanupMessage(plan,true)??'残影已清理')+'；可撤销。');await openResidueReview();}
+   const before=useWorkspace.getState().featuresById;
+   const result=await command({operation_type:'cleanup_text_residue',preview_id:plan.preview_id,complete_region:true,face_assignments:{},...(verified.length?{verified_line_feature_ids:verified}:{})},{quiet:true});
+   if(result&&sameObject(context)){
+    if(result.result_revision!==useWorkspace.getState().project?.working_revision){setPreview(null);throw Error('清理已保存，项目再次更新，请重新检查。');}
+    ownResidueRevision.current=result.result_revision;publishResidueUpdate(result);
+    const baseline=residueComparisonRef.current?.preview.text_residue_display;if(baseline)setResidueActualScene(actualResidueScene(before,baseline.bounds_px,result,plan.cleanup_preview?.styles??[]));
+    setVerifiedResidueLines([]);setResidueFocusLines([]);
+    await makePreview('text_residue',{feature_ids:ids,...(regionReview&&range?{bounds_px:range.bounds_px}:{})},{preserveComparison:true});
+   }
   });}finally{cleanupInFlight.current=false;setCleanupPending(false);}
  }
  function pixel(event:React.PointerEvent<SVGSVGElement>):Point{const bounds=event.currentTarget.getBoundingClientRect();return [(event.clientX-bounds.left)/zoom,(event.clientY-bounds.top)/zoom];}
@@ -513,12 +527,14 @@ export function Workbench({project,asset,features,focus,stage,initialTextLayer=f
  const otherDrafts=Math.max(0,drafts.count-(drafts.dirty?1:0));
  const deleteLabel='删除 '+selected.length+' 个'+(layer==='face'?'面':layer==='text'?'文字':'线')+'对象';
  const deleteAction=hasSelection?<Button danger className="property-delete-action" disabled={busy} onClick={()=>Modal.confirm({title:deleteLabel,okText:'删除',cancelText:'取消',okButtonProps:{danger:true},content:(layer==='face'?'删除后原位置将留下空缺。':'')+'本次删除记录进入历史，可通过撤销恢复。',onOk:()=>submit({operation_type:layer==='face'?'delete_faces':layer==='text'?'delete_text':'delete_lines',feature_ids:selected})})}>{deleteLabel}</Button>:null;
- const singleTextResidueSection=(selected.length===1&&!!textFeature||!!residueDisplay&&preview?.feature_ids.length===0)&&<div className="property-action-section residue-workspace">
+ const comparisonDisplay=residueComparison?.preview.text_residue_display;
+ const singleTextResidueSection=(selected.length===1&&!!textFeature||!!comparisonDisplay&&residueComparison?.preview.feature_ids.length===0)&&<div className="property-action-section residue-workspace">
   <InspectionStatus ariaLabel="文字残影检查状态" state={residueChecking||previewPending?'checking':residueDisplay?'done':'waiting'} attempted={residueCheckAttempted||!!residueDisplay} disabled={busy||cleanupPending||!editableLayerVisible||unsavedRecognition} onCheck={()=>void inspectCurrentTextResidue()} extra={<Button disabled={busy||cleanupPending||residueChecking||previewPending||!residueDisplay} onClick={()=>residueDisplay&&focusInspection([],'文字残影范围',inspectionOwner,residueDisplay.bounds_px)}>定位到检查范围</Button>}/>
-  <div className="residue-current-object" hidden={!residueDisplay}>
-   {residueDisplay&&preview&&<><ResiduePreview key={preview.preview_id} display={residueDisplay} features={featuresById} textFeatureIds={preview.feature_ids} focused={residueFocusLines} cleanupPlan={residueCleanupPlan} sourceImage={{...residueSourceCrop(project.project_id,asset,preview),onLoad:()=>{},onError:()=>{}}}/>
+  <div className="residue-current-object" hidden={!comparisonDisplay}>
+   {comparisonDisplay&&residueComparison&&<ResiduePreview key={residueComparison.preview.preview_id} display={comparisonDisplay} features={residueComparison.features} textFeatureIds={residueComparison.preview.feature_ids} focused={residueFocusLines} cleanupPlan={residueCleanupPlan} actualScene={residueActualScene} sourceImage={{...residueComparison.sourceImage,onLoad:()=>{},onError:()=>{}}}/>}
+   {residueDisplay&&preview&&<>
 
-    <ResidueLineReview features={featuresById} preview={preview} cleanupDisplay={residueCleanupPlan.plan?.text_residue_display} projectId={project.project_id} assetId={asset.asset_id} busy={busy||cleanupPending} cleanupDisabled={!residueCleanupPlan.plan||!residueCleanupPlan.plan.cleanup_preview?.has_changes} checked={riskLines} verified={verifiedResidueLines} onChecked={ids=>{setRiskLines(ids);setResidueFocusLines(ids);}} onVerified={setVerifiedResidueLines} onLocate={(bounds,ids)=>{setResidueFocusLines(ids);focusInspection(ids,'残影对象 · '+ids.length+' 个',inspectionOwner,bounds,preview.preview_id,undefined,residueDisplay.bounds_px);}} onCleanup={()=>void cleanupResidue()} guard={guardResiduePreview} onDecided={refreshResiduePreview}/></>}
+    <ResidueLineReview features={featuresById} preview={preview} cleanupDisplay={residueCleanupPlan.plan?.text_residue_display} projectId={project.project_id} assetId={asset.asset_id} busy={busy||cleanupPending} cleanupDisabled={!residueCleanupPlan.plan||!residueCleanupPlan.plan.cleanup_preview?.has_changes} checked={riskLines} verified={verifiedResidueLines} onChecked={ids=>{setRiskLines(ids);setResidueFocusLines(ids);}} onVerified={setVerifiedResidueLines} onLocate={(bounds,ids)=>{setResidueFocusLines(ids);focusInspection(ids,'残影对象 · '+ids.length+' 个',inspectionOwner,bounds,preview.preview_id,undefined,residueDisplay.bounds_px);}} onCleanup={()=>void cleanupResidue()} guard={guardResiduePreview} onDecided={()=>refreshResiduePreview()}/></>}
   </div>
  </div>;
  const textActionProps={busy,

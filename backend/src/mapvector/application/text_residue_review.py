@@ -96,7 +96,7 @@ def review_lines(connection, project_id, asset_id, text_id, features, display,*,
     text_evidence={}
     from mapvector.application.residue_context import materialize,checked
     revision=connection.execute('SELECT working_revision FROM project WHERE project_id=?',(project_id,)).fetchone()[0]
-    shared=materialize(connection,project_id,asset_id,revision) if residue_context is None else checked(residue_context,project_id,asset_id,revision,True)
+    shared=materialize(connection,project_id,asset_id,revision,text_feature_ids=[text_id]) if residue_context is None else checked(residue_context,project_id,asset_id,revision,True,[text_id])
     context=shared['source']
     canonical={context['lines'][item['index']]['feature_id']:item for item in shared['proposals']}
     items = {}
